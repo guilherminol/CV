@@ -1,0 +1,11 @@
+# Secrets — never commit (SC5, T-01-01)
+.env
+
+# Dependencies / build artifacts
+node_modules/
+dist/
+.venv/
+__pycache__/
+
+# Generated outputs
+outputs/
