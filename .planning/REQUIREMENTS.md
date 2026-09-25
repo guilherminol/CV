@@ -68,13 +68,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (pending — filled by roadmap) | | |
+| PROFILE-01 | Phase 1 | Pending |
+| PROFILE-02 | Phase 3 | Pending |
+| PROFILE-03 | Phase 2 | Pending |
+| RESUME-01 | Phase 3 | Pending |
+| RESUME-02 | Phase 3 | Pending |
+| RESUME-03 | Phase 3 | Pending |
+| RESUME-04 | Phase 3 | Pending |
+| REVIEW-01 | Phase 5 | Pending |
+| REVIEW-02 | Phase 4 | Pending |
+| REVIEW-03 | Phase 4 | Pending |
+| LI-01 | Phase 6 | Pending |
+| LI-02 | Phase 6 | Pending |
+| LI-03 | Phase 6 | Pending |
+| LI-04 | Phase 6 | Pending |
+| LI-05 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15 ⚠️
+- Mapped to phases: 15
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-25*
-*Last updated: 2026-09-25 after initial definition*
+*Last updated: 2026-09-25 after roadmap creation*
