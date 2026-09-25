@@ -32,7 +32,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Shipped example data covers experiences, projects, technologies, and impacts, and the app visibly flags that placeholder data is in use until the user replaces it with real data.
   4. The profile schema encodes the chosen localization shape (parallel localized fields vs per-language files), demonstrated by bilingual example data.
   5. The OpenRouter API key lives only in a gitignored `.env` — nothing secret is ever committed.
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Walking Skeleton: scaffold (gitignore-first, uv backend on pinned 3.12, Vite frontend) + end-to-end perfil path (content/profile.md → Pydantic → GET /api/profile → PT-BR shell with placeholder banner), dev + prod modes
+- [ ] 01-02-PLAN.md — Profile contract: full strict schema (localized maps, base pt-BR, extra=forbid everywhere), fail-fast loader with PT-BR error localization, fully bilingual example persona, completude in the API envelope
+- [ ] 01-03-PLAN.md — Perfil UI: three-state Perfil home (loading / error panel with verbatim PT-BR lines / ok), completeness grid, resume-style preview, finalized run docs
 
 ### Phase 2: LLM Generation Core
 **Goal**: Every LLM call flows through one gateway that is logged, schema-validated, bilingual by parameter, and driven by meta-prompts the user can edit as versioned files in git.
@@ -105,7 +110,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation — Scaffold + Master Profile | 0/TBD | Not started | - |
+| 1. Foundation — Scaffold + Master Profile | 0/3 | Not started | - |
 | 2. LLM Generation Core | 0/TBD | Not started | - |
 | 3. Resume Vertical Slice | 0/TBD | Not started | - |
 | 4. PDF Export + ATS Self-Check | 0/TBD | Not started | - |
