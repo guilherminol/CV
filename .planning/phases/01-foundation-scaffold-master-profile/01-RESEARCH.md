@@ -586,12 +586,13 @@ export function App() {
 | A5 | Vite react-ts template build script is `tsc -b && vite build` | Validation Architecture | Frontend gate command differs → check `frontend/package.json` at scaffold |
 | A6 | Seam SUS verdicts on all canonical packages are recency/metadata heuristics, not real risk | Package Legitimacy Audit | One `checkpoint:human-verify` for the install batch covers it; no package removed |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **`app.frontend()` exact signature/behavior**
+1. **`app.frontend()` exact signature/behavior** — **RESOLVED (2026-09-25, at planning):**
    - What we know: exists in FastAPI 0.141.1 (verified `hasattr`); docs say it wraps StaticFiles and handles client-side routing
    - What's unclear: exact options (fallback behavior for unknown paths)
    - Recommendation: use the classic documented mount for Phase 1; revisit `app.frontend()` if/when the SPA gains real routes
+   - Resolution: classic documented `StaticFiles(html=True)` mount adopted — implemented by plan 01 Task 2 (main.py, mounted last after /api routes); `app.frontend()` stays unresearched and unused in Phase 1. No open question remains for this phase.
 
 ## Environment Availability
 
