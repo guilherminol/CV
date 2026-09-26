@@ -9,3 +9,6 @@ __pycache__/
 
 # Generated outputs
 outputs/
+
+# LLM run logs (runs.jsonl metadata — never commit)
+logs/
