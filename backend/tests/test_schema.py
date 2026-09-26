@@ -217,6 +217,69 @@ def test_date_coercion_accepts_unquoted_yaml_dates() -> None:
     assert experience.end_date == "2023-05"
 
 
+# ---------------------------------------------------------------------------
+# WR-03: string dates must be 'AAAA-MM' — typo'd values fail loudly (D-10
+# spirit: silent acceptance is how typos reach the store unnoticed)
+# ---------------------------------------------------------------------------
+
+
+def _experience_data(start_date: object, end_date: object | None = None) -> dict:
+    return {
+        "company": "Exemplo IA",
+        "title": {"pt-BR": "t", "en": "t"},
+        "start_date": start_date,
+        "end_date": end_date,
+        "description": {"pt-BR": "d", "en": "d"},
+    }
+
+
+def _date_value_errors(excinfo: pytest.ExceptionInfo[ValidationError]) -> list[dict]:
+    return [
+        e for e in excinfo.value.errors(include_url=False) if e["type"] == "value_error"
+    ]
+
+
+def test_malformed_string_date_rejected_loudly() -> None:
+    """WR-03: `start_date: "banana"` can no longer pass silently."""
+    with pytest.raises(ValidationError) as excinfo:
+        Experience.model_validate(_experience_data("banana"))
+    date_errors = _date_value_errors(excinfo)
+    assert date_errors, "esperado value_error para data malformada"
+    assert date_errors[0]["loc"] == ("start_date",)  # the offending field is named
+    assert "data esperada no formato 'AAAA-MM'" in date_errors[0]["msg"]
+    assert "banana" in date_errors[0]["msg"]  # the offending value is named
+
+
+def test_wrong_month_range_in_string_date_rejected() -> None:
+    with pytest.raises(ValidationError) as excinfo:
+        Experience.model_validate(_experience_data("2022-13"))
+    date_errors = _date_value_errors(excinfo)
+    assert date_errors, "esperado value_error para mês fora de 01-12"
+
+
+def test_full_date_string_rejected_stores_stay_month_precision() -> None:
+    """WR-03: quoted full dates are rejected — only unquoted YAML dates are
+    truncated, so the stored format is uniformly 'AAAA-MM'."""
+    with pytest.raises(ValidationError) as excinfo:
+        Experience.model_validate(_experience_data("2022-03-15"))
+    date_errors = _date_value_errors(excinfo)
+    assert date_errors, "esperado value_error para data além da precisão de mês"
+
+
+def test_optional_date_field_still_accepts_null() -> None:
+    """`end_date: null` (explicit YAML null) keeps validating — WR-03 must not
+    turn an absent end date into a format error."""
+    education = EducationEntry.model_validate(
+        {
+            "institution": "Universidade Exemplo",
+            "degree": "BSc",
+            "start_date": "2013-02",
+            "end_date": None,
+        }
+    )
+    assert education.end_date is None
+
+
 def test_example_flag_round_trips(minimal_profile_data: dict) -> None:
     minimal_profile_data["example"] = True
     assert Profile.model_validate(minimal_profile_data).example is True

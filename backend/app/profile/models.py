@@ -15,6 +15,7 @@ Conventions (see .planning/phases/01 CONTEXT.md):
   declared here or extra="forbid" rejects the shipped file.
 """
 
+import re
 from datetime import date
 from typing import Literal, Self, get_args
 
@@ -31,9 +32,22 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+# WR-03: dates are stored at month precision, "AAAA-MM" (ex.: 2022-03).
+# Unquoted YAML dates arrive as datetime.date (Pitfall 1) and are truncated;
+# any string that is not already "AAAA-MM" fails loudly so typo'd dates can
+# never pass silently and the stored format stays uniform for downstream
+# consumers (experience sorting, PDF output).
+_DATE_RE = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])")
+
+
 def _date_to_str(v: object) -> object:
-    # Pitfall 1: unquoted YAML dates arrive as datetime.date objects
-    return v.isoformat()[:7] if isinstance(v, date) else v
+    if isinstance(v, date):  # Pitfall 1: unquoted YAML dates arrive as datetime.date
+        return v.isoformat()[:7]
+    if isinstance(v, str) and not _DATE_RE.fullmatch(v):
+        raise ValueError(
+            f"data esperada no formato 'AAAA-MM' (ex.: 2022-03), encontrado '{v}'"
+        )
+    return v
 
 
 def _is_localized(annotation: object) -> bool:
