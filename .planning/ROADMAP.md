@@ -14,7 +14,7 @@ Career Tailor goes from an empty repo to a localhost app the user actually sends
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation — Scaffold + Master Profile** - App runs locally with a PT-BR interface; git-versioned master profile schema with example data, validated loudly on load
-- [ ] **Phase 2: LLM Generation Core** - One logged, schema-validated, bilingual OpenRouter gateway with meta-prompts as editable git files and an input-agnostic {en, pt} keyword engine
+- [x] **Phase 2: LLM Generation Core** - One logged, schema-validated, bilingual OpenRouter gateway with meta-prompts as editable git files and an input-agnostic {en, pt} keyword engine (completed 2026-09-26)
 - [ ] **Phase 3: Resume Vertical Slice** - Paste JD → grounded, keyword-targeted resume sections with visible keyword extraction, coverage checklist, and completeness lint
 - [ ] **Phase 4: PDF Export + ATS Self-Check** - Sendable single-column Google-format PDF whose text layer is proven by an automated parse-back gate, in both languages
 - [ ] **Phase 5: Review Flow + Fact Safety** - Per-section regenerate, inline editing, and source-vs-generated fact diff before export
@@ -159,7 +159,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation — Scaffold + Master Profile | 3/3 | In Progress|  |
-| 2. LLM Generation Core | 5/5 | In Progress|  |
+| 2. LLM Generation Core | 5/5 | Complete    | 2026-09-26 |
 | 3. Resume Vertical Slice | 0/TBD | Not started | - |
 | 4. PDF Export + ATS Self-Check | 0/TBD | Not started | - |
 | 5. Review Flow + Fact Safety | 0/TBD | Not started | - |
