@@ -146,16 +146,20 @@ def test_real_run_keyword_extraction(text: str, language: str, label: str, tmp_p
             any(ch in r for ch in "áéíóúãõçêâô") for r in non_null
         ), f"{label}: nenhuma renderização pt-BR com acentos preservados"
 
-    # D-09/D-11 spot-check: proper nouns canonical in both languages render
-    # identically (pt == en) — checked wherever both renderings exist.
+    # D-09/D-11 spot-check: TECHNOLOGY proper nouns render identically across
+    # languages (pt == en). Job titles ("Data Engineer" → "Engenheiro de
+    # Dados") are translatable and deliberately excluded.
+    proper_nouns = {
+        "kubernetes", "terraform", "aws", "kafka", "spark", "docker",
+        "dbt", "airflow", "snowflake", "redshift", "grafana",
+        "opentelemetry", "great expectations", "iceberg", "eks",
+    }
     for kw in result.keywords:
-        if kw.pt and kw.en and kw.canonical[0].isupper() and "-" not in kw.canonical:
-            # Only comparable when both texts name the same proper noun.
-            if kw.canonical.lower() in text.lower():
-                assert kw.pt == kw.en, (
-                    f"{label}: próprio '{kw.canonical}' divergiu entre idiomas "
-                    f"(pt='{kw.pt}' != en='{kw.en}') — D-11"
-                )
+        if kw.pt and kw.en and kw.canonical.lower() in proper_nouns:
+            assert kw.pt == kw.en, (
+                f"{label}: próprio '{kw.canonical}' divergiu entre idiomas "
+                f"(pt='{kw.pt}' != en='{kw.en}') — D-11"
+            )
 
     # D-13: every attempt left an auditable runs.jsonl line.
     lines = [
