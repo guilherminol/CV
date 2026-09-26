@@ -319,6 +319,8 @@ def test_api_error_is_fatal_immediate_no_retry(tmp_path: Path) -> None:
     ("response", "type_name"),
     [
         pytest.param(_shape_response(empty_choices=True), "NoneType", id="empty-choices"),
+        pytest.param(_shape_response(None), "NoneType", id="content-none"),
+        pytest.param(_shape_response(["bloco"]), "list", id="content-non-str"),
     ],
 )
 def test_malformed_response_shapes_contained_like_invalid_content(
@@ -362,6 +364,33 @@ def test_malformed_response_shapes_contained_like_invalid_content(
     raw_log = runs_log.read_text(encoding="utf-8")
     assert "TEXTO-SECRETO-DO-USUARIO" not in raw_log
     assert "bloco" not in raw_log
+
+
+def test_malformed_shape_then_valid_recovers_with_correction(tmp_path: Path) -> None:
+    """SC3/D-04 on the malformed-shape path: attempt 1 empty choices →
+    attempt 2 valid. The retry appends ONLY a user correction (no assistant
+    turn — nothing valid to echo back), so roles are ["system", "user",
+    "user"] — deliberately different from the validation-path recovery."""
+    runs_log = tmp_path / "runs.jsonl"
+    fake = ScriptedClient([_shape_response(empty_choices=True), CANNED_CONTENT])
+    result = run_stage("keyword-extraction", "texto", "pt-BR", runs_log=runs_log, client=fake)
+
+    assert isinstance(result, KeywordExtraction)
+    assert len(fake.calls) == 2
+    retry_messages = fake.calls[1]["messages"]
+    assert [m["role"] for m in retry_messages] == ["system", "user", "user"]
+    assert "Reenvie o objeto JSON completo" in retry_messages[-1]["content"]
+
+    records = [
+        json.loads(line)
+        for line in runs_log.read_text(encoding="utf-8").splitlines()
+    ]
+    attempts = [r for r in records if r.get("event") != "run_summary"]
+    assert [r["status"] for r in attempts] == ["invalid", "ok"]
+    summary = records[-1]
+    assert summary["event"] == "run_summary"
+    assert summary["outcome"] == "ok"
+    assert summary["attempts"] == 2
 
 
 def test_prompt_file_edit_is_visible_on_next_call(
