@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { fetchProfile } from './api/client'
@@ -5,6 +6,7 @@ import { CompletenessGrid } from './components/CompletenessGrid'
 import { ErrorPanel } from './components/ErrorPanel'
 import { PlaceholderBanner } from './components/PlaceholderBanner'
 import { ProfilePreview } from './components/ProfilePreview'
+import CurriculoHome from './pages/CurriculoHome'
 import {
   APP_TITLE,
   NAV_ITEMS,
@@ -70,30 +72,46 @@ function PerfilHome() {
 }
 
 export default function App() {
+  // Plan 03-04: minimal view switch — no router dependency (STACK.md lean stack).
+  // Currículo is the default landing view (the phase's core flow; planner decision).
+  const [view, setView] = useState<'curriculo' | 'perfil'>('curriculo')
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
           <span className="text-lg font-bold">{APP_TITLE}</span>
           <nav className="flex gap-4">
-            {NAV_ITEMS.map((item) => (
-              <span
-                key={item.id}
-                className={
-                  item.enabled
-                    ? 'font-medium text-blue-600'
-                    : 'text-gray-400' /* módulos futuros */
-                }
-                aria-disabled={!item.enabled}
-              >
-                {item.label}
-              </span>
-            ))}
+            {NAV_ITEMS.map((item) =>
+              item.enabled ? (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setView(item.id)}
+                  aria-current={view === item.id ? 'true' : undefined}
+                  className={
+                    view === item.id
+                      ? 'rounded font-medium text-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                      : 'rounded font-medium text-gray-600 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                  }
+                >
+                  {item.label}
+                </button>
+              ) : (
+                <span
+                  key={item.id}
+                  className="text-gray-400" /* módulos futuros */
+                  aria-disabled={!item.enabled}
+                >
+                  {item.label}
+                </span>
+              ),
+            )}
           </nav>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 py-6">
-        <PerfilHome />
+        {view === 'perfil' ? <PerfilHome /> : <CurriculoHome />}
       </main>
     </div>
   )

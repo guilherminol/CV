@@ -106,3 +106,86 @@ export async function fetchProfile(): Promise<ProfileResponse> {
   }
   return (await resp.json()) as ProfileResponse
 }
+
+// --- resume endpoints (plan 03-04) — mirrors the NORMATIVE response contract
+// in .planning/phases/03-resume-vertical-slice/03-03-PLAN.md, implemented by
+// backend/app/routes/resume.py. Change BOTH together; tsc -b is the drift gate.
+
+export type ResumeLanguage = 'pt-BR' | 'en'
+
+/** Schema keyword category (Phase 2 D-10); display labels live in constants/ui.ts. */
+export type KeywordCategory = 'competencias' | 'ferramentas' | 'titulos_de_vaga' | 'certificacoes'
+
+export interface KeywordDTO {
+  canonical: string
+  aliases: string[]
+  pt: string | null
+  en: string | null
+  category: KeywordCategory
+}
+
+export interface ExperienciaGeradaDTO {
+  company: string
+  title: string
+  bullets: string[]
+}
+
+/** The 3 generated sections (D-01 stage order: resumo → experiências → habilidades). */
+export interface SecoesDTO {
+  resumo: string
+  experiencias: ExperienciaGeradaDTO[]
+  habilidades: string[]
+}
+
+/** One keyword's honest coverage verdict; termo is the auditable matched string (D-02). */
+export interface CoberturaItemDTO {
+  canonical: string
+  category: KeywordCategory
+  termo: string | null
+  status: 'coberto' | 'ausente'
+}
+
+export type LintResponse =
+  | { status: 'ok'; keywords: KeywordDTO[]; avisos: string[] }
+  | { status: 'erro'; erros: string[] }
+
+export type GerarResponse =
+  | {
+      status: 'ok'
+      idioma: ResumeLanguage
+      keywords: KeywordDTO[]
+      avisos: string[]
+      secoes: SecoesDTO
+      cobertura: CoberturaItemDTO[]
+      cobertura_resumo: { cobertos: number; total: number }
+    }
+  | { status: 'erro'; erros: string[] }
+
+/** Pre-generate lint/extract (SC5): keyword extraction + JD-tied profile gaps. */
+export async function fetchResumeLint(jdText: string): Promise<LintResponse> {
+  const resp = await fetch('/api/resume/lint', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jd_text: jdText }),
+  })
+  if (!resp.ok) {
+    throw new Error(`POST /api/resume/lint falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as LintResponse
+}
+
+/** One-shot generate: extraction → lint → 3 sequential section stages → coverage. */
+export async function gerarCurriculo(payload: {
+  jd_text: string
+  language: ResumeLanguage
+}): Promise<GerarResponse> {
+  const resp = await fetch('/api/resume/gerar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!resp.ok) {
+    throw new Error(`POST /api/resume/gerar falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as GerarResponse
+}
