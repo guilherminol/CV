@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from app.config import LLM_MODEL
+from app.config import LLM_MAX_ATTEMPTS, LLM_MODEL
 from app.llm.errors import LLMError
 from app.llm.gateway import run_stage
 from app.llm.logging import write_run_line
@@ -75,6 +75,37 @@ class FakeClient:
         completions.create = create
         chat.completions = completions
         self.chat = chat
+
+
+class ScriptedClient:
+    """Fake returning a scripted SEQUENCE of contents (or raising scripted
+    exceptions) — one per attempt — recording every create() call."""
+
+    def __init__(self, script: list):
+        self._script = list(script)
+        self.calls: list[dict] = []
+        chat = type("Chat", (), {})()
+        completions = type("Completions", (), {})()
+
+        def create(**kwargs):
+            self.calls.append(kwargs)
+            item = self._script.pop(0)
+            if isinstance(item, Exception):
+                raise item
+            return _FakeResponse(item)
+
+        completions.create = create
+        chat.completions = completions
+        self.chat = chat
+
+
+BAD_CATEGORY_CONTENT = json.dumps(
+    {
+        "keywords": [
+            {"canonical": "x", "aliases": [], "pt": None, "en": None, "category": "inexistente"}
+        ]
+    }
+)
 
 
 @pytest.fixture(autouse=True)
@@ -192,3 +223,96 @@ def test_write_run_line_creates_dir_and_keeps_accents(tmp_path: Path) -> None:
     assert "\\u" not in raw
     write_run_line(runs_log, {"status": "ok"})  # second attempt appends
     assert len(runs_log.read_text(encoding="utf-8").splitlines()) == 2
+
+
+# ---------------------------------------------------------------------------
+# Retry loop — validation errors self-correct or fail loud (SC3, D-03/D-04)
+# ---------------------------------------------------------------------------
+
+
+def test_invalid_then_valid_recovers_with_appended_correction(tmp_path: Path) -> None:
+    """SC3/D-04: attempt 1 invalid (unknown category) → attempt 2 valid.
+    Pitfall 7: the retry NEVER resends identical messages — the assistant's
+    bad output + a PT-BR correction request embedding the validation error
+    are appended first."""
+    runs_log = tmp_path / "runs.jsonl"
+    fake = ScriptedClient([BAD_CATEGORY_CONTENT, CANNED_CONTENT])
+    result = run_stage("keyword-extraction", "texto", "pt-BR", runs_log=runs_log, client=fake)
+
+    assert isinstance(result, KeywordExtraction)
+    assert len(fake.calls) == 2
+    retry_messages = fake.calls[1]["messages"]
+    assert [m["role"] for m in retry_messages] == ["system", "user", "assistant", "user"]
+    assert retry_messages[2]["content"] == BAD_CATEGORY_CONTENT  # the bad output, verbatim
+    correction = retry_messages[3]["content"]
+    assert "corrija" in correction.lower()  # PT-BR correction request
+    assert "inexistente" in correction  # the rendered validation error is embedded
+
+    statuses = [json.loads(l)["status"] for l in runs_log.read_text(encoding="utf-8").splitlines()]
+    assert statuses == ["invalid", "ok"]  # retries auditable from the log alone (D-14)
+
+
+def test_exhausted_retries_raise_llmerror_after_max_attempts(tmp_path: Path) -> None:
+    """D-04/D-03: always-invalid → LLMError after exactly LLM_MAX_ATTEMPTS."""
+    runs_log = tmp_path / "runs.jsonl"
+    fake = ScriptedClient([BAD_CATEGORY_CONTENT] * (LLM_MAX_ATTEMPTS + 2))
+    with pytest.raises(LLMError) as excinfo:
+        run_stage("keyword-extraction", "t", "pt-BR", runs_log=runs_log, client=fake)
+    assert len(fake.calls) == LLM_MAX_ATTEMPTS  # bounded by config (D-04)
+    assert "tentativas" in excinfo.value.message_ptbr
+    assert "inexistente" in excinfo.value.raw  # accumulated validation detail
+
+    records = [json.loads(l) for l in runs_log.read_text(encoding="utf-8").splitlines()]
+    assert [r["status"] for r in records] == ["invalid"] * LLM_MAX_ATTEMPTS
+    assert [r["attempt"] for r in records] == list(range(1, LLM_MAX_ATTEMPTS + 1))
+
+
+def test_api_error_is_fatal_immediate_no_retry(tmp_path: Path) -> None:
+    """D-03: network/API errors are NOT retried — LLMError on attempt 1."""
+    runs_log = tmp_path / "runs.jsonl"
+    fake = ScriptedClient([RuntimeError("connection reset by peer")])
+    with pytest.raises(LLMError) as excinfo:
+        run_stage("keyword-extraction", "t", "pt-BR", runs_log=runs_log, client=fake)
+    assert len(fake.calls) == 1  # exactly one attempt — no retry, no fallback
+    assert "connection reset" in excinfo.value.raw
+    record = json.loads(runs_log.read_text(encoding="utf-8").splitlines()[0])
+    assert record["status"] == "error"
+    assert record["attempt"] == 1
+
+
+def test_prompt_file_edit_is_visible_on_next_call(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """SC1/D-08 at gateway level: editing the prompt file between calls
+    changes what the next call sends — fresh read, no cache."""
+    prompts_dir = tmp_path / "prompts"
+    prompts_dir.mkdir()
+    prompt_path = prompts_dir / "keyword-extraction.md"
+
+    def _write_prompt(body: str) -> None:
+        prompt_path.write_text(
+            f"---\nid: keyword-extraction\ntemperature: 0.2\nmax_tokens: 100\n---\n\n{body}",
+            encoding="utf-8",
+        )
+
+    _write_prompt("VERSAO-UM do system prompt")
+    monkeypatch.setattr("app.llm.prompts.PROMPTS_DIR", prompts_dir)
+    first = FakeClient(CANNED_CONTENT)
+    run_stage("keyword-extraction", "t", "pt-BR", runs_log=tmp_path / "runs.jsonl", client=first)
+
+    _write_prompt("VERSAO-DOIS do system prompt")  # edit between calls, no code change
+    second = FakeClient(CANNED_CONTENT)
+    run_stage("keyword-extraction", "t", "pt-BR", runs_log=tmp_path / "runs.jsonl", client=second)
+
+    assert "VERSAO-UM" in first.calls[0]["messages"][0]["content"]
+    assert "VERSAO-DOIS" in second.calls[0]["messages"][0]["content"]
+
+
+def test_missing_key_raises_before_any_client_call(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("app.llm.gateway.OPENROUTER_API_KEY", "")
+    fake = FakeClient(CANNED_CONTENT)
+    with pytest.raises(LLMError):
+        run_stage("keyword-extraction", "t", "pt-BR", runs_log=tmp_path / "runs.jsonl", client=fake)
+    assert fake.calls == []  # the client was never contacted
