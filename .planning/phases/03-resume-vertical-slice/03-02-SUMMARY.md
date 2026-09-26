@@ -169,6 +169,10 @@ None - no external service configuration required.
 - Plan 03-03 can consume the new symbols directly: `classify_coverage(keywords, generated_text, language)`, `summarize_coverage(cobertura)`, `lint_jd_tied(profile, keywords)`; the cobertura entry shape (`{"canonical","category","termo","status"}`) and status tokens (`"coberto"`/`"ausente"`) are pinned by test for the route/UI contract
 - Recorded consequence standing: coverage input is the 3 GENERATED sections' text only — the caller (03-03) owns that discipline; a cert keyword only in passthrough sections reads "ausente" (one-line caller change if flipped)
 
+## Self-Check: PASSED
+
+All 5 created files exist on disk; all 5 commits (a272731, e473831, 24c9a6d, c9761a3, 8dfb545) verified in git log.
+
 ---
 *Phase: 03-resume-vertical-slice*
 *Completed: 2026-09-26*

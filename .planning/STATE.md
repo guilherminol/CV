@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Resume Vertical Slice
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-09-26T21:32:51.710Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-09-26T21:54:13.319Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 3 execution started
-state_head: 255a763c0c720728f202a5477e77c48049dd8c47
+state_head: 8dfb54545ec7d0d6b6f4847b68955f585c12b551
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 17
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 ## Current Position
 
 Phase: 3 (Resume Vertical Slice) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 3 execution started
 
@@ -69,6 +69,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P04 | 14min | 3 tasks | 3 files |
 | Phase 02 P05 | 8 min | 2 tasks | 2 files |
 | Phase 3 P01 | 13min | 3 tasks | 9 files |
+| Phase 3 P02 | 16 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-03: retry loop bounded by LLM_MAX_ATTEMPTS appends assistant output + PT-BR correction (Pitfall 7); API errors fatal on attempt 1; runs.jsonl field set + run_summary line pinned by test
 - [Phase 02]: 02-04: real-API harness green on live OpenRouter (5/5 -m llm) — anthropic/claude-sonnet-4.5 validated and pinned (A1 closed); harness asserts 02-03 JSONL contract, USD pricing deferred to Phase 5/6 run store
 - [Phase 02]: 02-05 gap closure: malformed-but-200 response shapes (empty choices, content=None, non-str) route through the SAME containment path as invalid JSON (CR-01) — invalid attempt line, bounded retry with user-only PT-BR correction (no assistant turn), LLMError at exhaustion; runs.jsonl stays metadata-only (choice count + content type NAME descriptors)
+- [Phase 3]: 03-02: coverage + lint as pure functions — matcher returns the auditable matched-term string; \b forbidden (verified C++/C#/.NET false-negatives)
+- [Phase 3]: one matcher two inputs — lint_jd_tied reuses coverage fold/lookaround primitives; avisos are UI-contract strings owned backend-side
 
 ### Pending Todos
 
@@ -111,6 +114,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-26T21:32:51.593Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-09-26T21:54:13.203Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
