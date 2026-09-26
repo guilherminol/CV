@@ -29,9 +29,12 @@ function summarize(completude: CompletudeDTO, key: SectionKey): { present: boole
         detail: qtd(completude.educacao_qtde, COMPLETENESS_UNIT.itens, COMPLETENESS_UNIT.itensPlural),
       }
     case 'habilidades':
+      // WR-04: the grid shows BOTH numbers — groups and the technologies inside
+      // them (habilidades_itens_qtde) — mirroring the experiencias detail line,
+      // instead of mislabeling the group count as "itens".
       return {
         present: completude.habilidades,
-        detail: `${qtd(completude.habilidades_qtde, COMPLETENESS_UNIT.itens, COMPLETENESS_UNIT.itensPlural)}`,
+        detail: `${qtd(completude.habilidades_qtde, COMPLETENESS_UNIT.grupos, COMPLETENESS_UNIT.gruposPlural)} · ${qtd(completude.habilidades_itens_qtde, COMPLETENESS_UNIT.itens, COMPLETENESS_UNIT.itensPlural)}`,
       }
     case 'certificacoes':
       return {

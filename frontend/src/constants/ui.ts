@@ -48,6 +48,8 @@ export const COMPLETENESS_UNIT = {
   impactosPlural: 'impactos',
   itens: 'item',
   itensPlural: 'itens',
+  grupos: 'grupo', // WR-04: habilidades_qtde counts categorized groups
+  gruposPlural: 'grupos',
 } as const
 
 // --- profile preview (D-12: resume-style render of the profile) ---
