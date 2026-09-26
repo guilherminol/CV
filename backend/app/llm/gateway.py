@@ -24,20 +24,33 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from app.config import LLM_MAX_ATTEMPTS, LLM_MODEL, OPENROUTER_API_KEY, RUNS_LOG
 from app.llm.errors import LLMError
 from app.llm.logging import write_run_line, write_run_summary
 from app.llm.prompts import load_prompt
-from app.llm.schemas import KEYWORD_STRICT_SCHEMA, KeywordExtraction
+from app.llm.schemas import (
+    KEYWORD_STRICT_SCHEMA,
+    RESUME_EXPERIENCIAS_STRICT_SCHEMA,
+    RESUME_SKILLS_STRICT_SCHEMA,
+    RESUME_SUMMARY_STRICT_SCHEMA,
+    KeywordExtraction,
+    ResumeExperiencias,
+    ResumeSkills,
+    ResumeSummary,
+)
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
-# stage → output schema + its strict wire JSON Schema. Full drift-lock
-# machinery is Plan 02-03; a single-entry map is enough for the tracer.
+# stage → output model + its hand-maintained strict wire JSON Schema (one
+# entry per generation stage). Drift-lock machinery per schema lives in
+# tests/test_keyword_schema.py + tests/test_resume_schema.py (T-02-08).
 _STAGE_SCHEMAS: dict[str, tuple[type, dict]] = {
     "keyword-extraction": (KeywordExtraction, KEYWORD_STRICT_SCHEMA),
+    "resume-summary": (ResumeSummary, RESUME_SUMMARY_STRICT_SCHEMA),
+    "resume-experiencias": (ResumeExperiencias, RESUME_EXPERIENCIAS_STRICT_SCHEMA),
+    "resume-skills": (ResumeSkills, RESUME_SKILLS_STRICT_SCHEMA),
 }
 
 
@@ -60,11 +73,14 @@ def run_stage(
     language: str,
     runs_log: Path | None = None,
     client: object | None = None,
-) -> KeywordExtraction:
+) -> BaseModel:
     """Run one generation stage end-to-end. See module docstring.
 
     `client` is an OpenAI SDK-compatible chat client (injectable for offline
     tests — D-16). `runs_log` defaults to config.RUNS_LOG at CALL time.
+    Returns the stage's typed model (keyword-extraction → KeywordExtraction;
+    resume stages → ResumeSummary / ResumeExperiencias / ResumeSkills) — the
+    concrete class comes from _STAGE_SCHEMAS, validated strict (T-02-03).
     """
     if stage not in _STAGE_SCHEMAS:
         raise LLMError(
