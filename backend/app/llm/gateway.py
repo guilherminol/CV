@@ -1,16 +1,22 @@
 """LLM gateway — the one path from prompt file to typed, audited output.
 
-Happy path only in this tracer (retry loop lands in Plan 02-03):
 load_prompt(stage) fresh (D-08) → compose user message (D-07) → OpenAI SDK
-call against OpenRouter with a strict json_schema response_format →
+calls against OpenRouter with a strict json_schema response_format →
 re-validate with Pydantic (wire `strict: true` is NEVER trusted — T-02-03) →
-write ONE runs.jsonl line (D-13/D-14) → return the typed result.
+write ONE runs.jsonl line PER ATTEMPT (D-13/D-14) → return the typed result.
+
+Retry loop (RESEARCH Pattern 3, SC3/D-03/D-04): ValidationError (or invalid
+JSON) is retried up to LLM_MAX_ATTEMPTS, ALWAYS appending the assistant's bad
+output plus a PT-BR correction request embedding the rendered validation
+errors first — identical messages are NEVER resent (Pitfall 7). Exhaustion
+raises a loud LLMError; invalid content never returns downstream.
 
 - Model slug from app.config only (D-01/D-02) — never a literal here.
 - The client is injectable so the default test suite stays offline (D-16, A3).
 - Missing/empty OPENROUTER_API_KEY at CALL time raises LLMError (loud,
   tolerant config notwithstanding).
-- No silent model fallback on any error (D-03).
+- Network/API/SDK errors are NOT retried — immediate LLMError, no fallback
+  model on any error (D-03).
 """
 
 import json
@@ -20,7 +26,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from app.config import LLM_MODEL, OPENROUTER_API_KEY, RUNS_LOG
+from app.config import LLM_MAX_ATTEMPTS, LLM_MODEL, OPENROUTER_API_KEY, RUNS_LOG
 from app.llm.errors import LLMError
 from app.llm.logging import write_run_line
 from app.llm.prompts import load_prompt
@@ -83,82 +89,115 @@ def run_stage(
     loaded = load_prompt(stage)  # fresh read every call (D-08/SC1)
     # D-07: the prompt-file body is the SYSTEM message; runtime inputs are the
     # USER message (T-02-01: pasted text is data, never instruction).
-    user_message = f"Idioma preferido de saída: {language}\n\nTexto:\n{input_text}"
+    messages: list[dict] = [
+        {"role": "system", "content": loaded.body},
+        {"role": "user", "content": f"Idioma preferido de saída: {language}\n\nTexto:\n{input_text}"},
+    ]
 
-    started = time.perf_counter()
     base_record: dict = {
         "ts": datetime.now(timezone.utc).isoformat(),
         "stage": stage,
         "model": LLM_MODEL,
         "language": language,
-        "attempt": 1,
         "prompt_tokens": 0,
         "completion_tokens": 0,
         "total_tokens": 0,
         "cost": None,
         "error": None,
     }
-    try:
-        resp = client.chat.completions.create(
-            model=LLM_MODEL,
-            messages=[
-                {"role": "system", "content": loaded.body},
-                {"role": "user", "content": user_message},
-            ],
-            temperature=loaded.spec.temperature,
-            max_tokens=loaded.spec.max_tokens,
-            response_format={
-                "type": "json_schema",
-                "json_schema": {
-                    "name": stage.replace("-", "_"),
-                    "strict": True,
-                    "schema": wire_schema,
+    accumulated_raw: list[str] = []
+
+    # Retry loop (Pattern 3): validation errors only; bounded by config (D-04).
+    for attempt in range(1, LLM_MAX_ATTEMPTS + 1):
+        started = time.perf_counter()
+        try:
+            resp = client.chat.completions.create(
+                model=LLM_MODEL,
+                messages=messages,
+                temperature=loaded.spec.temperature,
+                max_tokens=loaded.spec.max_tokens,
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": stage.replace("-", "_"),
+                        "strict": True,
+                        "schema": wire_schema,
+                    },
                 },
+                extra_body={"provider": {"require_parameters": True}},  # Pitfall 2: body, not header
+            )
+        except Exception as exc:  # SDK/API failure — NOT retried, stay loud (D-03)
+            write_run_line(
+                runs_log,
+                {
+                    **base_record,
+                    "attempt": attempt,
+                    "status": "error",
+                    "latency_ms": round((time.perf_counter() - started) * 1000, 1),
+                    "error": f"{type(exc).__name__}: {exc}",
+                },
+            )
+            raise LLMError(
+                f"Falha na chamada ao modelo ({stage}): {type(exc).__name__}",
+                f"{type(exc).__name__}: {exc}",
+            ) from exc
+
+        latency_ms = round((time.perf_counter() - started) * 1000, 1)
+        content = resp.choices[0].message.content
+        try:
+            parsed = json.loads(content)
+            result = output_model.model_validate(parsed)  # SC3/T-02-03: never trust the wire
+        except (json.JSONDecodeError, ValidationError) as exc:
+            raw = f"{type(exc).__name__}: {exc}"
+            accumulated_raw.append(f"[tentativa {attempt}] {raw}")
+            write_run_line(
+                runs_log,
+                {
+                    **base_record,
+                    **_usage_fields(resp),
+                    "attempt": attempt,
+                    "status": "invalid",
+                    "latency_ms": latency_ms,
+                    "error": f"{type(exc).__name__} (conteúdo Pydantic-inválido — nunca "
+                    f"retornado downstream, SC3)",
+                },
+            )
+            if attempt < LLM_MAX_ATTEMPTS:
+                # Pitfall 7: NEVER resend identical messages — append the
+                # assistant's bad output, then a PT-BR correction request
+                # embedding the rendered validation errors.
+                if isinstance(exc, ValidationError):
+                    rendered = "\n".join(
+                        str(e) for e in exc.errors(include_url=False)
+                    )
+                    correction = (
+                        "A resposta anterior é inválida. Corrija SOMENTE os erros "
+                        "abaixo e reenvie o objeto JSON completo:\n" + rendered
+                    )
+                else:
+                    correction = (
+                        "A resposta anterior não é JSON válido. Reenvie o objeto "
+                        "JSON completo."
+                    )
+                messages.append({"role": "assistant", "content": content})
+                messages.append({"role": "user", "content": correction})
+            continue
+
+        write_run_line(
+            runs_log,
+            {
+                **base_record,
+                **_usage_fields(resp),
+                "attempt": attempt,
+                "status": "ok",
+                "latency_ms": latency_ms,
             },
-            extra_body={"provider": {"require_parameters": True}},  # Pitfall 2: body, not header
         )
-    except Exception as exc:  # SDK/API failure — log metadata, stay loud (D-03)
-        record = {
-            **base_record,
-            "status": "error",
-            "latency_ms": round((time.perf_counter() - started) * 1000, 1),
-            "error": f"{type(exc).__name__}: {exc}",
-        }
-        write_run_line(runs_log, record)
-        raise LLMError(
-            f"Falha na chamada ao modelo ({stage}): {type(exc).__name__}",
-            f"{type(exc).__name__}: {exc}",
-        ) from exc
+        return result
 
-    latency_ms = round((time.perf_counter() - started) * 1000, 1)
-    content = resp.choices[0].message.content
-    try:
-        parsed = json.loads(content)
-        result = output_model.model_validate(parsed)  # SC3/T-02-03: never trust the wire
-    except (json.JSONDecodeError, ValidationError) as exc:
-        record = {
-            **base_record,
-            **_usage_fields(resp),
-            "status": "invalid",
-            "latency_ms": latency_ms,
-            "error": f"{type(exc).__name__} (conteúdo Pydantic-inválido — nunca "
-            f"retornado downstream, SC3)",
-        }
-        write_run_line(runs_log, record)
-        raw = f"{type(exc).__name__}: {exc}"
-        raise LLMError(
-            f"Resposta do modelo inválida para o estágio '{stage}' — o conteúdo "
-            f"não passa na validação e não será usado",
-            raw,
-        ) from exc
-
-    write_run_line(
-        runs_log,
-        {
-            **base_record,
-            **_usage_fields(resp),
-            "status": "ok",
-            "latency_ms": latency_ms,
-        },
+    # Exhaustion (D-03/D-04): loud, PT-BR, raw detail to the terminal only.
+    raise LLMError(
+        f"Falha na geração após {LLM_MAX_ATTEMPTS} tentativas — resposta "
+        f"inválida para o estágio '{stage}' (detalhes no terminal)",
+        "\n".join(accumulated_raw),
     )
-    return result
