@@ -37,11 +37,14 @@ class KeywordExtraction(_Strict):
     keywords: list[Keyword]
 
 
-# Hand-maintained minimal STRICT JSON Schema for KeywordExtraction — sent as
-# response_format json_schema to the provider (PATTERNS §schemas.py: never send
-# model_json_schema() raw; Pitfall 1). OpenAI strict mode requires
-# additionalProperties: false and all properties in `required`.
-KEYWORD_EXTRACTION_JSON_SCHEMA: dict = {
+# Hand-maintained STRICT JSON Schema for KeywordExtraction — sent as
+# response_format json_schema to the provider (RESEARCH Pattern 2; PATTERNS
+# §schemas.py: never send model_json_schema() raw — Pitfall 1). OpenAI strict
+# mode requires additionalProperties: false and ALL properties in `required`
+# at every object level; optionals become nullable unions (Pattern 2/A2).
+# The drift-lock test (tests/test_keyword_schema.py) fails CI if this dict and
+# the Pydantic model diverge (threat T-02-08) — edit BOTH together.
+KEYWORD_STRICT_SCHEMA: dict = {
     "type": "object",
     "properties": {
         "keywords": {

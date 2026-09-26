@@ -24,14 +24,14 @@ from app.config import LLM_MODEL, OPENROUTER_API_KEY, RUNS_LOG
 from app.llm.errors import LLMError
 from app.llm.logging import write_run_line
 from app.llm.prompts import load_prompt
-from app.llm.schemas import KEYWORD_EXTRACTION_JSON_SCHEMA, KeywordExtraction
+from app.llm.schemas import KEYWORD_STRICT_SCHEMA, KeywordExtraction
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # stage → output schema + its strict wire JSON Schema. Full drift-lock
 # machinery is Plan 02-03; a single-entry map is enough for the tracer.
 _STAGE_SCHEMAS: dict[str, tuple[type, dict]] = {
-    "keyword-extraction": (KeywordExtraction, KEYWORD_EXTRACTION_JSON_SCHEMA),
+    "keyword-extraction": (KeywordExtraction, KEYWORD_STRICT_SCHEMA),
 }
 
 
