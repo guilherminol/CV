@@ -64,7 +64,7 @@ Plans:
   3. A malformed structured response is caught by validation, retried with the validation error appended, and surfaces a clear failure — malformed content never reaches downstream stages.
   4. Keyword extraction run on a pasted JD or a career objective returns keywords mapped across {en, pt} with covered/adjacent/absent classification hooks for later coverage checks.
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -77,7 +77,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03-PLAN.md — Expansion: validation-error retry loop with appended correction + loud exhaustion (SC3), per-attempt JSONL logging contract (D-13/D-14), strict-schema drift-lock (Pattern 2)
+- [x] 02-03-PLAN.md — Expansion: validation-error retry loop with appended correction + loud exhaustion (SC3), per-attempt JSONL logging contract (D-13/D-14), strict-schema drift-lock (Pattern 2)
 
 **Wave 4** *(blocked on Wave 3 completion; needs OPENROUTER_API_KEY)*
 
@@ -155,7 +155,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation — Scaffold + Master Profile | 3/3 | In Progress|  |
-| 2. LLM Generation Core | 2/4 | In Progress|  |
+| 2. LLM Generation Core | 3/4 | In Progress|  |
 | 3. Resume Vertical Slice | 0/TBD | Not started | - |
 | 4. PDF Export + ATS Self-Check | 0/TBD | Not started | - |
 | 5. Review Flow + Fact Safety | 0/TBD | Not started | - |
