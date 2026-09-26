@@ -64,7 +64,7 @@ Plans:
   3. A malformed structured response is caught by validation, retried with the validation error appended, and surfaces a clear failure — malformed content never reaches downstream stages.
   4. Keyword extraction run on a pasted JD or a career objective returns keywords mapped across {en, pt} with covered/adjacent/absent classification hooks for later coverage checks.
 
-**Plans**: 4/4 plans executed
+**Plans**: 5 plans (4 executed; 02-05 gap closure pending)
 
 Plans:
 **Wave 1**
@@ -82,6 +82,10 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion; needs OPENROUTER_API_KEY)*
 
 - [x] 02-04-PLAN.md — Real-API harness: bilingual fixtures, slug probe, `pytest -m llm` runs through the gateway, blocking human verification of PT-BR quality (SC2)
+
+**Wave 5** *(gap closure — closes the SC3 containment gap found by 02-VERIFICATION)*
+
+- [ ] 02-05-PLAN.md — Gap closure: contain malformed-but-200 response shapes (empty choices / None / non-str content) in the gateway via the CR-01 fix — same containment path as invalid content, pinned offline (SC3, PROFILE-03)
 
 ### Phase 3: Resume Vertical Slice
 
