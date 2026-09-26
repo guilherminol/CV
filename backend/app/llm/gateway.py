@@ -28,7 +28,7 @@ from pydantic import ValidationError
 
 from app.config import LLM_MAX_ATTEMPTS, LLM_MODEL, OPENROUTER_API_KEY, RUNS_LOG
 from app.llm.errors import LLMError
-from app.llm.logging import write_run_line
+from app.llm.logging import write_run_line, write_run_summary
 from app.llm.prompts import load_prompt
 from app.llm.schemas import KEYWORD_STRICT_SCHEMA, KeywordExtraction
 
@@ -106,6 +106,14 @@ def run_stage(
         "error": None,
     }
     accumulated_raw: list[str] = []
+    attempt_records: list[dict] = []  # for the terminal run summary (D-13)
+
+    def _log(record: dict) -> None:
+        write_run_line(runs_log, record)
+        attempt_records.append(record)
+
+    def _summarize(outcome: str) -> None:
+        write_run_summary(runs_log, base_record, attempt_records, outcome)
 
     # Retry loop (Pattern 3): validation errors only; bounded by config (D-04).
     for attempt in range(1, LLM_MAX_ATTEMPTS + 1):
@@ -127,16 +135,16 @@ def run_stage(
                 extra_body={"provider": {"require_parameters": True}},  # Pitfall 2: body, not header
             )
         except Exception as exc:  # SDK/API failure — NOT retried, stay loud (D-03)
-            write_run_line(
-                runs_log,
+            _log(
                 {
                     **base_record,
                     "attempt": attempt,
                     "status": "error",
                     "latency_ms": round((time.perf_counter() - started) * 1000, 1),
                     "error": f"{type(exc).__name__}: {exc}",
-                },
+                }
             )
+            _summarize("error")
             raise LLMError(
                 f"Falha na chamada ao modelo ({stage}): {type(exc).__name__}",
                 f"{type(exc).__name__}: {exc}",
@@ -150,8 +158,7 @@ def run_stage(
         except (json.JSONDecodeError, ValidationError) as exc:
             raw = f"{type(exc).__name__}: {exc}"
             accumulated_raw.append(f"[tentativa {attempt}] {raw}")
-            write_run_line(
-                runs_log,
+            _log(
                 {
                     **base_record,
                     **_usage_fields(resp),
@@ -160,7 +167,7 @@ def run_stage(
                     "latency_ms": latency_ms,
                     "error": f"{type(exc).__name__} (conteúdo Pydantic-inválido — nunca "
                     f"retornado downstream, SC3)",
-                },
+                }
             )
             if attempt < LLM_MAX_ATTEMPTS:
                 # Pitfall 7: NEVER resend identical messages — append the
@@ -183,19 +190,20 @@ def run_stage(
                 messages.append({"role": "user", "content": correction})
             continue
 
-        write_run_line(
-            runs_log,
+        _log(
             {
                 **base_record,
                 **_usage_fields(resp),
                 "attempt": attempt,
                 "status": "ok",
                 "latency_ms": latency_ms,
-            },
+            }
         )
+        _summarize("ok")
         return result
 
     # Exhaustion (D-03/D-04): loud, PT-BR, raw detail to the terminal only.
+    _summarize("invalid")
     raise LLMError(
         f"Falha na geração após {LLM_MAX_ATTEMPTS} tentativas — resposta "
         f"inválida para o estágio '{stage}' (detalhes no terminal)",

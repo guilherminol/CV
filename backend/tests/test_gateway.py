@@ -141,8 +141,14 @@ def test_happy_path_returns_typed_extraction_and_logs_one_line(tmp_path: Path) -
     assert result.keywords[2].en == "Data architecture"
 
     lines = runs_log.read_text(encoding="utf-8").splitlines()
-    assert len(lines) == 1  # exactly ONE line per attempt (D-14)
-    record = json.loads(lines[0])
+    records = [json.loads(l) for l in lines]
+    # exactly ONE line per attempt + one terminal summary (D-13/D-14)
+    attempt_records = [r for r in records if r.get("event") != "run_summary"]
+    assert len(attempt_records) == 1
+    summary = records[-1]
+    assert summary["event"] == "run_summary"
+    assert summary["outcome"] == "ok"
+    record = attempt_records[0]
     assert record["stage"] == "keyword-extraction"
     assert record["model"] == LLM_MODEL  # slug from config only (D-01/D-02)
     assert record["language"] == "pt-BR"
@@ -248,7 +254,11 @@ def test_invalid_then_valid_recovers_with_appended_correction(tmp_path: Path) ->
     assert "corrija" in correction.lower()  # PT-BR correction request
     assert "inexistente" in correction  # the rendered validation error is embedded
 
-    statuses = [json.loads(l)["status"] for l in runs_log.read_text(encoding="utf-8").splitlines()]
+    statuses = [
+        json.loads(l)["status"]
+        for l in runs_log.read_text(encoding="utf-8").splitlines()
+        if json.loads(l).get("event") != "run_summary"
+    ]
     assert statuses == ["invalid", "ok"]  # retries auditable from the log alone (D-14)
 
 
@@ -262,7 +272,11 @@ def test_exhausted_retries_raise_llmerror_after_max_attempts(tmp_path: Path) -> 
     assert "tentativas" in excinfo.value.message_ptbr
     assert "inexistente" in excinfo.value.raw  # accumulated validation detail
 
-    records = [json.loads(l) for l in runs_log.read_text(encoding="utf-8").splitlines()]
+    records = [
+        json.loads(l)
+        for l in runs_log.read_text(encoding="utf-8").splitlines()
+        if json.loads(l).get("event") != "run_summary"
+    ]
     assert [r["status"] for r in records] == ["invalid"] * LLM_MAX_ATTEMPTS
     assert [r["attempt"] for r in records] == list(range(1, LLM_MAX_ATTEMPTS + 1))
 
