@@ -78,8 +78,10 @@ class FakeClient:
 
 
 class ScriptedClient:
-    """Fake returning a scripted SEQUENCE of contents (or raising scripted
-    exceptions) — one per attempt — recording every create() call."""
+    """Fake returning a scripted SEQUENCE of contents, prebuilt response
+    objects (anything with a `.choices` attribute — returned verbatim, never
+    wrapped), or raising scripted exceptions — one per attempt — recording
+    every create() call."""
 
     def __init__(self, script: list):
         self._script = list(script)
@@ -92,6 +94,8 @@ class ScriptedClient:
             item = self._script.pop(0)
             if isinstance(item, Exception):
                 raise item
+            if hasattr(item, "choices"):  # prebuilt response object — verbatim
+                return item
             return _FakeResponse(item)
 
         completions.create = create
@@ -106,6 +110,18 @@ BAD_CATEGORY_CONTENT = json.dumps(
         ]
     }
 )
+
+
+def _shape_response(content: object = None, *, empty_choices: bool = False) -> object:
+    """Malformed-but-200 response (CR-01): either an EMPTY choices list
+    (provider error surfaced inside HTTP 200) or a single choice whose
+    message.content is None / a non-str (refusal / content-block list).
+    Plain type(...) namespace pattern like the other fakes; _FakeUsage stays
+    attached so the containment line still carries usage metadata."""
+    choices = [] if empty_choices else [
+        type("Choice", (), {"message": type("Msg", (), {"content": content})()})()
+    ]
+    return type("Resp", (), {"choices": choices, "usage": _FakeUsage(), "cost": None})()
 
 
 @pytest.fixture(autouse=True)
@@ -292,6 +308,60 @@ def test_api_error_is_fatal_immediate_no_retry(tmp_path: Path) -> None:
     record = json.loads(runs_log.read_text(encoding="utf-8").splitlines()[0])
     assert record["status"] == "error"
     assert record["attempt"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Malformed-but-200 response shapes — SAME containment path (CR-01/SC3)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("response", "type_name"),
+    [
+        pytest.param(_shape_response(empty_choices=True), "NoneType", id="empty-choices"),
+    ],
+)
+def test_malformed_response_shapes_contained_like_invalid_content(
+    response: object, type_name: str, tmp_path: Path
+) -> None:
+    """CR-01/SC3: a malformed-but-200 shape (empty choices / content=None /
+    non-str content) routes through the SAME containment path as invalid
+    content — invalid attempt lines + terminal run_summary in runs.jsonl,
+    bounded retry, loud LLMError at exhaustion. A raw IndexError/TypeError
+    never escapes run_stage."""
+    runs_log = tmp_path / "runs.jsonl"
+    fake = ScriptedClient([response] * (LLM_MAX_ATTEMPTS + 2))
+    with pytest.raises(LLMError) as excinfo:
+        run_stage(
+            "keyword-extraction",
+            "TEXTO-SECRETO-DO-USUARIO",
+            "pt-BR",
+            runs_log=runs_log,
+            client=fake,
+        )
+    assert len(fake.calls) == LLM_MAX_ATTEMPTS  # bounded by config (D-04)
+    assert "tentativas" in excinfo.value.message_ptbr
+    assert "malformed response" in excinfo.value.raw  # descriptor, not content
+
+    records = [
+        json.loads(line)
+        for line in runs_log.read_text(encoding="utf-8").splitlines()
+    ]
+    attempts = [r for r in records if r.get("event") != "run_summary"]
+    assert len(attempts) == LLM_MAX_ATTEMPTS
+    assert [r["status"] for r in attempts] == ["invalid"] * LLM_MAX_ATTEMPTS
+    assert [r["attempt"] for r in attempts] == list(range(1, LLM_MAX_ATTEMPTS + 1))
+    for r in attempts:
+        assert "conteúdo ausente ou não-textual" in r["error"]
+        assert type_name in r["error"]  # shape descriptor only — never the value
+    summary = records[-1]
+    assert summary["event"] == "run_summary"
+    assert summary["outcome"] == "invalid"
+
+    # T-02-05-02: metadata-only on the new path — no input text, no payload
+    raw_log = runs_log.read_text(encoding="utf-8")
+    assert "TEXTO-SECRETO-DO-USUARIO" not in raw_log
+    assert "bloco" not in raw_log
 
 
 def test_prompt_file_edit_is_visible_on_next_call(
