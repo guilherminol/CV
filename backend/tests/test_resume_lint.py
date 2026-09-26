@@ -100,6 +100,7 @@ def test_experience_without_impacts_is_flagged_with_exact_template() -> None:
 
 def test_each_impactless_experience_is_flagged() -> None:
     data = full_profile()
+    data["experiences"][0]["impacts"] = []
     data["experiences"].append(
         {
             "company": "Outra Tech",
