@@ -65,9 +65,16 @@ def test_special_char_keywords_match_via_lookaround(
 def test_inside_word_match_is_blocked() -> None:
     java = _kw("Java")
     javascript = _kw("JavaScript")
-    text = "o JavaScript e Java"
-    assert keyword_in_text(java, text, "en") is None
-    assert keyword_in_text(javascript, text, "en") == "JavaScript"
+    # "JavaScript" contains "Java" only INSIDE the word — the lookarounds must
+    # block it, so keyword "Java" does not match a text about JavaScript alone.
+    only_js_text = "o JavaScript domina o frontend"
+    assert keyword_in_text(java, only_js_text, "en") is None
+    assert keyword_in_text(javascript, only_js_text, "en") == "JavaScript"
+    # A standalone "Java" occurrence elsewhere still matches — no false
+    # negatives on the honest checklist (RESEARCH probe row 11's example text
+    # "o JavaScript e Java" ends with a standalone "Java"; pinning None there
+    # would demand a broken matcher).
+    assert keyword_in_text(java, "sei Java e também JavaScript", "en") == "Java"
 
 
 def test_glued_token_is_blocked() -> None:
