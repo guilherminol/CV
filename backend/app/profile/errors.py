@@ -41,7 +41,9 @@ _UNKNOWN_TYPE_TEMPLATE = "valor inválido para este campo (verifique o tipo e o 
 def _ptbr_message(error: dict) -> str:
     """PT-BR message for one entry of ValidationError.errors() — never English."""
     if error["type"] == _VALUE_ERROR_TYPE:
-        return error["msg"]  # validator's own message — already PT-BR in Phase 1
+        # WR-02: Pydantic prefixes validator-raised messages with "Value error, " —
+        # strip it so only the validator's own PT-BR text reaches the UI (D-14).
+        return error["msg"].removeprefix("Value error, ")
     return _PTBR_BY_TYPE.get(error["type"], _UNKNOWN_TYPE_TEMPLATE)
 
 

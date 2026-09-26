@@ -79,6 +79,15 @@ def test_missing_base_language_renders_estrutura_do_perfil(missing_ptbr_profile_
     assert "idioma base 'pt-BR' ausente" in msg  # validator's own PT-BR passes through
 
 
+def test_value_error_renders_without_english_prefix(missing_ptbr_profile_path) -> None:
+    """WR-02: Pydantic's English 'Value error, ' prefix never reaches the UI (D-14)."""
+    with pytest.raises(ProfileError) as excinfo:
+        load_profile(missing_ptbr_profile_path)
+    msg = excinfo.value.message_ptbr
+    assert "Value error, " not in msg  # the English prefix is stripped
+    assert "idioma base 'pt-BR' ausente" in msg  # the validator's PT-BR survives intact
+
+
 def test_raw_keeps_full_error_detail(typo_profile_path) -> None:
     with pytest.raises(ProfileError) as excinfo:
         load_profile(typo_profile_path)
