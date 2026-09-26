@@ -16,6 +16,13 @@ from app.config import LLM_MODEL
 from app.llm.errors import LLMError
 from app.llm.gateway import run_stage
 from app.llm.schemas import ResumeExperiencias, ResumeSkills, ResumeSummary
+from app.profile.models import Profile
+from app.resume.facts import (
+    compose_stage_input,
+    resolve_loc,
+    serialize_profile_facts,
+)
+from conftest import full_profile
 
 # ---------------------------------------------------------------------------
 # Offline fakes — copied verbatim from tests/test_gateway.py (D-16)
@@ -266,3 +273,62 @@ def test_sdk_call_shape_carries_stage_frontmatter(
     assert kwargs["response_format"]["json_schema"]["strict"] is True
     # D-07/T-02-01: the composed input flows through the user message as data
     assert "MEU-INPUT-DE-TESTE" in kwargs["messages"][1]["content"]
+
+
+# ---------------------------------------------------------------------------
+# Profile-fact serialization — the grounding supply line (RESUME-03/D-07)
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_loc_prefers_run_language_then_ptbr_then_first_nonempty() -> None:
+    assert resolve_loc({"pt-BR": "pt", "en": "en"}, "en") == "en"
+    assert resolve_loc({"pt-BR": "pt"}, "en") == "pt"  # pt-BR fallback
+    assert resolve_loc({"en": "", "pt-BR": "pt"}, "en") == "pt"  # empty en skipped
+    assert resolve_loc({"en": "only"}, "pt-BR") == "only"  # first non-empty
+    assert resolve_loc({"en": "", "pt-BR": ""}, "en") == ""  # nothing non-empty
+    assert resolve_loc({}, "en") == ""  # empty map
+    assert resolve_loc(None, "en") == ""  # None map
+
+
+def test_serialize_full_profile_contains_known_profile_strings_ptbr() -> None:
+    profile = Profile.model_validate(full_profile())
+    blob = serialize_profile_facts(profile, "pt-BR")
+    assert "Exemplo IA" in blob  # the company
+    assert "-40% no tempo de resposta" in blob  # the profile's own metric
+    assert "AWS Certified Solutions Architect" in blob  # the certification
+    assert "FATOS" not in blob  # section labels live in compose_stage_input
+    assert "Resumo de exemplo." in blob  # pt-BR summary
+    assert "Example summary." not in blob  # the other language never leaks
+
+
+def test_serialize_full_profile_en_renders_en_values() -> None:
+    profile = Profile.model_validate(full_profile())
+    blob = serialize_profile_facts(profile, "en")
+    assert "Example summary." in blob  # en summary
+    assert "-40% response time" in blob  # en metric
+    assert "Resumo de exemplo." not in blob
+
+
+def test_serialize_profile_facts_falls_back_to_ptbr_when_en_missing() -> None:
+    profile = Profile.model_validate(full_profile())
+    profile.summary = {"pt-BR": "Resumo somente em português."}  # drop en
+    blob = serialize_profile_facts(profile, "en")
+    assert "Resumo somente em português." in blob  # pt-BR fallback (UI-SPEC Zone 4)
+
+
+def test_serialize_profile_facts_never_contains_absent_tokens() -> None:
+    """Grounding probe (D-07): the blob is profile-derived ONLY — a technology
+    the profile does not have can never appear in it."""
+    profile = Profile.model_validate(full_profile())
+    blob = serialize_profile_facts(profile, "pt-BR")
+    assert "Snowflake" not in blob
+
+
+def test_compose_stage_input_contains_facts_and_jd_verbatim() -> None:
+    facts = "DADOS DE CONTATO:\nNOME: Ana Exemplo\nEMAIL: ana.exemplo@example.com"
+    jd = "Vaga: engenheiro de dados com experiência em Snowflake"
+    blob = compose_stage_input(facts, jd)
+    assert "FATOS DO PERFIL" in blob  # the facts section label
+    assert "DESCRIÇÃO DA VAGA" in blob  # the JD section label
+    assert facts in blob  # facts verbatim
+    assert jd in blob  # pasted JD verbatim (data, never instruction — T-02-01)
