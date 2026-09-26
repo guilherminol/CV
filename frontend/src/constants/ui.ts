@@ -37,6 +37,9 @@ export const COMPLETENESS_LABELS = {
   projetos: 'Projetos',
 } as const
 
+export const COMPLETENESS_OK = 'preenchida'
+export const COMPLETENESS_EMPTY = 'vazio'
+
 // Section counts, PT-BR: "3 experiências", "8 impactos", …
 export const COMPLETENESS_UNIT = {
   experiencias: 'experiência',

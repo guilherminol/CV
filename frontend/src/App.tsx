@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { fetchProfile } from './api/client'
+import { CompletenessGrid } from './components/CompletenessGrid'
 import { ErrorPanel } from './components/ErrorPanel'
 import { PlaceholderBanner } from './components/PlaceholderBanner'
+import { ProfilePreview } from './components/ProfilePreview'
 import {
   APP_TITLE,
   NAV_ITEMS,
@@ -58,8 +60,11 @@ function PerfilHome() {
       <StatusLine ok={true} />
       {data.exemplo && <PlaceholderBanner />}
       <h2 className="text-xl font-semibold text-gray-900">{PERFIL_SECTION_TITLE}</h2>
-      {/* CompletenessGrid + ProfilePreview land in Task 2 (D-12). */}
-      <div id="perfil-detalhes" />
+      {/* Perfil home assembly (D-12): completeness at a glance, then the
+          resume-style preview — visual order the Phase 4 print template
+          will build on. */}
+      <CompletenessGrid completude={data.completude} />
+      <ProfilePreview perfil={data.perfil} />
     </div>
   )
 }

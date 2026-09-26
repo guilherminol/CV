@@ -39,7 +39,18 @@ Open **http://127.0.0.1:5173**.
 
 ### Editing the profile
 
-Edit `content/profile.md` in your own editor and **refresh the browser** — the backend re-reads and re-validates the file on every request (no restart, no cache). A broken file surfaces as a loud PT-BR error naming the exact file and field, both in the UI and in the uvicorn terminal.
+Edit `content/profile.md` in your own editor and **refresh the browser** — the backend re-reads and re-validates the file on every request (no restart, no cache), so you always see current data.
+
+- **Valid file:** the Perfil home shows the load status, the section completeness grid, the "Dados de exemplo" banner while `example: true` is in the frontmatter, and a resume-style preview of the profile.
+- **Broken file** (typo'd key, missing field, invalid YAML): the app stays up and shows a PT-BR error panel naming the exact file and field path. The full raw technical detail appears only in the uvicorn terminal — the interface never shows English stack traces.
+
+## Phase 1 smoke check
+
+End-to-end verification of the foundation (run the daily-use mode above first):
+
+1. **Healthy profile:** open **http://127.0.0.1:8000** — expect the PT-BR shell, the "Dados de exemplo" banner, the completeness grid with every section marked as preenchida, and the resume-style preview of Ana Exemplo.
+2. **Broken profile:** rename a top-level key in `content/profile.md` (e.g. `experiences:` → `experiance:`), save, and refresh the browser — expect the red error panel naming the exact key in PT-BR, app still usable; the uvicorn terminal shows the raw validation detail.
+3. **Edit–refresh loop:** restore the file, refresh again — the healthy home returns **without restarting the server**.
 
 ## Secrets
 
@@ -48,7 +59,7 @@ Edit `content/profile.md` in your own editor and **refresh the browser** — the
 ## Tests
 
 ```bash
-cd backend && uv run pytest -q        # backend suite (secrets + API + loader)
+cd backend && uv run pytest -q        # backend suite (secrets + API + schema + loader)
 cd frontend && npm run build          # frontend gate: tsc -b && vite build
 ```
 
