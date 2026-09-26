@@ -6,6 +6,7 @@ import { CompletenessGrid } from './components/CompletenessGrid'
 import { ErrorPanel } from './components/ErrorPanel'
 import { PlaceholderBanner } from './components/PlaceholderBanner'
 import { ProfilePreview } from './components/ProfilePreview'
+import { StatusLine } from './components/StatusLine'
 import CurriculoHome from './pages/CurriculoHome'
 import {
   APP_TITLE,
@@ -13,21 +14,7 @@ import {
   PERFIL_ERROR_TITLE,
   PERFIL_LOADING,
   PERFIL_SECTION_TITLE,
-  PERFIL_STATUS_ERRO,
-  PERFIL_STATUS_OK,
 } from './constants/ui'
-
-function StatusLine({ ok }: { ok: boolean }) {
-  return (
-    <p className="flex items-center gap-2 text-sm text-gray-600">
-      <span
-        aria-hidden
-        className={`h-2 w-2 rounded-full ${ok ? 'bg-green-500' : 'bg-red-500'}`}
-      />
-      {ok ? PERFIL_STATUS_OK : PERFIL_STATUS_ERRO}
-    </p>
-  )
-}
 
 function PerfilHome() {
   // React Query v5: single options object; initial-load state is isPending (Pitfall 9).
