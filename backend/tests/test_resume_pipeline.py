@@ -332,3 +332,162 @@ def test_compose_stage_input_contains_facts_and_jd_verbatim() -> None:
     assert "DESCRIÇÃO DA VAGA" in blob  # the JD section label
     assert facts in blob  # facts verbatim
     assert jd in blob  # pasted JD verbatim (data, never instruction — T-02-01)
+
+
+# ---------------------------------------------------------------------------
+# (e) Orchestration — run_lint_only + run_resume_pipeline (plan 03-03):
+# 4 scripted stages through the REAL pipeline functions, offline via the
+# injected client; PROFILE_PATH retargeted to the conftest fixture (D-15 seam).
+# ---------------------------------------------------------------------------
+
+KEYWORDS_CONTENT = json.dumps(
+    {
+        "keywords": [
+            {
+                "canonical": "Python",
+                "aliases": [],
+                "pt": "Python",
+                "en": "Python",
+                "category": "competencias",
+            },
+            {
+                "canonical": "Docker",
+                "aliases": [],
+                "pt": "Docker",
+                "en": "Docker",
+                "category": "ferramentas",
+            },
+            {
+                "canonical": "Engenheiro de Dados",
+                "aliases": ["Data Engineer"],
+                "pt": "Engenheiro de Dados",
+                "en": "Data Engineer",
+                "category": "titulos_de_vaga",
+            },
+            {
+                "canonical": "AWS Certified Solutions Architect",
+                "aliases": [],
+                "pt": "AWS Certified Solutions Architect",
+                "en": "AWS Certified Solutions Architect",
+                "category": "certificacoes",
+            },
+        ]
+    },
+    ensure_ascii=False,
+)
+
+# Script order = pipeline call order: extraction, then D-01 section order.
+PIPELINE_SCRIPT = [KEYWORDS_CONTENT, RESUMO_CONTENT, EXPERIENCIAS_CONTENT, SKILLS_CONTENT]
+
+
+@pytest.fixture
+def _profile_path(monkeypatch: pytest.MonkeyPatch, valid_profile_path: Path) -> None:
+    """Loader seam: load_profile() re-resolves PROFILE_PATH at call time (D-15)."""
+    monkeypatch.setattr("app.profile.loader.PROFILE_PATH", valid_profile_path)
+
+
+@pytest.mark.parametrize("language", ["pt-BR", "en"])
+def test_run_resume_pipeline_returns_contract_envelope(
+    language: str, tmp_path: Path, _profile_path: None
+) -> None:
+    from app.resume.pipeline import run_resume_pipeline
+
+    client = ScriptedClient(list(PIPELINE_SCRIPT))
+    envelope = run_resume_pipeline(
+        "Vaga de exemplo com Python e Docker",
+        language,
+        runs_log=tmp_path / "runs.jsonl",
+        client=client,
+    )
+
+    # Exact ok-envelope key set of the normative contract — nothing more.
+    assert set(envelope) == {
+        "status",
+        "idioma",
+        "keywords",
+        "avisos",
+        "secoes",
+        "cobertura",
+        "cobertura_resumo",
+    }
+    assert envelope["status"] == "ok"
+    assert envelope["idioma"] == language
+    # Keywords echoed VERBATIM from this call's own extraction stage.
+    assert envelope["keywords"] == json.loads(KEYWORDS_CONTENT)["keywords"]
+    # Full profile fixture → no D-04 gaps: lint is non-blocking but empty here.
+    assert envelope["avisos"] == []
+
+    # D-01: extraction, then the three section stages SEQUENTIALLY in order.
+    stage_names = [
+        call["response_format"]["json_schema"]["name"] for call in client.calls
+    ]
+    assert stage_names == [
+        "keyword_extraction",
+        "resume_summary",
+        "resume_experiencias",
+        "resume_skills",
+    ]
+
+    # secoes shapes — exactly the 3 generated sections.
+    secoes = envelope["secoes"]
+    assert set(secoes) == {"resumo", "experiencias", "habilidades"}
+    assert secoes["resumo"] == json.loads(RESUMO_CONTENT)["resumo"]
+    assert secoes["experiencias"] == json.loads(EXPERIENCIAS_CONTENT)["experiencias"]
+    assert secoes["habilidades"] == json.loads(SKILLS_CONTENT)["habilidades"]
+
+    # Coverage runs over the GENERATED text only; exact integer tally.
+    cobertura = envelope["cobertura"]
+    assert len(cobertura) == len(envelope["keywords"])
+    resumo_cov = envelope["cobertura_resumo"]
+    assert set(resumo_cov) == {"cobertos", "total"}  # no score anywhere
+    assert resumo_cov["total"] == len(cobertura)
+    assert 0 <= resumo_cov["cobertos"] <= resumo_cov["total"]
+
+    status_by_canonical = {entry["canonical"]: entry for entry in cobertura}
+    # "Python" appears in the generated habilidades → coberto in both languages.
+    assert status_by_canonical["Python"]["status"] == "coberto"
+    assert status_by_canonical["Python"]["termo"] == "Python"
+    # Docker exists ONLY in the profile facts (skills inventory), never in the
+    # canned generated text — the generated-text-only input is pinned here
+    # (Pitfall 7): a profile-passthrough input would flip this to coberto.
+    profile_blob = serialize_profile_facts(
+        Profile.model_validate(full_profile()), language
+    )
+    assert "Docker" in profile_blob  # it IS a profile fact…
+    assert status_by_canonical["Docker"]["status"] == "ausente"  # …and stays ausente
+    assert status_by_canonical["Docker"]["termo"] is None
+
+
+def test_run_lint_only_returns_keywords_verbatim_and_avisos(
+    tmp_path: Path, _profile_path: None
+) -> None:
+    from app.resume.pipeline import run_lint_only
+
+    result = run_lint_only(
+        "Vaga de exemplo com Python e Docker",
+        runs_log=tmp_path / "runs.jsonl",
+        client=FakeClient(KEYWORDS_CONTENT),
+    )
+    assert set(result) == {"keywords", "avisos"}
+    assert result["keywords"] == json.loads(KEYWORDS_CONTENT)["keywords"]
+    assert result["avisos"] == []
+
+
+def test_run_resume_pipeline_raises_llm_error_on_scripted_failure(
+    tmp_path: Path, _profile_path: None
+) -> None:
+    """All-or-nothing (T-03-07): a stage failure propagates OUT of the
+    pipeline untouched — no swallowing, no partial envelope construction."""
+    from app.resume.pipeline import run_resume_pipeline
+
+    client = ScriptedClient([RuntimeError("boom-na-extração")])
+    with pytest.raises(LLMError):
+        run_resume_pipeline(
+            "Vaga de exemplo",
+            "pt-BR",
+            runs_log=tmp_path / "runs.jsonl",
+            client=client,
+        )
+    assert client.calls[-1]["response_format"]["json_schema"]["name"] == (
+        "keyword_extraction"
+    )  # the failure happened at the FIRST stage — nothing ran after it
