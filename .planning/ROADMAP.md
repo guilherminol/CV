@@ -101,13 +101,13 @@ Plans:
   4. User sees a keyword coverage checklist showing which JD keywords made it into the resume and which did not — no numeric score.
   5. Before generating, user sees a completeness lint tying profile gaps to the JD (e.g., "no metrics for job X", "JD requires skill Y missing from profile").
 
-**Plans**: 5 plans
+**Plans**: 1/5 plans executed
 **UI hint**: yes
 
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Engine: strict section contracts (3 models + hand-maintained wire schemas + drift-lock), 3 meta-prompts with the D-07 grounding rule, gateway stage registration, profile-fact serialization (RESUME-03, RESUME-01)
+- [x] 03-01-PLAN.md — Engine: strict section contracts (3 models + hand-maintained wire schemas + drift-lock), 3 meta-prompts with the D-07 grounding rule, gateway stage registration, profile-fact serialization (RESUME-03, RESUME-01)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -181,7 +181,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation — Scaffold + Master Profile | 3/3 | In Progress|  |
 | 2. LLM Generation Core | 5/5 | Complete    | 2026-09-26 |
-| 3. Resume Vertical Slice | 0/TBD | Not started | - |
+| 3. Resume Vertical Slice | 1/5 | In Progress|  |
 | 4. PDF Export + ATS Self-Check | 0/TBD | Not started | - |
 | 5. Review Flow + Fact Safety | 0/TBD | Not started | - |
 | 6. LinkedIn Module + Bilingual Hardening | 0/TBD | Not started | - |
