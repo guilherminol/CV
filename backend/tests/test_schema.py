@@ -10,7 +10,17 @@ from datetime import date
 import pytest
 from pydantic import ValidationError
 
-from app.profile.models import Experience, Impact, Profile
+from app.profile.models import (
+    CertificationEntry,
+    Contact,
+    EducationEntry,
+    Experience,
+    Impact,
+    LanguageEntry,
+    Profile,
+    Project,
+    SkillGroup,
+)
 
 
 def _value_error(excinfo: pytest.ExceptionInfo[ValidationError]) -> dict:
@@ -35,7 +45,10 @@ def test_base_language_required_on_experience(minimal_profile_data: dict) -> Non
     with pytest.raises(ValidationError) as excinfo:
         Profile.model_validate(data)
     error = _value_error(excinfo)
-    assert error["loc"] == ()  # Pitfall 8: model-level errors carry an EMPTY loc
+    # Pitfall 8: model-level errors carry NO field loc — through Profile they
+    # hold only the nested-model path prefix (empty loc when the model itself
+    # is validated directly, as in the Impact test below).
+    assert error["loc"] == ("experiences", 0)
     assert "title" in error["msg"]  # the field is named
     assert "pt-BR" in error["msg"]  # the base language is named
 
@@ -102,6 +115,69 @@ def test_unknown_key_rejected_on_impact(minimal_profile_data: dict) -> None:
     error = excinfo.value.errors(include_url=False)[0]
     assert error["type"] == "extra_forbidden"
     assert error["loc"] == ("experiences", 0, "impacts", 0, "resultado")
+
+
+# Pitfall 3: one forbid test per nested model — a single forgotten model would
+# silently re-enable typo tolerance on exactly that section.
+
+
+def test_unknown_key_rejected_on_contact() -> None:
+    with pytest.raises(ValidationError) as excinfo:
+        Contact.model_validate({"email": "ana@example.com", "celular": "123"})
+    error = excinfo.value.errors(include_url=False)[0]
+    assert error["type"] == "extra_forbidden"
+    assert "celular" in error["loc"]
+
+
+def test_unknown_key_rejected_on_education_entry() -> None:
+    with pytest.raises(ValidationError) as excinfo:
+        EducationEntry.model_validate(
+            {"institution": "Universidade Exemplo", "degree": "BSc", "ano": "2017"}
+        )
+    error = excinfo.value.errors(include_url=False)[0]
+    assert error["type"] == "extra_forbidden"
+    assert "ano" in error["loc"]
+
+
+def test_unknown_key_rejected_on_skill_group() -> None:
+    with pytest.raises(ValidationError) as excinfo:
+        SkillGroup.model_validate({"category": "linguagens", "items": ["Python"], "nivel": "alto"})
+    error = excinfo.value.errors(include_url=False)[0]
+    assert error["type"] == "extra_forbidden"
+    assert "nivel" in error["loc"]
+
+
+def test_unknown_key_rejected_on_certification_entry() -> None:
+    with pytest.raises(ValidationError) as excinfo:
+        CertificationEntry.model_validate({"name": "AWS SA", "ano": "2023"})
+    error = excinfo.value.errors(include_url=False)[0]
+    assert error["type"] == "extra_forbidden"
+    assert "ano" in error["loc"]
+
+
+def test_unknown_key_rejected_on_language_entry() -> None:
+    with pytest.raises(ValidationError) as excinfo:
+        LanguageEntry.model_validate({"name": "Inglês", "nivel": "avançado"})
+    # `level` is also missing here — pick the extra_forbidden error specifically.
+    extra_errors = [
+        e for e in excinfo.value.errors(include_url=False) if e["type"] == "extra_forbidden"
+    ]
+    assert extra_errors, "esperado extra_forbidden para a chave desconhecida"
+    assert "nivel" in extra_errors[0]["loc"]
+
+
+def test_unknown_key_rejected_on_project() -> None:
+    with pytest.raises(ValidationError) as excinfo:
+        Project.model_validate(
+            {
+                "name": "Assistente Exemplo",
+                "description": {"pt-BR": "d", "en": "d"},
+                "tecnologias": ["FastAPI"],
+            }
+        )
+    error = excinfo.value.errors(include_url=False)[0]
+    assert error["type"] == "extra_forbidden"
+    assert "tecnologias" in error["loc"]
 
 
 # ---------------------------------------------------------------------------
