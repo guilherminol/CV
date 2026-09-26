@@ -117,9 +117,12 @@ Plans:
 
 - [ ] 03-03-PLAN.md — Orchestration + routes: run_resume_pipeline, POST /api/resume/lint + /api/resume/gerar (sync def, 200 envelope, all-or-nothing, router-before-mount) (RESUME-01/02/04, PROFILE-02)
 
-**Wave 4** *(blocked on Wave 3; plans 04 and 05 run in parallel)*
+**Wave 4** *(blocked on Wave 3)*
 
 - [ ] 03-04-PLAN.md — Frontend Currículo slice: nav enable + view switch, typed client, form/lint/keywords+coverage/result zones per approved UI-SPEC (RESUME-01/02/04, PROFILE-02)
+
+**Wave 5** *(blocked on Waves 1-4; end-of-phase gate — depends_on 03-04 so the browser walkthrough runs against the finished Currículo screen)*
+
 - [ ] 03-05-PLAN.md — Grounding proof + real-API bilingual harness + end-of-phase human verification (RESUME-03, RESUME-01)
 
 ### Phase 4: PDF Export + ATS Self-Check

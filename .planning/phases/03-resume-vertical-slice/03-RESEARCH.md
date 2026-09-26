@@ -505,22 +505,26 @@ const gerar = useMutation({ mutationFn: () => gerarCurriculo({ jd_text: jdText, 
 | A6 | `LLM_MAX_ATTEMPTS=3` (shared config) is adequate for the new stages | Pitfall 5 | LOW — config change if harness shows otherwise |
 | A7 | Stage names like `resume-summary` / `resume-experiencias` / `resume-skills` (prompt filenames identical) — CONTEXT.md leaves exact names to discretion; `stage` is a free string in runs.jsonl (Fase 2 D-13 contract treats it as string) | Architecture Patterns | LOW — rename later = local find/replace + runs.jsonl ignores old values (append-only log) |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Coverage input: generated-only vs assembled resume.**
    - What we know: D-02 (locked, `[auto]`) says matching runs "sobre o texto gerado"; RESUME-04 says "made it into the resume", and Zone 4 passthrough sections (certifications!) can contain keywords the generated text never mentions (e.g., a certificação keyword matching the passthrough cert entry).
    - What's unclear: whether the user (when reviewing the `[auto]` decisions) prefers the honest-generated-only reading or assembled-document matching.
    - Recommendation: implement generated-only (locked-decision reading); note the cert-keyword consequence in the plan so verify/user review can flip it with a one-line input change.
+   - **RESOLVED (plan 03-02):** generated-only per the locked D-02 literal reading ("sobre o texto gerado"); the assembled-document alternative rejected (passthrough sections would inflate coverage). Consequence recorded in 03-02: a certification keyword present only in the passthrough Certificações section reads "ausente" — flipping later is a one-line caller input change (D-02 remains reversible per its reversibility note).
 2. **Pre-generate keyword arrival mechanism.**
    - What we know: SC5 + UI-SPEC Zone 2 require the JD-keyword-gap lint before generating; the spec leaves the arrival trigger open ("populates when keywords arrive").
    - What's unclear: debounced auto-extraction (recommended; matches "renders once the JD reaches 80 characters") vs an explicit "Analisar vaga" button.
    - Recommendation: debounced query (≥80 chars, ~800ms idle); each fire is one real LLM call — accepted at personal scale per Fase 2 D-02, but the debounce is what keeps it sane while typing.
+   - **RESOLVED (plan 03-04):** debounced auto-extraction adopted — the lint query fires when the 800ms-debounced JD reaches 80 trimmed characters (one real LLM call per settled state, never per keystroke); no explicit "Analisar vaga" button.
 3. **Whether `run_stage` gains an optional facts parameter or stages consume a composed blob.**
    - What we know: the current user-message template is a fixed single-blob format (gateway.py:92-95 quote); both approaches work with zero Phase 2 breakage.
    - Recommendation: composed blob (zero gateway message-plumbing changes; Phase 2 message-shape tests untouched). If a second labeled block reads better in prompts, the additive optional param is the fallback.
+   - **RESOLVED (plan 03-01):** composed blob adopted — `compose_stage_input` builds the labeled FATOS DO PERFIL + DESCRIÇÃO DA VAGA blob that flows through the unchanged `run_stage` `input_text`; no `facts` parameter added to run_stage; Phase 2 message-shape tests untouched.
 4. **Frontend unit-test gap for the coverage tally copy function.**
    - What we know: UI-SPEC calls the singular/plural summary "unit-testable offline, project test policy" but the repo has no JS test runner (verified package.json).
    - Recommendation options for planner: (a) add vitest as a dev-only dep (Wave 0 task, legitimacy-gated), or (b) compute `covered`/`total` server-side and keep the copy function trivial enough to verify via tsc + build + manual check at human-verify. (b) adds no dependencies; (a) matches the spec's unit-test intent.
+   - **RESOLVED (plan 03-03, planner_decisions):** option (b) adopted — `cobertura_resumo {cobertos, total}` is computed backend-side by `summarize_coverage`; the frontend copy function only picks singular/plural wording and is verified via tsc + build + the end-of-phase walkthrough. No vitest, no new frontend dependencies (Wave 0 conditional vitest scaffold not needed).
 
 ## Environment Availability
 

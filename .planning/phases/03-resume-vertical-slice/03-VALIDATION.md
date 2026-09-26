@@ -41,14 +41,14 @@ created: "2026-09-26"
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| (seed — bind to plan task IDs at planning) | TBD | 1 | RESUME-01 | T-03 prompt injection | JD is data in user message, never instruction | offline unit (FakeClient per stage, both languages) | `cd backend && uv run pytest tests/test_resume_pipeline.py -q` | ❌ W0 | ⬜ pending |
-| (seed) | TBD | 1 | RESUME-01/SC5 | T-03 | lint/extract endpoint envelope, never 500 | offline route test | `cd backend && uv run pytest tests/test_resume_api.py -q` | ❌ W0 | ⬜ pending |
-| (seed) | TBD | 1 | RESUME-02 | — | keywords echoed verbatim, 4 fixed categories | offline unit + route | same as above | ❌ W0 | ⬜ pending |
-| (seed) | TBD | 1 | RESUME-03 | T-03 elevation of trust | no invented metric/tech/date; bilingual | offline fixture assertions + `-m llm` harness | `cd backend && uv run pytest tests/test_resume_grounding.py -q` ; `cd backend && uv run pytest -m llm` | ❌ W0 | ⬜ pending |
-| (seed) | TBD | 1 | RESUME-04 | — | matcher incl. `C++`/`.NET`/`C#`, accents, aliases, run-language field, canonical fallback | offline unit (pure-function table) | `cd backend && uv run pytest tests/test_coverage.py -q` | ❌ W0 | ⬜ pending |
-| (seed) | TBD | 1 | RESUME-04 | — | tally singular/plural, never a score | offline (backend-computed tally) | included in full suite | ❌ W0 | ⬜ pending |
-| (seed) | TBD | 1 | PROFILE-02 | — | D-04 checks (a)/(b)/(c) fire and stay silent when clean; non-blocking | offline unit (pure function over profile fixtures) | `cd backend && uv run pytest tests/test_resume_lint.py -q` | ❌ W0 | ⬜ pending |
-| (seed) | TBD | 1 | PROFILE-02/RESUME-01 | T-05 secret leakage | broken-profile gate; error envelope PT-BR only, raw detail terminal-only (caplog) | offline route test | `cd backend && uv run pytest tests/test_resume_api.py -q` | ❌ W0 | ⬜ pending |
+| 03-01 T2 (+03-03 T1 extension) | 03-01 | 1 | RESUME-01 | T-03 prompt injection | JD is data in user message, never instruction | offline unit (FakeClient per stage, both languages) | `cd backend && uv run pytest tests/test_resume_pipeline.py -q` | ❌ W0 | ⬜ pending |
+| 03-03 T2 | 03-03 | 3 | RESUME-01/SC5 | T-03 | lint/extract endpoint envelope, never 500 | offline route test | `cd backend && uv run pytest tests/test_resume_api.py -q` | ❌ W0 | ⬜ pending |
+| 03-03 T1 + T2 | 03-03 | 3 | RESUME-02 | — | keywords echoed verbatim, 4 fixed categories | offline unit + route | same as above | ❌ W0 | ⬜ pending |
+| 03-05 T1 (offline) + T2 (harness) | 03-05 | 5 | RESUME-03 | T-03 elevation of trust | no invented metric/tech/date; bilingual | offline fixture assertions + `-m llm` harness | `cd backend && uv run pytest tests/test_resume_grounding.py -q` ; `cd backend && uv run pytest -m llm` | ❌ W0 | ⬜ pending |
+| 03-02 T1 | 03-02 | 2 | RESUME-04 | — | matcher incl. `C++`/`.NET`/`C#`, accents, aliases, run-language field, canonical fallback | offline unit (pure-function table) | `cd backend && uv run pytest tests/test_coverage.py -q` | ❌ W0 | ⬜ pending |
+| 03-02 T1 (unit) + 03-03 T1 (consistency) | 03-02 | 2 | RESUME-04 | — | tally singular/plural, never a score | offline (backend-computed tally) | included in full suite | ❌ W0 | ⬜ pending |
+| 03-02 T2 | 03-02 | 2 | PROFILE-02 | — | D-04 checks (a)/(b)/(c) fire and stay silent when clean; non-blocking | offline unit (pure function over profile fixtures) | `cd backend && uv run pytest tests/test_resume_lint.py -q` | ❌ W0 | ⬜ pending |
+| 03-03 T2 | 03-03 | 3 | PROFILE-02/RESUME-01 | T-05 secret leakage | broken-profile gate; error envelope PT-BR only, raw detail terminal-only (caplog) | offline route test | `cd backend && uv run pytest tests/test_resume_api.py -q` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -62,7 +62,7 @@ created: "2026-09-26"
 - [ ] `backend/tests/test_resume_api.py` — route envelope, all-or-nothing, terminal-only raw detail (RESUME-01, PROFILE-02)
 - [ ] Drift-lock tests for each new wire schema (extend the `test_keyword_schema.py` pattern)
 - [ ] `-m llm` harness fixtures: example profile + JD_EN/JD_PT (reuse `tests/llm_fixtures.py` texts) asserting bilingual grounding
-- [ ] (Conditional) vitest scaffold — only if the planner adopts research Open Question 4 option (a)
+- [x] (Conditional) vitest scaffold — NOT needed: research Open Question 4 resolved to option (b) server-side tally (plan 03-03 planner_decisions); no JS test runner introduced this phase
 - No framework install needed for backend (pytest present; no new deps)
 
 ---
@@ -78,11 +78,11 @@ created: "2026-09-26"
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
