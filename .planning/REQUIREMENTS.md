@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Perfil Base
 
-- [ ] **PROFILE-01**: User can maintain a master profile as Markdown/YAML files in git, validated against a schema, shipped with example data covering experiences, projects, technologies, and impacts
+- [x] **PROFILE-01**: User can maintain a master profile as Markdown/YAML files in git, validated against a schema, shipped with example data covering experiences, projects, technologies, and impacts
 - [ ] **PROFILE-02**: User sees a completeness lint before generating (e.g., "no metrics for job X", "JD requires skill Y missing from profile")
 - [ ] **PROFILE-03**: User can edit meta-prompts as versioned files in git to tune generation behavior (e.g., "more metrics", "more concise PT-BR")
 
@@ -68,7 +68,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROFILE-01 | Phase 1 | Pending |
+| PROFILE-01 | Phase 1 | Complete |
 | PROFILE-02 | Phase 3 | Pending |
 | PROFILE-03 | Phase 2 | Pending |
 | RESUME-01 | Phase 3 | Pending |
@@ -85,6 +85,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LI-05 | Phase 6 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 15 total
 - Mapped to phases: 15
 - Unmapped: 0 ✓
