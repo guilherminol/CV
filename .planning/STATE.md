@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Resume Vertical Slice
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-09-26T21:54:13.319Z"
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-09-26T22:06:48.008Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 3 execution started
-state_head: 8dfb54545ec7d0d6b6f4847b68955f585c12b551
+state_head: b439509ecacaa2f88ae62b58f1d72b5a6f4144af
 progress:
   total_phases: 6
   completed_phases: 1
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 ## Current Position
 
 Phase: 3 (Resume Vertical Slice) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 3 execution started
 
@@ -70,6 +70,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P05 | 8 min | 2 tasks | 2 files |
 | Phase 3 P01 | 13min | 3 tasks | 9 files |
 | Phase 3 P02 | 16 min | 2 tasks | 4 files |
+| Phase 3 P03 | 9 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-05 gap closure: malformed-but-200 response shapes (empty choices, content=None, non-str) route through the SAME containment path as invalid JSON (CR-01) — invalid attempt line, bounded retry with user-only PT-BR correction (no assistant turn), LLMError at exhaustion; runs.jsonl stays metadata-only (choice count + content type NAME descriptors)
 - [Phase 3]: 03-02: coverage + lint as pure functions — matcher returns the auditable matched-term string; \b forbidden (verified C++/C#/.NET false-negatives)
 - [Phase 3]: one matcher two inputs — lint_jd_tied reuses coverage fold/lookaround primitives; avisos are UI-contract strings owned backend-side
+- [Phase 3]: [Phase 3]: 03-03 keyword-extraction language fixed pt-BR in BOTH paths (lint + gerar); gerar echoes ITS OWN extraction verbatim — never trusts a prior lint call
+- [Phase 3]: [Phase 3]: 03-03 cobertura_resumo tallied server-side {cobertos,total} — no score field, no JS test runner introduced (no-new-frontend-deps contract held)
 
 ### Pending Todos
 
@@ -114,6 +117,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-26T21:54:13.203Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-09-26T22:06:47.892Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
