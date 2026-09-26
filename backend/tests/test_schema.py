@@ -222,3 +222,32 @@ def test_example_flag_round_trips(minimal_profile_data: dict) -> None:
     assert Profile.model_validate(minimal_profile_data).example is True
     minimal_profile_data["example"] = False
     assert Profile.model_validate(minimal_profile_data).example is False
+
+
+# ---------------------------------------------------------------------------
+# The shipped example persona — fully bilingual (D-17, SC4)
+# ---------------------------------------------------------------------------
+
+
+def _walk_localized_maps(node: object):
+    """Yield every LocalizedText-shaped dict in a model_dump() tree."""
+    if isinstance(node, dict):
+        if node and set(node.keys()) <= {"pt-BR", "en"}:
+            yield node
+        else:
+            for value in node.values():
+                yield from _walk_localized_maps(value)
+    elif isinstance(node, list):
+        for item in node:
+            yield from _walk_localized_maps(item)
+
+
+def test_example_fully_bilingual(shipped_profile_path) -> None:
+    from app.profile.loader import load_profile
+
+    profile = load_profile(shipped_profile_path)
+    localized_maps = list(_walk_localized_maps(profile.model_dump()))
+    assert localized_maps, "o exemplo enviado deve conter campos localizados"
+    for localized in localized_maps:
+        assert "pt-BR" in localized, f"mapa localizado sem pt-BR: {localized}"
+        assert "en" in localized, f"mapa localizado sem en: {localized}"

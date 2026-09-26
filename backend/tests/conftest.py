@@ -115,6 +115,12 @@ def minimal_profile_data() -> dict:
 
 
 @pytest.fixture
+def shipped_profile_path() -> Path:
+    """The real content/profile.md (read-only — the backend never writes to content/)."""
+    return SHIPPED_PROFILE_PATH
+
+
+@pytest.fixture
 def valid_profile_path(tmp_path: Path) -> Path:
     """A complete, valid profile file."""
     return _write_profile(tmp_path, full_profile())

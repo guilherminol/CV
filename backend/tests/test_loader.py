@@ -96,3 +96,19 @@ def test_render_loc_language_key_marker() -> None:
     # Verified loc shape for literal_error on a localized-map key:
     loc = ("experiences", 0, "title", "values", "pt-PT", "[key]")
     assert render_loc(loc) == "experiences[0].title.values.pt-PT (chave)"
+
+
+# ---------------------------------------------------------------------------
+# The shipped example persona (SC3 data half + SC4 bilingual proof)
+# ---------------------------------------------------------------------------
+
+
+def test_example_profile_validates(shipped_profile_path) -> None:
+    profile = load_profile(shipped_profile_path)  # any key mismatch fails via extra=forbid
+    assert profile.example is True  # D-11: the shipped file IS the example
+    assert profile.name == "Ana Exemplo"
+    assert len(profile.experiences) == 3  # D-16 persona shape
+    assert all(exp.impacts for exp in profile.experiences)  # D-08: impacts embedded
+    assert len(profile.skills) == 4  # D-09: categorized groups
+    assert len(profile.projects) == 2
+    assert profile.education and profile.certifications and profile.languages

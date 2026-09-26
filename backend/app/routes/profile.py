@@ -8,6 +8,7 @@ import logging
 
 from fastapi import APIRouter
 
+from app.profile.completeness import compute_completude
 from app.profile.loader import ProfileError, load_profile
 
 logger = logging.getLogger(__name__)
@@ -26,4 +27,6 @@ def get_profile() -> dict:
         "status": "ok",
         "exemplo": profile.example,  # D-11 placeholder flag
         "perfil": profile.model_dump(),
+        # D-12: section presence/counts, computed fresh alongside the load
+        "completude": compute_completude(profile),
     }
