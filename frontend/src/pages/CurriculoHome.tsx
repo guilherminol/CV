@@ -12,6 +12,7 @@ import { ErrorPanel } from '../components/ErrorPanel'
 import { KeywordsPanel } from '../components/KeywordsPanel'
 import { LintPanel, type LintOk } from '../components/LintPanel'
 import { PlaceholderBanner } from '../components/PlaceholderBanner'
+import { ResumeResult } from '../components/ResumeResult'
 import { StatusLine } from '../components/StatusLine'
 import {
   CURRICULO_CTA,
@@ -251,12 +252,23 @@ export default function CurriculoHome() {
         )}
 
         {resultado && (
-          <KeywordsPanel
-            keywords={resultado.keywords}
-            cobertura={resultado.cobertura}
-            cobertura_resumo={resultado.cobertura_resumo}
-            idioma={resultado.idioma}
-          />
+          <>
+            {/* Zone 4 — assembled card from the shared ['perfil'] data + the
+                generate response; Zone 5 stacks the coverage panel below. */}
+            <ResumeResult
+              perfil={perfilQuery.data.perfil}
+              secoes={resultado.secoes}
+              idioma={resultado.idioma}
+              onRegenerar={gerarAgora}
+              regenerando={gerar.isPending}
+            />
+            <KeywordsPanel
+              keywords={resultado.keywords}
+              cobertura={resultado.cobertura}
+              cobertura_resumo={resultado.cobertura_resumo}
+              idioma={resultado.idioma}
+            />
+          </>
         )}
       </div>
     </div>
