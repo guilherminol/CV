@@ -64,20 +64,24 @@ Plans:
   3. A malformed structured response is caught by validation, retried with the validation error appended, and surfaces a clear failure — malformed content never reaches downstream stages.
   4. Keyword extraction run on a pasted JD or a career objective returns keywords mapped across {en, pt} with covered/adjacent/absent classification hooks for later coverage checks.
 
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Tracer: config (slug/markers/gitignore) + meta-prompt loader (fail-fast, D-05..D-08) + gateway happy path with mocked client → validated KeywordExtraction + first runs.jsonl line
+- [ ] 02-01-PLAN.md — Wave-0 config: openai dep, `llm` pytest marker + offline-by-default addopts, logs/ gitignore, config constants (slug, paths, retry cap)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Expansion: validation-error retry loop with appended correction + loud exhaustion (SC3), per-attempt JSONL logging contract (D-13/D-14), strict-schema drift-lock (Pattern 2)
+- [ ] 02-02-PLAN.md — Tracer: meta-prompt loader (fail-fast, D-05..D-08) + gateway happy path with mocked client → validated KeywordExtraction + first runs.jsonl line
 
-**Wave 3** *(blocked on Wave 2 completion; needs OPENROUTER_API_KEY)*
+**Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03-PLAN.md — Real-API harness: bilingual fixtures, slug probe, `pytest -m llm` runs through the gateway, blocking human verification of PT-BR quality (SC2)
+- [ ] 02-03-PLAN.md — Expansion: validation-error retry loop with appended correction + loud exhaustion (SC3), per-attempt JSONL logging contract (D-13/D-14), strict-schema drift-lock (Pattern 2)
+
+**Wave 4** *(blocked on Wave 3 completion; needs OPENROUTER_API_KEY)*
+
+- [ ] 02-04-PLAN.md — Real-API harness: bilingual fixtures, slug probe, `pytest -m llm` runs through the gateway, blocking human verification of PT-BR quality (SC2)
 
 ### Phase 3: Resume Vertical Slice
 

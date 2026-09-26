@@ -347,9 +347,11 @@ LLM_MAX_ATTEMPTS = 3   # 1 + 2 validation retries (D-04)
 
 ## Open Questions
 
-1. **Exact Claude Sonnet slug** — What we know: family pinned (D-01), slug in config. What's unclear: current OpenRouter slug string (A1). Recommendation: harness Wave-0 includes a tiny slug-probe test; user confirms slug on openrouter.ai/models.
-2. **Does Phase 2 expose any HTTP route?** Success criteria are all harness/file-level; no UI. Recommendation: no new routes (keeps Pitfall 5 moot); the gateway is exercised via tests/scripts. Planner confirms.
-3. **Category token spelling in the schema** (A6) — pt with accents vs ASCII keys. Recommendation: ASCII keys + PT-BR display labels, decided at planning.
+All questions below are (RESOLVED) — closed during Phase 2 planning (2026-09-25); resolving plans/tasks cited per question.
+
+1. **Exact Claude Sonnet slug** (RESOLVED — plan 02-01 Task 1 pins the default `anthropic/claude-sonnet-4.5` as env-overridable config (A1); plan 02-04 Task 2's slug-probe test validates it against the live API, and the 02-04 Task 3 blocking checkpoint has the user confirm/pin the slug from openrouter.ai/models). What we know: family pinned (D-01), slug in config. What's unclear: current OpenRouter slug string (A1). Recommendation: harness Wave-0 includes a tiny slug-probe test; user confirms slug on openrouter.ai/models.
+2. **Does Phase 2 expose any HTTP route?** (RESOLVED — no new routes: plans 02-02/02-03 exercise the gateway exclusively via offline tests with injected fake clients, and 02-04 via the `-m llm` harness; Pitfall 5 stays moot). Success criteria are all harness/file-level; no UI. Recommendation: no new routes (keeps Pitfall 5 moot); the gateway is exercised via tests/scripts. Planner confirms.
+3. **Category token spelling in the schema** (A6) (RESOLVED — ASCII keys pinned in plan 02-02 Task 2 / schemas.py: `competencias`, `ferramentas`, `titulos_de_vaga`, `certificacoes`; PT-BR accented display labels live in the prompt/UI, not the schema). pt with accents vs ASCII keys. Recommendation: ASCII keys + PT-BR display labels, decided at planning.
 
 ## Environment Availability
 
