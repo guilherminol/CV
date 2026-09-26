@@ -4,12 +4,16 @@ Two layers:
 - OFFLINE fixture-shape tests (default suite): the four bilingual fixture
   texts are realistic, pure data — no network, no markers.
 - @pytest.mark.llm real-run tests (deselected by addopts `-m 'not llm'`;
-  run explicitly with `uv run pytest -m llm`): the slug probe (A1) and one
-  real gateway run per fixture, each audited via runs.jsonl (D-13).
+  run explicitly with `uv run pytest -m llm`): the slug probe (A1), one
+  real gateway run per fixture, each audited via runs.jsonl (D-13), and the
+  bilingual resume-PIPELINE runs (plan 03-05) — the FULL pipeline
+  (extraction → lint → 3 grounded section stages → coverage) per language
+  over the shipped example profile, policed by assert_invention_free.
 
-Every real test calls gateway.run_stage — the ONLY call path (prohibition:
-no bespoke SDK clients in tests). A spend failure is loud: no catch-and-pass,
-no xfail (D-03).
+Every real test calls gateway.run_stage or resume.run_resume_pipeline — the
+ONLY call paths (prohibition: no bespoke SDK clients in tests, client stays
+None so the real OpenRouter path runs). A spend failure is loud: no
+catch-and-pass, no xfail (D-03).
 """
 
 import json
@@ -178,3 +182,110 @@ def test_real_run_keyword_extraction(text: str, language: str, label: str, tmp_p
             f"{label}: total_tokens não numérico/positivo em runs.jsonl: "
             f"{line['total_tokens']!r}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Real-API bilingual resume-PIPELINE harness (plan 03-05) — the FULL pipeline
+# through the ONE real call path (run_resume_pipeline with client=None)
+# ---------------------------------------------------------------------------
+
+# All four stages the pipeline must audit in runs.jsonl (D-13 at pipeline
+# scale): keyword-extraction + the 3 resume section stages (D-01 order).
+PIPELINE_STAGES = {
+    "keyword-extraction",
+    "resume-summary",
+    "resume-experiencias",
+    "resume-skills",
+}
+
+
+@_llm_guard
+@pytest.mark.llm
+@pytest.mark.parametrize(
+    ("jd", "language", "label"),
+    [
+        (JD_EN, "en", "pipeline-EN"),
+        (JD_PT, "pt-BR", "pipeline-PT"),
+    ],
+)
+def test_real_run_resume_pipeline_bilingual(
+    jd: str, language: str, label: str, tmp_path, monkeypatch, shipped_profile_path
+) -> None:
+    """Full bilingual pipeline live: extraction → lint → 3 grounded stages →
+    coverage, on the shipped example profile (invention is detectable there).
+
+    Asserts the ok envelope (idioma/keywords/avisos/secoes/cobertura), the
+    invention detector over the composed generated text, per-stage runs.jsonl
+    audit lines, and the PT-BR UTF-8 probe (accents intact end to end).
+    """
+    from app.profile.loader import load_profile
+    from app.resume.facts import serialize_profile_facts
+    from app.resume.pipeline import run_resume_pipeline
+    from test_resume_grounding import assert_invention_free
+
+    monkeypatch.setattr("app.profile.loader.PROFILE_PATH", shipped_profile_path)
+    runs_log = tmp_path / "runs.jsonl"
+    envelope = run_resume_pipeline(jd, language, runs_log=runs_log)  # client=None: real path
+
+    # Ok envelope of the normative contract.
+    assert envelope["status"] == "ok", f"{label}: status != ok"
+    assert envelope["idioma"] == language, f"{label}: idioma divergente do pedido"
+    keywords = envelope["keywords"]
+    assert keywords, f"{label}: nenhum keyword retornado"
+    assert isinstance(envelope["avisos"], list), f"{label}: avisos não é lista"
+
+    # Non-empty generated sections (minimum substance bar).
+    secoes = envelope["secoes"]
+    assert set(secoes) == {"resumo", "experiencias", "habilidades"}
+    assert len(secoes["resumo"]) >= 200, (
+        f"{label}: resumo curto demais ({len(secoes['resumo'])} chars)"
+    )
+    total_bullets = sum(len(e["bullets"]) for e in secoes["experiencias"])
+    assert total_bullets >= 3, f"{label}: menos de 3 bullets de experiência"
+    assert len(secoes["habilidades"]) >= 3, f"{label}: menos de 3 habilidades"
+
+    # Honest coverage tally: one entry per keyword, consistent summary —
+    # no score anywhere (RESUME-04).
+    cobertura = envelope["cobertura"]
+    assert len(cobertura) == len(keywords), (
+        f"{label}: cobertura != keywords ({len(cobertura)} vs {len(keywords)})"
+    )
+    resumo_cov = envelope["cobertura_resumo"]
+    assert resumo_cov["total"] == len(cobertura)
+    assert 0 <= resumo_cov["cobertos"] <= resumo_cov["total"]
+
+    # SC3 mechanical check: every numeral in the GENERATED text exists in the
+    # shipped profile's facts (the invented 87% or unknown date fails here).
+    generated_text = "\n".join(
+        [secoes["resumo"]]
+        + [bullet for entry in secoes["experiencias"] for bullet in entry["bullets"]]
+        + list(secoes["habilidades"])
+    )
+    facts_text = serialize_profile_facts(load_profile(), language)
+    assert_invention_free(generated_text, facts_text)
+
+    # D-13 at pipeline scale: attempt lines cover ALL FOUR stages, each with
+    # model/language/attempt fields. Extraction is fixed pt-BR; the section
+    # stages carry the run language.
+    lines = [
+        json.loads(line)
+        for line in runs_log.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    attempt_lines = [line for line in lines if line.get("event") != "run_summary"]
+    assert attempt_lines, f"{label}: nenhuma linha por tentativa em runs.jsonl"
+    stages_seen = {line["stage"] for line in attempt_lines}
+    missing = PIPELINE_STAGES - stages_seen
+    assert not missing, f"{label}: estágios ausentes do audit: {sorted(missing)}"
+    for line in attempt_lines:
+        assert line["model"] == LLM_MODEL
+        assert line["language"] in {"pt-BR", language}, (
+            f"{label}: language inesperado em runs.jsonl: {line['language']!r}"
+        )
+        assert isinstance(line["attempt"], int) and line["attempt"] >= 1
+
+    # UTF-8 probe (Phase 2 fixture discipline): PT-BR output keeps accents.
+    if language == "pt-BR":
+        assert any(
+            ch in secoes["resumo"] for ch in "áéíóúãõçêâô"
+        ), f"{label}: resumo PT-BR sem caracteres acentuados (probe de UTF-8)"
