@@ -64,7 +64,7 @@ Plans:
   3. A malformed structured response is caught by validation, retried with the validation error appended, and surfaces a clear failure — malformed content never reaches downstream stages.
   4. Keyword extraction run on a pasted JD or a career objective returns keywords mapped across {en, pt} with covered/adjacent/absent classification hooks for later coverage checks.
 
-**Plans**: 5 plans (4 executed; 02-05 gap closure pending)
+**Plans**: 5/5 plans executed (4 executed; 02-05 gap closure pending)
 
 Plans:
 **Wave 1**
@@ -85,7 +85,7 @@ Plans:
 
 **Wave 5** *(gap closure — closes the SC3 containment gap found by 02-VERIFICATION)*
 
-- [ ] 02-05-PLAN.md — Gap closure: contain malformed-but-200 response shapes (empty choices / None / non-str content) in the gateway via the CR-01 fix — same containment path as invalid content, pinned offline (SC3, PROFILE-03)
+- [x] 02-05-PLAN.md — Gap closure: contain malformed-but-200 response shapes (empty choices / None / non-str content) in the gateway via the CR-01 fix — same containment path as invalid content, pinned offline (SC3, PROFILE-03)
 
 ### Phase 3: Resume Vertical Slice
 
@@ -159,7 +159,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation — Scaffold + Master Profile | 3/3 | In Progress|  |
-| 2. LLM Generation Core | 4/4 | In Progress|  |
+| 2. LLM Generation Core | 5/5 | In Progress|  |
 | 3. Resume Vertical Slice | 0/TBD | Not started | - |
 | 4. PDF Export + ATS Self-Check | 0/TBD | Not started | - |
 | 5. Review Flow + Fact Safety | 0/TBD | Not started | - |

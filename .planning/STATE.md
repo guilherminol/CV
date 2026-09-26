@@ -1,18 +1,18 @@
 ---
 gsd_state_version: "1.0"
 current_phase: 2
-current_phase_name: llm-generation-core
+current_phase_name: LLM Generation Core
 status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-09-26T17:41:32.668Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-09-26T17:58:04.079Z"
 last_activity: 2026-09-26
-last_activity_desc: Phase 02 execution started
-state_head: aa748cdb1b84bfd386e8ec769663d516c9f9c388
+last_activity_desc: Phase 2 execution started
+state_head: 1678e311b19e49afd0b2c9aa756d4118be2dfc20
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-25)
 
 **Core value:** Paste a job description (or state a career objective for LinkedIn) and get polished, ATS-optimized, keyword-targeted output in English or Portuguese that the user would actually send or post — without manual rewriting from scratch.
-**Current focus:** Phase 02 — LLM Generation Core
+**Current focus:** Phase 2 — LLM Generation Core
 
 ## Current Position
 
-Phase: 2 (llm-generation-core) — READY TO EXECUTE
-Plan: 4 of 4
+Phase: 2 (LLM Generation Core) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-09-26 — Phase 02 execution started
+Last activity: 2026-09-26 — Phase 2 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 P02 | 12min | 2 tasks | 9 files |
 | Phase 02 P03 | 4min | 3 tasks | 6 files |
 | Phase 02 P04 | 14min | 3 tasks | 3 files |
+| Phase 02 P05 | 8 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,7 @@ Recent decisions affecting current work:
 - [Phase 02]: [Phase 02]: Tracer proven offline — prompt file → strict loader → gateway (injectable SDK client) → Pydantic KeywordExtraction → one metadata-only runs.jsonl line; failures raise loud LLMError, never fallback
 - [Phase 02]: 02-03: retry loop bounded by LLM_MAX_ATTEMPTS appends assistant output + PT-BR correction (Pitfall 7); API errors fatal on attempt 1; runs.jsonl field set + run_summary line pinned by test
 - [Phase 02]: 02-04: real-API harness green on live OpenRouter (5/5 -m llm) — anthropic/claude-sonnet-4.5 validated and pinned (A1 closed); harness asserts 02-03 JSONL contract, USD pricing deferred to Phase 5/6 run store
+- [Phase 02]: 02-05 gap closure: malformed-but-200 response shapes (empty choices, content=None, non-str) route through the SAME containment path as invalid JSON (CR-01) — invalid attempt line, bounded retry with user-only PT-BR correction (no assistant turn), LLMError at exhaustion; runs.jsonl stays metadata-only (choice count + content type NAME descriptors)
 
 ### Pending Todos
 
@@ -108,6 +110,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-26T12:31:23.161Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-09-26T17:58:03.977Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
