@@ -36,12 +36,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The profile schema encodes the chosen localization shape (parallel localized fields vs per-language files), demonstrated by bilingual example data.
   5. The OpenRouter API key lives only in a gitignored `.env` — nothing secret is ever committed.
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Walking Skeleton: scaffold (gitignore-first, uv backend on pinned 3.12, Vite frontend) + end-to-end perfil path (content/profile.md → Pydantic → GET /api/profile → PT-BR shell with placeholder banner), dev + prod modes
+- [x] 01-01-PLAN.md — Walking Skeleton: scaffold (gitignore-first, uv backend on pinned 3.12, Vite frontend) + end-to-end perfil path (content/profile.md → Pydantic → GET /api/profile → PT-BR shell with placeholder banner), dev + prod modes
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation — Scaffold + Master Profile | 0/3 | Not started | - |
+| 1. Foundation — Scaffold + Master Profile | 1/3 | In Progress|  |
 | 2. LLM Generation Core | 0/TBD | Not started | - |
 | 3. Resume Vertical Slice | 0/TBD | Not started | - |
 | 4. PDF Export + ATS Self-Check | 0/TBD | Not started | - |
