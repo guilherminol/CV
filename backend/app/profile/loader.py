@@ -6,13 +6,14 @@ plus the raw technical detail (terminal-only). NO caching of any kind — the
 file is re-read and re-validated on every call (D-15).
 """
 
-import yaml
-import frontmatter
 from pathlib import Path
 
+import frontmatter
+import yaml
 from pydantic import ValidationError
 
 from app.config import CONTENT_DIR
+from app.profile.errors import render_errors_ptbr
 from app.profile.models import Profile
 
 PROFILE_PATH = CONTENT_DIR / "profile.md"
@@ -25,8 +26,14 @@ class ProfileError(Exception):
         self.raw = raw  # terminal-only detail (D-13/D-14)
 
 
-def load_profile(path: Path = PROFILE_PATH) -> Profile:
-    """Read + validate content/profile.md. Fresh on every call (D-15)."""
+def load_profile(path: Path | None = None) -> Profile:
+    """Read + validate content/profile.md. Fresh on every call (D-15).
+
+    The default path resolves at CALL time (not def time) so tests can retarget
+    the loader without touching the real content/ directory.
+    """
+    if path is None:
+        path = PROFILE_PATH
     try:
         post = frontmatter.load(str(path), encoding="utf-8")  # Pitfall 7: explicit UTF-8
     except FileNotFoundError:
@@ -43,11 +50,5 @@ def load_profile(path: Path = PROFILE_PATH) -> Profile:
         # D-05/D-06: ALL content lives in frontmatter; the Markdown body is unused.
         return Profile.model_validate(post.metadata)
     except ValidationError as exc:
-        # Minimal interim rendering — plan 02 replaces this with the full PT-BR
-        # error mapper (same call sites, no architectural change).
         raw = "\n".join(str(e) for e in exc.errors(include_url=False))
-        lines = [f"Erro no perfil: {path}"]
-        for e in exc.errors(include_url=False):
-            loc = ".".join(str(p) for p in e["loc"]) or "estrutura do perfil"
-            lines.append(f"  • {loc} — {e['msg']}")
-        raise ProfileError("\n".join(lines), raw)
+        raise ProfileError(render_errors_ptbr(exc, path), raw)

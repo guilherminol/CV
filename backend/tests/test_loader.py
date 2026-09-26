@@ -7,6 +7,7 @@ the failure-mode tests pin behaviors the tracer already delivered.
 
 import pytest
 
+from app.profile.errors import render_loc
 from app.profile.loader import ProfileError, load_profile
 
 
@@ -78,3 +79,20 @@ def test_raw_keeps_full_error_detail(typo_profile_path) -> None:
     with pytest.raises(ProfileError) as excinfo:
         load_profile(typo_profile_path)
     assert "extra_forbidden" in excinfo.value.raw  # internal detail in the terminal channel
+
+
+# ---------------------------------------------------------------------------
+# render_loc — the D-14 path format, unit-level
+# ---------------------------------------------------------------------------
+
+
+def test_render_loc_d14_paths() -> None:
+    assert render_loc(("experiences", 2, "data_fim")) == "experiences[2].data_fim"
+    assert render_loc(()) == "estrutura do perfil"  # Pitfall 8: empty loc
+    assert render_loc(("contact", "email")) == "contact.email"
+
+
+def test_render_loc_language_key_marker() -> None:
+    # Verified loc shape for literal_error on a localized-map key:
+    loc = ("experiences", 0, "title", "values", "pt-PT", "[key]")
+    assert render_loc(loc) == "experiences[0].title.values.pt-PT (chave)"
