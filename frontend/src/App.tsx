@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { fetchProfile } from './api/client'
+import { ErrorPanel } from './components/ErrorPanel'
 import { PlaceholderBanner } from './components/PlaceholderBanner'
 import {
   APP_TITLE,
@@ -8,7 +9,21 @@ import {
   PERFIL_ERROR_TITLE,
   PERFIL_LOADING,
   PERFIL_SECTION_TITLE,
+  PERFIL_STATUS_ERRO,
+  PERFIL_STATUS_OK,
 } from './constants/ui'
+
+function StatusLine({ ok }: { ok: boolean }) {
+  return (
+    <p className="flex items-center gap-2 text-sm text-gray-600">
+      <span
+        aria-hidden
+        className={`h-2 w-2 rounded-full ${ok ? 'bg-green-500' : 'bg-red-500'}`}
+      />
+      {ok ? PERFIL_STATUS_OK : PERFIL_STATUS_ERRO}
+    </p>
+  )
+}
 
 function PerfilHome() {
   // React Query v5: single options object; initial-load state is isPending (Pitfall 9).
@@ -22,34 +37,29 @@ function PerfilHome() {
   }
 
   if (isError || !data) {
+    // Only reachable when the fetch itself fails (server down) — the backend
+    // never answers 500 for a broken profile (Pattern 4).
     return <p className="text-red-600">{PERFIL_ERROR_TITLE}</p>
   }
 
   if (data.status === 'erro') {
-    // Backend already renders PT-BR lines naming file + field (D-13/D-14).
-    // Full ErrorPanel arrives in plan 03.
+    // Broken profile = rendered UI state (D-12/D-13): the ErrorPanel shows the
+    // backend's PT-BR lines verbatim; the app shell stays up.
     return (
-      <div className="rounded-md border border-red-300 bg-red-50 px-4 py-3">
-        <p className="font-semibold text-red-700">{PERFIL_ERROR_TITLE}</p>
-        <ul className="mt-2 list-disc pl-5 text-sm text-red-700">
-          {data.erros.map((linha) => (
-            <li key={linha} className="whitespace-pre-wrap">
-              {linha}
-            </li>
-          ))}
-        </ul>
+      <div className="space-y-4">
+        <StatusLine ok={false} />
+        <ErrorPanel erros={data.erros} />
       </div>
     )
   }
 
   return (
-    <div>
+    <div className="space-y-6">
+      <StatusLine ok={true} />
       {data.exemplo && <PlaceholderBanner />}
       <h2 className="text-xl font-semibold text-gray-900">{PERFIL_SECTION_TITLE}</h2>
-      <p className="mt-2 text-gray-700">
-        Perfil carregado: <span className="font-medium">{data.perfil.name as string}</span>
-      </p>
-      {/* Completeness grid + resume-style preview arrive in plan 03 (D-12). */}
+      {/* CompletenessGrid + ProfilePreview land in Task 2 (D-12). */}
+      <div id="perfil-detalhes" />
     </div>
   )
 }
