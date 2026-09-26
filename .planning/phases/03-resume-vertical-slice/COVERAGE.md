@@ -1,0 +1,3 @@
+# Phase 3 — API Coverage Decision
+
+No external API integration: the phase consumes the existing Phase 2 gateway seam (`backend/app/llm/gateway.py` → OpenRouter via the openai SDK with strict `json_schema` response_format — already integrated, drift-locked, and live-validated in Phase 2 plan 02-04). All Phase 3 work is new gateway stage registrations, pure-function checks, routes, and UI over that existing, tested call path — no new API/SDK surface is integrated. The deterministic detector over the phase scope returned `detected: false` (2026-09-26); this declaration records why no capability matrix rows exist.

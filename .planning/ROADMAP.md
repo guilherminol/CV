@@ -101,8 +101,26 @@ Plans:
   4. User sees a keyword coverage checklist showing which JD keywords made it into the resume and which did not — no numeric score.
   5. Before generating, user sees a completeness lint tying profile gaps to the JD (e.g., "no metrics for job X", "JD requires skill Y missing from profile").
 
-**Plans**: TBD
+**Plans**: 5 plans
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Engine: strict section contracts (3 models + hand-maintained wire schemas + drift-lock), 3 meta-prompts with the D-07 grounding rule, gateway stage registration, profile-fact serialization (RESUME-03, RESUME-01)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 03-02-PLAN.md — Deterministic checks: keyword coverage matcher (lookaround boundaries, run-language, auditable matched terms) + JD-tied completeness lint (D-04 a/b/c, non-blocking) (RESUME-04, PROFILE-02)
+
+**Wave 3** *(blocked on Waves 1-2)*
+
+- [ ] 03-03-PLAN.md — Orchestration + routes: run_resume_pipeline, POST /api/resume/lint + /api/resume/gerar (sync def, 200 envelope, all-or-nothing, router-before-mount) (RESUME-01/02/04, PROFILE-02)
+
+**Wave 4** *(blocked on Wave 3; plans 04 and 05 run in parallel)*
+
+- [ ] 03-04-PLAN.md — Frontend Currículo slice: nav enable + view switch, typed client, form/lint/keywords+coverage/result zones per approved UI-SPEC (RESUME-01/02/04, PROFILE-02)
+- [ ] 03-05-PLAN.md — Grounding proof + real-API bilingual harness + end-of-phase human verification (RESUME-03, RESUME-01)
 
 ### Phase 4: PDF Export + ATS Self-Check
 
