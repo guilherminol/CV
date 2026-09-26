@@ -101,7 +101,7 @@ Plans:
   4. User sees a keyword coverage checklist showing which JD keywords made it into the resume and which did not — no numeric score.
   5. Before generating, user sees a completeness lint tying profile gaps to the JD (e.g., "no metrics for job X", "JD requires skill Y missing from profile").
 
-**Plans**: 3/5 plans executed
+**Plans**: 4/5 plans executed
 **UI hint**: yes
 
 Plans:
@@ -119,7 +119,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 03-04-PLAN.md — Frontend Currículo slice: nav enable + view switch, typed client, form/lint/keywords+coverage/result zones per approved UI-SPEC (RESUME-01/02/04, PROFILE-02)
+- [x] 03-04-PLAN.md — Frontend Currículo slice: nav enable + view switch, typed client, form/lint/keywords+coverage/result zones per approved UI-SPEC (RESUME-01/02/04, PROFILE-02)
 
 **Wave 5** *(blocked on Waves 1-4; end-of-phase gate — depends_on 03-04 so the browser walkthrough runs against the finished Currículo screen)*
 
@@ -181,7 +181,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation — Scaffold + Master Profile | 3/3 | In Progress|  |
 | 2. LLM Generation Core | 5/5 | Complete    | 2026-09-26 |
-| 3. Resume Vertical Slice | 3/5 | In Progress|  |
+| 3. Resume Vertical Slice | 4/5 | In Progress|  |
 | 4. PDF Export + ATS Self-Check | 0/TBD | Not started | - |
 | 5. Review Flow + Fact Safety | 0/TBD | Not started | - |
 | 6. LinkedIn Module + Bilingual Hardening | 0/TBD | Not started | - |

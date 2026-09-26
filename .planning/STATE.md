@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Resume Vertical Slice
 status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-09-26T22:06:48.008Z"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-09-26T22:26:43.328Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 3 execution started
-state_head: b439509ecacaa2f88ae62b58f1d72b5a6f4144af
+state_head: e1a7f42bc7263a21b18905f1076c973890cbc7ea
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 12
   percent: 17
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 ## Current Position
 
 Phase: 3 (Resume Vertical Slice) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 3 execution started
 
@@ -71,6 +71,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 3 P01 | 13min | 3 tasks | 9 files |
 | Phase 3 P02 | 16 min | 2 tasks | 4 files |
 | Phase 3 P03 | 9 min | 2 tasks | 5 files |
+| Phase 3 P04 | 13 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,9 @@ Recent decisions affecting current work:
 - [Phase 3]: one matcher two inputs — lint_jd_tied reuses coverage fold/lookaround primitives; avisos are UI-contract strings owned backend-side
 - [Phase 3]: [Phase 3]: 03-03 keyword-extraction language fixed pt-BR in BOTH paths (lint + gerar); gerar echoes ITS OWN extraction verbatim — never trusts a prior lint call
 - [Phase 3]: [Phase 3]: 03-03 cobertura_resumo tallied server-side {cobertos,total} — no score field, no JS test runner introduced (no-new-frontend-deps contract held)
+- [Phase 3]: 03-04: view switch without router — useState curriculo|perfil, Currículo default landing; StatusLine extracted to shared component (no circular import)
+- [Phase 3]: 03-04: coverage tally singular keyed on total===1 (noun agreement with total); chips by fixed CATEGORY_ORDER, aria-hidden glyph + visually-hidden status text
+- [Phase 3]: 03-04: lint query gated on 800ms-debounced JD at >=80 trimmed chars (T-03-10 bound); generate failure never unmounts a prior result; generated content React-state only (D-06)
 
 ### Pending Todos
 
@@ -117,6 +121,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-26T22:06:47.892Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-09-26T22:26:24.142Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None
