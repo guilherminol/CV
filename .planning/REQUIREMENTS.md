@@ -15,9 +15,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Currículo
 
-- [ ] **RESUME-01**: User can paste a job description and choose the output language (PT-BR or EN) per generation run
+- [x] **RESUME-01**: User can paste a job description and choose the output language (PT-BR or EN) per generation run
 - [x] **RESUME-02**: User can see the keywords extracted from the job description (skills, tools, titles, certs) that the generation is targeting
-- [ ] **RESUME-03**: User gets a sectioned resume (summary, experience bullets, skills) generated strictly from master-profile facts — the AI rephrases but never invents achievements, metrics, or technologies
+- [x] **RESUME-03**: User gets a sectioned resume (summary, experience bullets, skills) generated strictly from master-profile facts — the AI rephrases but never invents achievements, metrics, or technologies
 - [x] **RESUME-04**: User sees a keyword coverage checklist showing which JD keywords made it into the resume and which did not (no vanity 0–100 score)
 
 ### Revisão e Export
@@ -71,9 +71,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROFILE-01 | Phase 1 | Complete |
 | PROFILE-02 | Phase 3 | Complete |
 | PROFILE-03 | Phase 2 | Complete |
-| RESUME-01 | Phase 3 | Pending |
+| RESUME-01 | Phase 3 | Complete |
 | RESUME-02 | Phase 3 | Complete |
-| RESUME-03 | Phase 3 | Pending |
+| RESUME-03 | Phase 3 | Complete |
 | RESUME-04 | Phase 3 | Complete |
 | REVIEW-01 | Phase 5 | Pending |
 | REVIEW-02 | Phase 4 | Pending |
