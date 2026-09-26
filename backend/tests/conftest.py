@@ -10,6 +10,10 @@ from pathlib import Path
 import pytest
 import yaml
 
+# Real-API harness fixture texts (02-04, D-12/D-15) — re-exported here so
+# they are part of the shared conftest fixture surface.
+from llm_fixtures import JD_EN, JD_PT, OBJECTIVE_EN, OBJECTIVE_PT  # noqa: F401
+
 # Repo root, computed from this file's location:
 # backend/tests/conftest.py -> backend/tests -> backend -> repo root
 REPO_ROOT = Path(__file__).resolve().parents[2]
