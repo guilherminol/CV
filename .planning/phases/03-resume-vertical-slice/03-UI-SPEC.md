@@ -1,10 +1,11 @@
 ---
 phase: "3"
 slug: "resume-vertical-slice"
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: "2026-09-26"
+reviewed_at: "2026-09-26"
 ---
 
 # Phase 3 — UI Design Contract
@@ -48,6 +49,8 @@ Language note: when the run language is `en`, localized passthrough fields rende
 **Zone 5 — Keywords & coverage** (RESUME-02 + RESUME-04, one honest panel). Below the result card. Summary line first, then keywords grouped by the four fixed schema categories (Phase 2 D-10) in fixed order — Competências, Ferramentas, Títulos de vaga, Certificações — as wrapping chips; covered keywords carry ✓ (green), absent carry ○ (gray). Categories with zero keywords are hidden. Keyword display text uses the run-language field (`pt` for a PT-BR run, `en` for an EN run), per D-02.
 
 **State machine:** `idle` (form only) → typing (lint panel appears ≥80 chars) → `in-flight` (controls locked) → `result` (zones 4–5 render; form stays at top for edits). Page refresh returns to `idle` — generated content is session-only (D-06), stated in the ephemeral notice.
+
+**Visual anchor per state** (Dimension 2): `idle` — the form card is the anchor, with the accent CTA as its focal point; `in-flight` — the form card with the in-flight status line under it; `result` — the result card ("Currículo gerado") is the anchor, with the Gerado-badged generated sections as the emphasized content; zones 4–5 stack below it in reading order.
 
 ### Component conventions (first interactive controls of the app — class strings pinned)
 
@@ -117,7 +120,7 @@ Exactly 4 sizes (12/14/16/20) and 2 weights (400/600) for all new Phase 3 UI.
 
 Text hierarchy: `text-gray-900` primary, `text-gray-700`/`text-gray-600` secondary, `text-gray-500` muted, `text-gray-400` disabled/placeholder (all as shipped in Phase 1).
 
-Accent reserved for: the "Gerar currículo" primary button, the enabled "Currículo" nav item, focus-visible rings, and the "Gerado" badge (marks what this phase produces, per D-05's "geradas em destaque"). Never used for coverage status, lint, or error states — those have their own semantic colors. There are no destructive actions in this phase, so red is reserved exclusively for failure states.
+Accent reserved for: the "Gerar currículo" primary button, the enabled "Currículo" nav item, focus-visible rings, the "Gerado" badge (marks what this phase produces, per D-05's "geradas em destaque"), and the selected option of the language segmented control (selected-state indication, per Component conventions). Never used for coverage status, lint, or error states — those have their own semantic colors. There are no destructive actions in this phase, so red is reserved exclusively for failure states.
 
 ---
 
@@ -209,12 +212,12 @@ Applicable state considerations resolved: 14 covered, 1 backstop, 0 unresolved
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
-- [ ] Dimension 7 Inventory Provenance: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: FLAG (non-blocking — resolved: "Visual anchor per state" declared in Screen Structure)
+- [x] Dimension 3 Color: PASS (minor note — resolved: selected language segment added to accent reserved-for list)
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
+- [x] Dimension 7 Inventory Provenance: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-09-26 (6 PASS, 1 FLAG non-blocking; both recommendations applied post-review)
