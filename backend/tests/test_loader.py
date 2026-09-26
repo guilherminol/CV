@@ -5,10 +5,14 @@ style that the interim plan-01 renderer does not produce yet — they MUST fail;
 the failure-mode tests pin behaviors the tracer already delivered.
 """
 
-import pytest
+from pathlib import Path
 
-from app.profile.errors import render_loc
+import pytest
+from pydantic import ValidationError
+
+from app.profile.errors import _ptbr_message, render_errors_ptbr, render_loc
 from app.profile.loader import ProfileError, load_profile
+from app.profile.models import Profile
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +100,46 @@ def test_render_loc_language_key_marker() -> None:
     # Verified loc shape for literal_error on a localized-map key:
     loc = ("experiences", 0, "title", "values", "pt-PT", "[key]")
     assert render_loc(loc) == "experiences[0].title.values.pt-PT (chave)"
+
+
+# ---------------------------------------------------------------------------
+# WR-01: every producible Pydantic error type renders PT-BR — the UI path
+# never shows English prose (D-14). RED: unmapped types leak e["msg"].
+# ---------------------------------------------------------------------------
+
+
+def _render_validation_error(data: dict) -> str:
+    """Validate `data` against Profile and render the errors exactly as the API does."""
+    try:
+        Profile.model_validate(data)
+    except ValidationError as exc:
+        return render_errors_ptbr(exc, Path("profile.md"))
+    raise AssertionError("esperado ValidationError para os dados quebrados")
+
+
+def test_model_list_and_dict_type_errors_render_ptbr(minimal_profile_data: dict) -> None:
+    minimal_profile_data["contact"] = "texto"
+    minimal_profile_data["experiences"] = "ops"
+    minimal_profile_data["summary"] = "texto"
+    msg = _render_validation_error(minimal_profile_data)
+    assert "contact — estrutura esperada (bloco de dados), encontrado valor simples" in msg
+    assert "experiences — lista esperada, encontrado valor de outro tipo" in msg
+    assert "summary — dicionário esperado, encontrado valor de outro tipo" in msg
+    assert "Input should be" not in msg  # English Pydantic prose never reaches the UI
+
+
+def test_bool_parsing_error_renders_ptbr(minimal_profile_data: dict) -> None:
+    minimal_profile_data["example"] = "talvez"
+    msg = _render_validation_error(minimal_profile_data)
+    assert "example — verdadeiro/falso esperado, encontrado texto não reconhecido" in msg
+    assert "unable to interpret" not in msg  # the raw English msg stays out of the UI path
+
+
+def test_unmapped_error_type_falls_back_to_ptbr_template() -> None:
+    """A future/unmapped type still renders PT-BR — never raw English (D-14)."""
+    msg = _ptbr_message({"type": "algum_tipo_futuro", "msg": "Input should be valid"})
+    assert "valor inválido para este campo" in msg
+    assert "Input should be valid" not in msg
 
 
 # ---------------------------------------------------------------------------
