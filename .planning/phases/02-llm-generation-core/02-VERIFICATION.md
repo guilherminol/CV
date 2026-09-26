@@ -1,22 +1,21 @@
 ---
 phase: 02-llm-generation-core
-verified: 2026-09-26T18:18:26Z
+verified: 2026-09-26T23:37:51Z
 status: passed
 score: 13/13 must-haves verified
 covered_files:
-  - .planning/phases/02-llm-generation-core/02-01-PLAN.md
-  - .planning/phases/02-llm-generation-core/02-02-PLAN.md
-  - .planning/phases/02-llm-generation-core/02-03-PLAN.md
-  - .planning/phases/02-llm-generation-core/02-04-PLAN.md
-  - .planning/phases/02-llm-generation-core/02-05-PLAN.md
-  - .planning/phases/02-llm-generation-core/02-01-SUMMARY.md
-  - .planning/phases/02-llm-generation-core/02-02-SUMMARY.md
-  - .planning/phases/02-llm-generation-core/02-03-SUMMARY.md
-  - .planning/phases/02-llm-generation-core/02-04-SUMMARY.md
-  - .planning/phases/02-llm-generation-core/02-05-SUMMARY.md
-  - .planning/REQUIREMENTS.md
   - .gitignore
-  - backend/pyproject.toml
+  - .planning/REQUIREMENTS.md
+  - .planning/phases/02-llm-generation-core/02-01-PLAN.md
+  - .planning/phases/02-llm-generation-core/02-01-SUMMARY.md
+  - .planning/phases/02-llm-generation-core/02-02-PLAN.md
+  - .planning/phases/02-llm-generation-core/02-02-SUMMARY.md
+  - .planning/phases/02-llm-generation-core/02-03-PLAN.md
+  - .planning/phases/02-llm-generation-core/02-03-SUMMARY.md
+  - .planning/phases/02-llm-generation-core/02-04-PLAN.md
+  - .planning/phases/02-llm-generation-core/02-04-SUMMARY.md
+  - .planning/phases/02-llm-generation-core/02-05-PLAN.md
+  - .planning/phases/02-llm-generation-core/02-05-SUMMARY.md
   - backend/app/config.py
   - backend/app/llm/__init__.py
   - backend/app/llm/errors.py
@@ -24,7 +23,7 @@ covered_files:
   - backend/app/llm/logging.py
   - backend/app/llm/prompts.py
   - backend/app/llm/schemas.py
-  - prompts/keyword-extraction.md
+  - backend/pyproject.toml
   - backend/tests/conftest.py
   - backend/tests/llm_fixtures.py
   - backend/tests/test_gateway.py
@@ -33,103 +32,113 @@ covered_files:
   - backend/tests/test_phase2_config.py
   - backend/tests/test_prompt_loader.py
   - backend/tests/test_run_log.py
-covered_digest: "v1:sha256:5b6c14458d3c864ee0ddac03ab6211c063a99f294c093e54ea16678c43b64220"
+  - prompts/keyword-extraction.md
+covered_digest: "v1:sha256:911c946d6d36724e741c8958fff5d4f9a5e7f7cf3e4dd100fb7ffd1169999c98"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
-  previous_status: gaps_found
-  previous_score: 12/13
-  gaps_closed:
-    - "SC3 malformed-but-200 response-shape containment: empty choices / content=None / non-str content now route through the SAME containment path as invalid content (invalid attempt lines, terminal run_summary, bounded retry with PT-BR correction, LLMError at exhaustion) — CR-01 fixed in gateway.py and pinned offline by test_gateway.py"
+  previous_status: passed
+  previous_score: 13/13
+  gaps_closed: []
   gaps_remaining: []
   regressions: []
 advisory:
-  - finding: "Guarded extraction still dereferences choices[0].message unguarded (gateway.py:158) — a non-empty choices list whose first choice lacks .message would raise a raw AttributeError (02-REVIEW.md IN-06)"
+  - finding: "Guarded extraction still dereferences choices[0].message unguarded (gateway.py:174) — a non-empty choices list whose first choice lacks .message would raise a raw AttributeError (02-REVIEW.md IN-06)"
     category: architectural
-    reason: "New-scope residue of the CR-01 fix, surfaced by the re-review. Unreachable through the real OpenAI SDK: response payload parsing happens inside create(), so a missing .message raises there and is contained by the except Exception branch (status 'error' attempt line + immediate LLMError). Reachable only by injecting a client that violates the documented 'OpenAI SDK-compatible chat client' contract (gateway.py:66). No failing test, no reproducible defect on any real call path. Fix is a two-line getattr extension if ever desired."
+    reason: "Carried from the previous verification, unchanged by phase 3 (the diff region is byte-identical). Unreachable through the real OpenAI SDK: response payload parsing happens inside create(), so a missing .message raises there and is contained by the except Exception branch (status 'error' attempt line + immediate LLMError). Reachable only by injecting a client that violates the documented 'OpenAI SDK-compatible chat client' contract (gateway.py:80). No failing test, no reproducible defect on any real call path — including the post-phase-3 live run at 2026-09-26T22:38 UTC. Fix is a two-line getattr extension if ever desired."
     evidence_status: "none provided"
 ---
 
-# Phase 2: LLM Generation Core — Verification Report (Re-verification)
+# Phase 2: LLM Generation Core — Verification Report (Staleness Re-verification)
 
 **Phase Goal:** Every LLM call flows through one gateway that is logged, schema-validated, bilingual by parameter, and driven by meta-prompts the user can edit as versioned files in git.
-**Verified:** 2026-09-26T18:18:26Z
+**Verified:** 2026-09-26T23:37:51Z
 **Status:** passed
-**Re-verification:** Yes — after gap closure (02-05, commits b225f57 RED → 3f1297e guard → 1678e31 pins+recovery → ba41bb6 docs)
+**Re-verification:** Yes — staleness check after Phase 3 modified shared LLM files
 
-**MVP mode note:** unchanged from the initial verification — ROADMAP.md marks this phase `mode: mvp`, but the goal is not a User Story sentence (`user-story.validate` → `valid: false`). Verification proceeded goal-backward against the roadmap Success Criteria and all PLAN must_haves; no scope was reduced.
+## Why Re-verified
+
+The previous VERIFICATION.md (2026-09-26T18:18:26Z, passed 13/13) predated Phase 3's commits. Git shows Phase 3 touched the shared LLM surface in exactly two production commits plus one test commit:
+
+| Commit | File(s) | Nature of change |
+|--------|---------|------------------|
+| `bc64fd7` (03-01) | `backend/app/llm/schemas.py` | +79 lines, PURELY ADDITIVE — `Keyword`, `KeywordExtraction`, `KEYWORD_STRICT_SCHEMA` byte-untouched; resume section models/wire schemas appended after |
+| `0613c1f` (03-01) | `backend/app/llm/gateway.py` | Additive: 3 resume stages registered in `_STAGE_SCHEMAS`, imports widened, return annotation `KeywordExtraction` → `BaseModel`. Diff confirms ZERO changes to message plumbing, the CR-01 shape guard, the retry loop, logging calls, or exhaustion path |
+| `7e5ada9` (3-5) | `backend/tests/test_llm_harness.py` | Additive: 2 new llm-marked pipeline tests appended; all Phase 2 keyword-harness tests untouched |
+
+`git diff 3f1297e..HEAD` across every other Phase-2-owned file (`prompts.py`, `logging.py`, `errors.py`, `config.py`, `__init__.py`, `prompts/keyword-extraction.md`, `test_prompt_loader.py`, `test_keyword_schema.py`, `test_run_log.py`, `conftest.py`, `llm_fixtures.py`, `test_phase2_config.py`) is EMPTY — none were touched after the gap closure. The annotation loosening does not weaken the typed-return contract: the concrete model still comes from `_STAGE_SCHEMAS` and strict `model_validate` is unchanged; tests still assert `isinstance(result, KeywordExtraction)` for the keyword stage.
+
+All 13 truths were re-assessed against the CURRENT codebase: full-depth re-read of the two modified shared files, fresh test execution, fresh greps — none taken from the prior report.
 
 ## Goal Achievement
 
 ### Observable Truths
 
-All 13 truths from the initial verification's must-have contract were re-assessed: the one gap truth at full depth (exists / substantive / wired / behavior), the other 12 by regression spot-check (existence + the automated evidence re-run).
-
-| # | Truth | Status | Evidence |
-|---|-------|--------|----------|
-| 1 | SC1: User edits a meta-prompt file in git and the next generation run reflects the change with no code edits | ✓ VERIFIED | `prompts/keyword-extraction.md` git-versioned (d1e4d93, re-confirmed); `prompts.py` has no cache (grep clean); `gateway.py:89` calls `load_prompt(stage)` per call; `test_prompt_file_edit_is_visible_on_next_call` PASSED in this verification's gateway run (15/15) |
-| 2 | SC2: Fixture harness generates in EN and PT-BR; every call logged (stage, model, tokens/cost); model swap is config-only | ✓ VERIFIED | Live acceptance run on disk: `logs/runs.jsonl` 10 lines, timestamps 2026-09-26T12:25–12:29 UTC, model anthropic/claude-sonnet-4.5, numeric tokens (982/66/1048…), both languages, per-attempt + run_summary lines — re-inspected this pass. The gap-closure guard (17:48+ UTC) does not touch the valid-content path: for non-empty str content the new `isinstance/strip` branch is False and flow is identical to the pre-fix code (verified by reading the diff region); the full offline suite exercising run_stage end-to-end is green post-change, and `test_llm_harness.py` is byte-identical (only gateway.py + test_gateway.py changed — git-verified). 5 llm tests still collect (`--collect-only`: 5/92) |
-| 3 | SC3: Malformed structured response caught by validation, retried with error appended, clear failure; never downstream — **THE GAP, now closed** | ✓ VERIFIED | CR-01 guard present (gateway.py:157-159: `getattr(resp, "choices", None) or []`, `choices[0].message.content if choices else None`, `isinstance(content, str)/strip` branch) and routed into the SAME containment flow as invalid JSON (status "invalid" line with metadata-only descriptors, `_summarize("invalid")` at the shared exhaustion path, LLMError). Behavior proven by tests executed in THIS verification: `test_malformed_response_shapes_contained_like_invalid_content[empty-choices|content-none|content-non-str]` + `test_malformed_shape_then_valid_recovers_with_correction` all PASSED (verbose run: 4/4) — `pytest.raises(LLMError)` (no raw IndexError/TypeError), exactly LLM_MAX_ATTEMPTS calls, ascending invalid attempt lines carrying "conteúdo ausente ou não-textual" + correct type NAME, terminal run_summary outcome "invalid", metadata-only (`TEXTO-SECRETO-DO-USUARIO`/`bloco` absent from log); recovery returns typed KeywordExtraction with statuses ["invalid","ok"], roles ["system","user","user"]. TDD held: b225f57 (test-only RED) → 3f1297e (guard, production-only) |
-| 4 | SC4: Keyword extraction on JD or objective returns {en, pt}-mapped categorized keywords with hooks for later coverage checks | ✓ VERIFIED | Unchanged since initial verification (schemas.py + prompt untouched by gap commits): `Keyword(canonical, aliases, pt, en, category)` + 4 pinned ASCII categories; live categorized bilingual extraction on disk; `test_keyword_schema.py` green in this run |
-| 5 | Offline-by-default pytest: llm marker registered, addopts deselect llm tests, zero network in default run (D-15/D-16) | ✓ VERIFIED | This verification's run: **87 passed, 5 deselected in 1.17s**, no warnings; `pytest -m llm --collect-only` enumerates exactly 5; the three malformed shapes are pinned with injected fakes (zero network) |
+| # | Truth | Status | Evidence (fresh, this verification) |
+|---|-------|--------|--------------------------------------|
+| 1 | SC1: User edits a meta-prompt file in git and the next generation run reflects the change with no code edits | ✓ VERIFIED | `prompts/keyword-extraction.md` still git-versioned (d1e4d93, `git ls-files` re-run; 3 resume prompts added alongside by Phase 3, also versioned); `grep cache prompts.py` clean (file untouched since gap closure); current gateway.py:105 `load_prompt(stage)` fresh per call; `test_prompt_file_edit_is_visible_on_next_call` green in this run's suite |
+| 2 | SC2: Fixture harness generates in EN and PT-BR; every call logged (stage, model, tokens/cost); model swap is config-only | ✓ VERIFIED | Live evidence on disk re-inspected: `logs/runs.jsonl` now 12 lines / 6 run_summaries — including a NEW live run at **2026-09-26T22:38 UTC, AFTER Phase 3's gateway commits (21:22–21:26 UTC)**: stage keyword-extraction, status "ok", outcome "ok", numeric tokens 982/71/1053, model anthropic/claude-sonnet-4.5 — a real successful call through the CURRENT refactored gateway. Both languages (en, pt-BR) present across the log. 7 llm tests collect (`-m llm --collect-only`: 7/190), deselected by default |
+| 3 | SC3: Malformed structured response caught by validation, retried with error appended, clear failure; never downstream | ✓ VERIFIED | Current gateway.py:170-205 CR-01 guard intact and byte-identical to the verified fix (`getattr(resp, "choices", None) or []`, `choices[0].message.content if choices else None`, `isinstance/strip` branch → shared containment path: status "invalid" lines with metadata-only descriptors, PT-BR correction, `_summarize("invalid")` at exhaustion, LLMError). All shape/recovery pins present in current test_gateway.py (lines 319-392, incl. the +29 the diff range attributes past the guard commit) and green in this run's suite (183 passed) |
+| 4 | SC4: Keyword extraction on JD or objective returns {en, pt}-mapped categorized keywords with hooks for later coverage checks | ✓ VERIFIED | Current schemas.py lines 1-37: `Keyword(canonical, aliases, pt, en, category)` + 4 pinned ASCII categories + `KeywordExtraction` — byte-untouched by `bc64fd7` (additions start at line 38); `KEYWORD_STRICT_SCHEMA` intact (gateway still references it twice: import + `_STAGE_SCHEMAS["keyword-extraction"]` at gateway.py:50); `test_keyword_schema.py` (9 tests) green in this run |
+| 5 | Offline-by-default pytest: llm marker registered, addopts deselect llm tests, zero network in default run (D-15/D-16) | ✓ VERIFIED | This verification's run: **183 passed, 7 deselected in 1.63s**, no warnings (deselected grew 5→7 — Phase 3 added 2 pipeline llm tests; default suite still fully offline) |
 | 6 | logs/ gitignored before any run-log writer exists (Pitfall 8) | ✓ VERIFIED | `git check-ignore logs/runs.jsonl` exit 0 (re-run this pass) |
-| 7 | Phase 2 config constants importable: PROMPTS_DIR, LOGS_DIR, RUNS_LOG, LLM_MODEL (env-overridable, default anthropic/claude-sonnet-4.5), LLM_MAX_ATTEMPTS=3 | ✓ VERIFIED | Import check re-run: CONFIG_OK, LLM_MAX_ATTEMPTS == 3, openai importable, pinned default resolves; slug literal only in `config.py:34` (grep re-run) |
-| 8 | Prompt file loads/validates strictly; typo'd frontmatter key fails loudly naming key and file; fresh read (D-05..D-08, PROFILE-03) | ✓ VERIFIED | `PromptSpec(extra="forbid")` unchanged; `test_prompt_loader.py` (6 tests) green in this run |
-| 9 | Tracer: mocked call flows load_prompt → compose → SDK call → Pydantic validation → typed KeywordExtraction → JSONL line, end-to-end offline | ✓ VERIFIED | `test_happy_path_returns_typed_extraction_and_logs_one_line` green in this run |
-| 10 | Retry loop: invalid retried with assistant output + PT-BR correction appended (never identical messages); exhaustion → LLMError after LLM_MAX_ATTEMPTS; API errors fatal-immediate (SC3/D-03/D-04, Pitfall 7) | ✓ VERIFIED | All three scripted tests green in this run (validation-path recovery roles ["system","user","assistant","user"], bounded exhaustion with "tentativas", RuntimeError → 1 attempt status "error") |
-| 11 | Every attempt (ok/invalid/error) writes its own runs.jsonl line with attempt number; field set pinned; UTF-8 accents; append-only crash safety (D-13/D-14) | ✓ VERIFIED | `test_run_log.py` green; the initial verification's scope note (crash-class resolves to no status) is now moot — every malformed shape also resolves to status "invalid" lines + summary (truth 3) |
-| 12 | Strict JSON Schema dict drift-locked to KeywordExtraction's Pydantic model by test (RESEARCH Pattern 2, T-02-08) | ✓ VERIFIED | `test_keyword_schema.py` (9 tests) green in this run; WR-07 caveat (types not compared) remains a carried warning, unchanged |
-| 13 | Harness: slug probe + 4 real runs through the gateway ONLY; no-key → PT-BR skipif; spend failures loud (D-15, A1) | ✓ VERIFIED | `test_llm_harness.py` byte-identical through the gap round; offline shape tests green; 5 llm tests enumerate; live 5/5 evidence on disk + orchestrator-confirmed 2026-09-26 |
+| 7 | Phase 2 config constants importable: PROMPTS_DIR, LOGS_DIR, RUNS_LOG, LLM_MODEL (env-overridable, default anthropic/claude-sonnet-4.5), LLM_MAX_ATTEMPTS=3 | ✓ VERIFIED | Import check re-run: CONFIG_OK, LLM_MAX_ATTEMPTS == 3, openai importable, pinned default resolves; slug literal only in `config.py` (grep re-run: zero hits elsewhere in backend/app) |
+| 8 | Prompt file loads/validates strictly; typo'd frontmatter key fails loudly naming key and file; fresh read (D-05..D-08, PROFILE-03) | ✓ VERIFIED | `prompts.py` untouched since gap closure (`PromptSpec(extra="forbid")` intact); `test_prompt_loader.py` (6 tests) green in this run |
+| 9 | Tracer: mocked call flows load_prompt → compose → SDK call → Pydantic validation → typed KeywordExtraction → JSONL line, end-to-end offline | ✓ VERIFIED | `test_happy_path_returns_typed_extraction_and_logs_one_line` green in this run against the current gateway (unchanged machinery) |
+| 10 | Retry loop: invalid retried with assistant output + PT-BR correction appended (never identical messages); exhaustion → LLMError after LLM_MAX_ATTEMPTS; API errors fatal-immediate (SC3/D-03/D-04, Pitfall 7) | ✓ VERIFIED | Current gateway.py:134-262: retry loop, message-append branches (validation path appends assistant+user, malformed path appends user-only), fatal `except Exception` → 1 attempt + status "error" + immediate LLMError — all present, all scripted tests green in this run's suite |
+| 11 | Every attempt (ok/invalid/error) writes its own runs.jsonl line with attempt number; field set pinned; UTF-8 accents; append-only crash safety (D-13/D-14) | ✓ VERIFIED | `logging.py` untouched since gap closure; `test_run_log.py` (6 tests) green in this run; the live log's real lines carry the pinned field set (re-inspected) |
+| 12 | Strict JSON Schema dict drift-locked to KeywordExtraction's Pydantic model by test (RESEARCH Pattern 2, T-02-08) | ✓ VERIFIED | `KEYWORD_STRICT_SCHEMA` + `KeywordExtraction` both byte-untouched; `test_keyword_schema.py` (9 tests) green in this run; Phase 3 added a generalized drift-lock harness (`test_resume_schema.py`) for its own schemas — keyword lock unchanged (WR-07 caveat remains, unchanged) |
+| 13 | Harness: slug probe + 4 real runs through the gateway ONLY; no-key → PT-BR skipif; spend failures loud (D-15, A1) | ✓ VERIFIED | Current test_llm_harness.py: Phase 2's keyword tests byte-untouched (`7e5ada9` appended only); the docstring's call-path contract now reads "run_stage or run_resume_pipeline — the ONLY call paths" (still gateway-only for the keyword stage, satisfying the no-bespoke-SDK prohibition); 7 llm tests collect; live 5/5 evidence on disk PLUS the post-phase-3 live ok run at 22:38 UTC |
 
 **Score:** 13/13 truths verified (0 present-but-behavior-unverified)
 
-### Advisory (New Scope, Unevidenced)
+**Verdict changes vs previous report: NONE.** All 13 truths remain VERIFIED against the current codebase; the shared-file refactors were verified additive and non-regressive.
 
-New-scope findings from Step 7 with no deterministic evidence — reported, not blocking. Included because re-verification ran.
+### Advisory (New Scope, Unevidenced)
 
 | # | Finding | Category | Why Advisory |
 |---|---------|----------|--------------|
-| 1 | gateway.py:158 dereferences `choices[0].message` unguarded — raw AttributeError if an injected choice lacks `.message` (IN-06, 02-REVIEW.md) | architectural | new-scope, no deterministic evidence — unreachable through the real OpenAI SDK (payload parsing inside `create()` is contained by the `except Exception` branch → "error" line + LLMError); reachable only via a client violating the documented SDK-compatible contract |
+| 1 | gateway.py:174 dereferences `choices[0].message` unguarded — raw AttributeError if an injected choice lacks `.message` (IN-06, 02-REVIEW.md) | architectural | carried, unchanged by Phase 3 — unreachable through the real OpenAI SDK (payload parsing inside `create()` is contained by the `except Exception` branch → "error" line + LLMError); reachable only via a client violating the documented SDK-compatible contract; the post-phase-3 live run confirms no defect on the real path |
 
-Carried from the initial verification (unchanged, non-blocking, none addressed or worsened by the gap round): WR-01 (raw SDK exception text into the log `error` field), WR-02 (API key bound at import time), WR-03 (`PromptSpec.id` not cross-checked against stage), WR-04 (prompt body not validated non-empty), WR-05 (test pins shipped prompt's temperature/max_tokens), WR-06 (config test asserts live env default), WR-07 (drift-lock compares names/enums/shape but not types). All predate the gap-closure round, were treated as warnings then, and remain warnings.
+Carried warnings (unchanged — all their host files are untouched since the gap closure): WR-01 (raw SDK exception text into the log `error` field, gateway.py:160), WR-02 (API key bound at import time, config.py), WR-03/WR-04 (`PromptSpec.id` not cross-checked vs stage; body not validated non-empty, prompts.py), WR-05 (test pins shipped prompt's temperature/max_tokens, test_gateway.py), WR-06 (env-dependent default assertion, test_phase2_config.py), WR-07 (drift-lock compares names/enums/shape but not types, test_keyword_schema.py).
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `backend/app/config.py` | Phase 2 constants, slug config-only | ✓ VERIFIED | Re-checked: constants present, env-overridable model, cap 3 |
-| `backend/app/llm/__init__.py` | Package marker | ✓ VERIFIED | Exists (untouched by gap round) |
-| `backend/app/llm/errors.py` | PromptError/LLMError with message_ptbr + raw | ✓ VERIFIED | Unchanged |
-| `backend/app/llm/prompts.py` | Strict fresh-read loader, call-time default dir | ✓ VERIFIED | Unchanged; no cache (grep) |
-| `backend/app/llm/schemas.py` | Keyword/KeywordExtraction + strict wire dict | ✓ VERIFIED | Unchanged |
-| `backend/app/llm/logging.py` | Append-only UTF-8 JSONL writer + run summary | ✓ VERIFIED | Unchanged; the new containment path feeds it unchanged |
-| `backend/app/llm/gateway.py` | Single choke point: fresh prompt → strict schema call → re-validation → per-attempt log → typed return | ✓ VERIFIED | CR-01 guard in place (lines 154-189); all behaviors present and test-pinned |
+| `backend/app/config.py` | Phase 2 constants, slug config-only | ✓ VERIFIED | Untouched since gap closure; import check re-run green |
+| `backend/app/llm/__init__.py` | Package marker | ✓ VERIFIED | Untouched |
+| `backend/app/llm/errors.py` | PromptError/LLMError with message_ptbr + raw | ✓ VERIFIED | Untouched |
+| `backend/app/llm/prompts.py` | Strict fresh-read loader, call-time default dir | ✓ VERIFIED | Untouched; no cache (grep re-run) |
+| `backend/app/llm/schemas.py` | Keyword/KeywordExtraction + strict wire dict | ✓ VERIFIED | Keyword block byte-untouched; Phase 3 additions purely appended |
+| `backend/app/llm/logging.py` | Append-only UTF-8 JSONL writer + run summary | ✓ VERIFIED | Untouched |
+| `backend/app/llm/gateway.py` | Single choke point: fresh prompt → strict schema call → re-validation → per-attempt log → typed return | ✓ VERIFIED | All Phase 2 machinery intact in current file; Phase 3 added 3 `_STAGE_SCHEMAS` entries + annotation only |
 | `prompts/keyword-extraction.md` | First versioned meta-prompt | ✓ VERIFIED | Git-versioned (d1e4d93, re-confirmed) |
-| `backend/tests/test_prompt_loader.py` | Loader behaviors | ✓ VERIFIED | 6 tests green |
-| `backend/tests/test_gateway.py` | Offline full-path + retry + malformed-shape tests | ✓ VERIFIED | **15 tests green in this run** — 11 prior + 3 shape params + 1 recovery |
+| `backend/tests/test_prompt_loader.py` | Loader behaviors | ✓ VERIFIED | 6 tests green in this run |
+| `backend/tests/test_gateway.py` | Offline full-path + retry + malformed-shape tests | ✓ VERIFIED | All 15 tests green in this run's suite; shape/recovery pins present in current file |
 | `backend/tests/test_keyword_schema.py` | Drift-lock + strict rejection | ✓ VERIFIED | 9 tests green (WR-07 caveat unchanged) |
 | `backend/tests/test_run_log.py` | Pinned JSONL contract | ✓ VERIFIED | 6 tests green |
-| `backend/tests/llm_fixtures.py` + `conftest.py` + `test_llm_harness.py` | Bilingual fixtures + -m llm harness | ✓ VERIFIED | Byte-identical through the gap round; offline shape tests green; live evidence on disk |
+| `backend/tests/llm_fixtures.py` + `conftest.py` + `test_llm_harness.py` | Bilingual fixtures + -m llm harness | ✓ VERIFIED | Fixtures/conftest untouched; harness file additive-only; 7 llm tests collect; live evidence on disk |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|----|----|--------|---------|
-| `gateway.run_stage` | `prompts/<stage>.md` | `load_prompt` fresh per call (D-08/SC1) | ✓ WIRED | gateway.py:89; edit-visibility test green in this run |
-| `gateway` | `llm/logging.py` → `config.RUNS_LOG` | `write_run_line`/`write_run_summary` per attempt | ✓ WIRED | Now covers ALL shapes including malformed-but-200 (the closed gap's core) |
-| `gateway` | `config.LLM_MODEL` (slug nowhere else) | import from config only | ✓ WIRED | grep re-run: slug literal only in config.py:34 |
-| `KEYWORD_STRICT_SCHEMA` | `KeywordExtraction` | drift-lock test (T-02-08) | ✓ WIRED | test_keyword_schema.py green (types-not-compared caveat = WR-07, warning) |
-| retry loop | per-attempt logging | `_log` with attempt number + statuses | ✓ WIRED | Ascending attempts + statuses asserted by tests run in this pass, including on the malformed-shape path |
-| `test_llm_harness.py` | `gateway.run_stage` | the ONLY call path (no direct SDK) | ✓ WIRED | Unchanged; 5 llm tests collect |
-| harness run | `logs/runs.jsonl` audit | per-run tmp (or real) runs_log assertions | ✓ WIRED | Real acceptance log on disk re-inspected |
+| `gateway.run_stage` | `prompts/<stage>.md` | `load_prompt` fresh per call (D-08/SC1) | ✓ WIRED | gateway.py:105; edit-visibility test green in this run |
+| `gateway` | `llm/logging.py` → `config.RUNS_LOG` | `write_run_line`/`write_run_summary` per attempt | ✓ WIRED | Covers ALL shapes incl. malformed-but-200; live log lines on disk confirm |
+| `gateway` | `config.LLM_MODEL` (slug nowhere else) | import from config only | ✓ WIRED | grep re-run: slug literal only in config.py |
+| `KEYWORD_STRICT_SCHEMA` | `KeywordExtraction` | drift-lock test (T-02-08) | ✓ WIRED | Both representations byte-untouched; test_keyword_schema.py green (WR-07 caveat) |
+| retry loop | per-attempt logging | `_log` with attempt number + statuses | ✓ WIRED | Current gateway.py:127-132/182-192/212-222/244-252; asserted by green tests |
+| `test_llm_harness.py` | `gateway.run_stage` | the ONLY call path for keyword runs (no direct SDK) | ✓ WIRED | Phase 2 keyword tests unchanged; Phase 3's pipeline tests also route through run_stage via run_resume_pipeline |
+| harness run | `logs/runs.jsonl` audit | per-run tmp (or real) runs_log assertions | ✓ WIRED | Real log on disk re-inspected, incl. the post-phase-3 22:38 UTC run |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 |----------|--------------|--------|--------------------|--------|
-| `run_stage` return | KeywordExtraction | Live OpenRouter chat.completions via openai SDK → Pydantic re-validation | Yes — live run 2026-09-26 on disk (unchanged path post-guard for valid content) | ✓ FLOWING |
-| `runs.jsonl` attempt lines | usage/tokens/latency/status | `resp.usage` + client timing per attempt | Yes — numeric token counts in the real log | ✓ FLOWING |
-| `run_summary` line | totals/status_counts | accumulated per-attempt records | Yes — test-pinned, now including the malformed-shape class | ✓ FLOWING |
+| `run_stage` return | KeywordExtraction | Live OpenRouter chat.completions via openai SDK → Pydantic re-validation | Yes — live runs on disk incl. one THROUGH the current post-phase-3 gateway (22:38 UTC, status ok) | ✓ FLOWING |
+| `runs.jsonl` attempt lines | usage/tokens/latency/status | `resp.usage` + client timing per attempt | Yes — numeric token counts in the real log (982/71/1053 on the newest run) | ✓ FLOWING |
+| `run_summary` line | totals/status_counts | accumulated per-attempt records | Yes — 6 summary lines on disk, all outcome "ok" | ✓ FLOWING |
 
 No static returns, hardcoded literals, or mock data flow into production output. `cost: null` remains the deliberate D-13 contract (pricing deferred to Phase 5/6 run store) — not a stub.
 
@@ -137,69 +146,53 @@ No static returns, hardcoded literals, or mock data flow into production output.
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Full offline suite green, llm tests deselected | `cd backend && uv run pytest -q` | **87 passed, 5 deselected in 1.17s** | ✓ PASS |
-| Gateway file incl. all new pins | `cd backend && uv run pytest tests/test_gateway.py -q` | **15 passed in 0.36s** | ✓ PASS |
-| Malformed-shape containment + recovery (the gap) | `cd backend && uv run pytest tests/test_gateway.py -k malformed -v` | 4 passed — empty-choices, content-none, content-non-str, recovery | ✓ PASS |
+| Full offline suite green, llm tests deselected | `cd backend && uv run pytest -q` (single full run) | **183 passed, 7 deselected in 1.63s**, no warnings | ✓ PASS |
 | logs/ gitignored | `git check-ignore logs/runs.jsonl` | exit 0 | ✓ PASS |
-| Config constants importable, cap=3, SDK present | `uv run python -c "from app.config import …; assert LLM_MAX_ATTEMPTS == 3; import openai"` | CONFIG_OK, pinned slug, key set | ✓ PASS |
-| 5 llm tests exist (enumeration, no spend) | `uv run pytest -m llm --collect-only -q` | 5/92 collected | ✓ PASS |
-| Live harness acceptance (NOT re-run — spend; disk evidence re-inspected) | inspect `logs/runs.jsonl` | 10 lines, 5 runs en+pt-BR, model/tokens per attempt, 2026-09-26 12:25–12:29 UTC | ✓ PASS (disk evidence) |
+| Config constants importable, cap=3, SDK present | `uv run python -c "from app.config import …; assert LLM_MAX_ATTEMPTS == 3; import openai"` | CONFIG_OK, pinned slug `anthropic/claude-sonnet-4.5` | ✓ PASS |
+| llm tests exist (enumeration, no spend) | `uv run pytest -m llm --collect-only -q` | 7/190 collected | ✓ PASS |
+| Slug literal confined to config | `grep -rn "anthropic/claude-sonnet" backend/app/` (excl. config.py) | zero hits | ✓ PASS |
+| No prompt cache | `grep -n "lru_cache\|cache" backend/app/llm/prompts.py` | zero hits | ✓ PASS |
+| Live harness acceptance (NOT re-run — spend; disk evidence re-inspected) | inspect `logs/runs.jsonl` | 12 lines, 6 runs, both languages, per-attempt + summary, newest run 2026-09-26T22:38 UTC through the CURRENT gateway | ✓ PASS (disk evidence) |
 
 ### Probe Execution
 
-No probes declared in any plan (including 02-05) and no `scripts/*/tests/probe-*.sh` exist in this repository — Step 7c SKIPPED (nothing to run). The pytest commands above serve as the runnable checks.
+No probes declared in any Phase 2 plan and no `scripts/*/tests/probe-*.sh` exist in this repository — Step 7c SKIPPED (nothing to run). The pytest commands above serve as the runnable checks.
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|------------|-------------|--------|----------|
-| PROFILE-03 | 02-01, 02-02, 02-03, 02-04, 02-05 (all five) | User can edit meta-prompts as versioned files in git to tune generation behavior | ✓ SATISFIED | `prompts/keyword-extraction.md` versioned in git; strict fail-loud loader; fresh-read edit reflection test-proven; live SC2 run proves tuned generation; the gap closure STRENGTHENED the requirement's reliability (every response shape now terminates as typed result or typed LLMError with a full audit trail). REQUIREMENTS.md maps only PROFILE-03 to Phase 2 (marked Complete) — no orphaned requirements |
-
-### Decision Coverage
-
-All 16 trackable CONTEXT.md decisions (D-01..D-16) are honored by shipped artifacts (`check.decision-coverage-verify` re-run this pass: honored 16/16, not_honored []). Gate is non-blocking; recorded for drift review.
-
-### Test Quality Audit
-
-| Test File | Linked Req | Active | Skipped | Circular | Assertion Level | Verdict |
-|-----------|-----------|--------|---------|----------|-----------------|---------|
-| test_gateway.py | PROFILE-03 | 15 | 0 | none | behavioral (shape containment, message-role sequences, statuses, attempt bounds, metadata-only negative assertions) | OK |
-| test_run_log.py | PROFILE-03 | 6 | 0 | none | value (verbatim field-set pin) | OK |
-| test_keyword_schema.py | PROFILE-03 | 9 | 0 | none | value (bidirectional sets, enums, strict shape) | OK (WR-07: no type comparison) |
-| test_prompt_loader.py | PROFILE-03 | 6 | 0 | none | value/behavioral | OK |
-| test_phase2_config.py | PROFILE-03 | 3 | 0 | none | value | OK (WR-06 caveat) |
-| test_llm_harness.py | PROFILE-03 | 7 (5 llm + 2 offline shape) | 0 disabled — the skipif is the by-design D-15 key guard; live proof exists (5/5 + disk log) | none | behavioral (live post-conditions) | OK |
-
-**Disabled tests on requirements:** 0 → no blocker. **Circular patterns:** 0. **Insufficient assertions:** 0. The new malformed-shape tests use value/behavioral-level assertions (exact statuses, type-name descriptors, role sequences, metadata-absence negatives) — they prove the containment invariant, not mere existence.
+| PROFILE-03 | 02-01, 02-02, 02-03, 02-04, 02-05 (all five) | User can edit meta-prompts as versioned files in git to tune generation behavior | ✓ SATISFIED | Prompt file versioned in git (plus 3 Phase-3 prompt files joining it); strict fail-loud loader; fresh-read edit reflection test-proven against the current gateway; live tuned generation on disk incl. a post-refactor run. Phase 3's additive refactors did not weaken the requirement — they extended the same prompt-file/gateway pattern. REQUIREMENTS.md maps only PROFILE-03 to Phase 2 (marked Complete) — no orphaned requirements |
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| backend/app/llm/gateway.py | 158 | `choices[0].message` dereference unguarded — raw AttributeError if an injected choice lacks `.message` (IN-06) | ℹ️ Info | Advisory only — unreachable through the real OpenAI SDK (see Advisory section); the prior CR-01 blocker on lines 154-158 is RESOLVED |
-| backend/app/llm/gateway.py | 144 | Raw SDK exception text in log `error` field (WR-01) | ⚠️ Warning | Carried, unchanged, non-blocking |
-| backend/app/config.py + gateway.py | 18 / 29 | API key bound at import time (WR-02) | ⚠️ Warning | Carried |
+| backend/app/llm/gateway.py | 174 | `choices[0].message` dereference unguarded (IN-06) | ℹ️ Info | Advisory only — unreachable through the real OpenAI SDK; confirmed live-safe by the post-phase-3 run |
+| backend/app/llm/gateway.py | 160 | Raw SDK exception text in log `error` field (WR-01) | ⚠️ Warning | Carried, unchanged |
+| backend/app/config.py | 18 | API key bound at import time (WR-02) | ⚠️ Warning | Carried |
 | backend/app/llm/prompts.py | 70-74 | `PromptSpec.id` not cross-checked vs stage (WR-03); body not validated non-empty (WR-04) | ⚠️ Warning | Carried |
-| backend/tests/test_gateway.py | 190-191 | Test pins shipped prompt's temperature/max_tokens (WR-05) | ⚠️ Warning | Carried — legitimate prompt tuning breaks CI |
-| backend/tests/test_phase2_config.py | 13 | Env-dependent default assertion (WR-06) | ⚠️ Warning | Carried — passes in this env |
+| backend/tests/test_gateway.py | ~190 | Test pins shipped prompt's temperature/max_tokens (WR-05) | ⚠️ Warning | Carried |
+| backend/tests/test_phase2_config.py | 13 | Env-dependent default assertion (WR-06) | ⚠️ Warning | Carried |
 | backend/tests/test_keyword_schema.py | 19-65 | Drift-lock compares names/enums/shape, not types (WR-07) | ⚠️ Warning | Carried |
-| (prior Info items IN-01..IN-05) | — | Unused re-export; loader traversal gated only by allowlist; stale "numeric cost" docstring; in-progress-marker wording; model-swap live-validation doc gap | ℹ️ Info | Carried, unchanged |
 
-Debt-marker gate: re-scanned both files modified this round (`gateway.py`, `test_gateway.py`) — zero TBD/FIXME/XXX/HACK markers, zero placeholders, zero empty implementations. The prior blocker entry (CR-01) is resolved and removed from the blocker set.
+Debt-marker gate: re-scanned all shared files modified since the gap closure (`gateway.py`, `schemas.py`, `test_gateway.py`, `test_llm_harness.py`) — zero real TBD/FIXME/XXX/HACK markers (the single grep hit is the harness's own anti-placeholder assertion string, which tests that fixtures contain no such markers), zero stub implementations, no empty handlers, no placeholder returns.
 
 ### Human Verification Required
 
-None outstanding. This is an infrastructure/foundation phase (backend LLM gateway core) with no user-facing UI elements. The single manual-only item from 02-VALIDATION.md (real EN + PT-BR generation quality) was satisfied at the initial verification (user-supplied key, 5/5 live run 2026-09-26, user-confirmed PT-BR quality per 02-04 checkpoint) and is not invalidated by the gap round: the guard only adds a branch for non-str/blank content; the valid-content path is code-identical (verified by reading the diff region), and the full offline suite exercising that path end-to-end is green post-change. No ⚠️ PRESENT_BEHAVIOR_UNVERIFIED truths exist — every behavior-dependent truth (containment, retry/exhaustion transitions, recovery, audit ordering) has a named passing test executed in this verification.
+None outstanding. Infrastructure/foundation phase — no user-facing UI. The single manual-only item (real EN + PT-BR generation quality) was satisfied by the 5/5 live run with user-confirmed PT-BR quality (02-04 checkpoint), and is now FURTHER supported by a live run at 2026-09-26T22:38 UTC executed through the current post-phase-3 gateway (status ok, numeric tokens). No ⚠️ PRESENT_BEHAVIOR_UNVERIFIED truths — every behavior-dependent truth (containment, retry/exhaustion transitions, recovery, audit ordering) has a named passing test executed in this verification's suite run.
 
 ## Gaps Summary
 
-None. The single gap from the initial verification is closed and verified:
+None. This staleness re-verification confirms the Phase 3 refactors were strictly additive to the shared LLM surface:
 
-**SC3 malformed-shape containment (CR-01)** — the fix implements exactly the gap contract's two missing items. (1) The guard: `getattr(resp, "choices", None) or []` + `choices[0].message.content if choices else None` + the `not isinstance(content, str) or not content.strip()` branch route empty choices, `content=None` (refusal/content filter), and non-str content into the identical containment flow as invalid JSON — status "invalid" attempt line with metadata-only descriptors (choice count + type NAME), PT-BR correction appended on retry (user-only turn, deliberately no assistant echo), `_summarize("invalid")` + LLMError ("tentativas" / "malformed response" channels) at the shared exhaustion path. (2) The pins: a parametrized offline test covers all three shapes (asserting `pytest.raises(LLMError)` — so no raw IndexError/TypeError can pass unnoticed — plus call count, ascending invalid lines, type-name descriptors, terminal run_summary, and metadata-only discipline), and a recovery test proves attempt-2 valid JSON returns the typed result with statuses ["invalid","ok"] and retry roles ["system","user","user"]. TDD discipline is verifiable in git: the RED commit b225f57 touched only the test file, the GREEN commit 3f1297e only the gateway. All evidence was re-measured in this verification, not taken from SUMMARY claims: 87 passed / 5 deselected (full suite), 15/15 (gateway file), 4/4 verbose on the malformed tests.
+1. `schemas.py` — Keyword contract and wire schema byte-untouched; resume models appended.
+2. `gateway.py` — all Phase 2 machinery (shape guard, retry loop, containment, per-attempt logging, exhaustion, fatal-error path, fresh prompt load, config-only model, injectable client, call-time key check) byte-identical; three new stage registrations and a return-annotation widening only. The keyword-extraction stage's wiring is unchanged.
+3. `test_llm_harness.py` — Phase 2 tests untouched; two llm-marked pipeline tests appended.
 
-With that, all four roadmap Success Criteria hold: SC1 (edit-visibility test + git-versioned prompts), SC2 (live bilingual run with per-attempt audit + config-only model swap), SC3 (validation-class and now shape-class containment, both offline-pinned), SC4 (bilingual categorized extraction). The 16 context decisions are honored, PROFILE-03 is satisfied, and the phase goal — one logged, schema-validated, bilingual-by-parameter, meta-prompt-driven gateway — is achieved. The only residual finding is IN-06 (advisory, unreachable through the real SDK), recorded in the advisory frontmatter.
+All four roadmap Success Criteria hold against the current code: SC1 (edit-visibility test + git-versioned prompts), SC2 (live bilingual runs with per-attempt audit + config-only model swap — now including a post-refactor live run), SC3 (validation-class and shape-class containment, offline-pinned), SC4 (bilingual categorized extraction). PROFILE-03 is satisfied with no orphaned requirements, and the phase goal — one logged, schema-validated, bilingual-by-parameter, meta-prompt-driven gateway — is achieved in the current codebase.
 
 ---
 
-_Verified: 2026-09-26T18:18:26Z_
+_Verified: 2026-09-26T23:37:51Z_
 _Verifier: Claude (gsd-verifier)_
