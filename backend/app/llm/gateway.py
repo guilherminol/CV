@@ -151,7 +151,42 @@ def run_stage(
             ) from exc
 
         latency_ms = round((time.perf_counter() - started) * 1000, 1)
-        content = resp.choices[0].message.content
+        # CR-01: guarded shape extraction — empty/missing `choices` or None /
+        # non-str `content` (refusal, content filter, provider error inside a
+        # 200) must NEVER escape as a raw IndexError/TypeError.
+        choices = getattr(resp, "choices", None) or []
+        content = choices[0].message.content if choices else None
+        if not isinstance(content, str) or not content.strip():
+            # Malformed shape: route through the SAME containment path as
+            # invalid JSON — invalid attempt line, bounded retry with a PT-BR
+            # correction, LLMError at exhaustion (SC3). Metadata-only
+            # descriptors (choice count, type NAME) — never the content value.
+            raw = f"malformed response: choices={len(choices)}, content={type(content).__name__}"
+            accumulated_raw.append(f"[tentativa {attempt}] {raw}")
+            _log(
+                {
+                    **base_record,
+                    **_usage_fields(resp),
+                    "attempt": attempt,
+                    "status": "invalid",
+                    "latency_ms": latency_ms,
+                    "error": f"conteúdo ausente ou não-textual ({type(content).__name__}) — "
+                    "nunca retornado downstream, SC3",
+                }
+            )
+            if attempt < LLM_MAX_ATTEMPTS:
+                # Deliberately NO assistant turn on this path — the content
+                # may be None/non-str, there is nothing valid to echo back
+                # (Pitfall 7 still holds: the correction differs from
+                # anything previously sent).
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": "Sua resposta anterior chegou vazia. "
+                        "Reenvie o objeto JSON completo.",
+                    }
+                )
+            continue
         try:
             parsed = json.loads(content)
             result = output_model.model_validate(parsed)  # SC3/T-02-03: never trust the wire
