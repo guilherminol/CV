@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 4
 current_phase_name: PDF Export + ATS Self-Check
-status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-09-27T21:42:30.864Z"
+status: verifying
+stopped_at: Completed 04-03-PLAN.md (phase 4 plans done; human UAT deferred to /gsd-verify-work 4)
+last_updated: "2026-09-27T22:08:41.259Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 4 execution started
-state_head: 83ef32d44f860120023b520a6a1f82175010ccda
+state_head: 353808979787560db3f699fb57187c8f4a10589b
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 16
-  completed_plans: 15
+  completed_plans: 16
   percent: 33
 ---
 
@@ -30,6 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 | Phase | State | Resume |
 |-------|-------|--------|
 | 1 | verification_deferred_human | /gsd-verify-work 1 |
+| 4 | verification_deferred_human | /gsd-verify-work 4 |
 
 Deferred during autonomous run (2026-09-26): user chose to defer phase 1's 6 human checks
 (browser smoke, broken-profile state, edit-refresh, pt-BR preview, 3 code prohibitions,
@@ -37,12 +38,19 @@ package spot-check). Verifier re-proved all automatable must-haves with zero reg
 (7/12 verified, fresh digest). Phases 2 and 3 are complete; phases 4–6 not started (halted
 by this deferral).
 
+Phase 4 deferred during autonomous run (2026-09-27): 04-03's Task 3 checkpoint resolved
+"deferred — record UAT" — SC1 PDF-vs-screen fidelity, SC3 download UX feel, SC2/EN heading
+viewer inspection, and the backstop full-page readability check were NOT run. Automation
+green stands (223 tests incl. the real-render parse-back gate = the automated SC2 proof;
+frontend build green). /gsd-verify-work 4 re-surfaces all four as human_needed UAT
+(instructions in 04-03-SUMMARY.md, Deferred Human Verification section).
+
 ## Current Position
 
 Phase: 4 (PDF Export + ATS Self-Check) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-09-27 — Phase 4 execution started
+Status: Phase complete — ready for verification
+Last activity: 2026-09-27 — Phase 4 plans executed (04-01..04-03); human UAT deferred to /gsd-verify-work 4
 
 Progress: [███░░░░░░░] 33%
 
@@ -88,6 +96,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 3 P5 | 12 min | 3 tasks | 2 files |
 | Phase 4 P04-01 | 23 min | 3 tasks | 9 files |
 | Phase 04 P02 | 14min | 2 tasks | 6 files |
+| Phase 4 P04-03 | 23min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -121,6 +130,9 @@ Recent decisions affecting current work:
 - [Phase 4]: [Phase 4]: 04-01 playwright pinned 1.62.0 (DIVERGES from STACK.md 1.63.0 on purpose — bundles cached chromium-1234, zero download; WeasyPrint swap = one function, AST-pinned); dates join renders raw stored strings with graceful dateless skip (no invented dates)
 - [Phase 4]: Export envelope contract pinned by tests (04-02): ok={status, filename, pdf_base64, selfcheck{ordem, sobrevivencia, gate}}, erro={status, erros} with NO PDF key ever; ordem ids = contato + render.section_keys; resumo bounded 1..8000, experiencias/habilidades min_length=1
 - [Phase 4]: REVIEW-03 left pending after 04-02 — its data layer (selfcheck payload + export endpoint) is complete; the user story completes with 04-03's panel
+- [Phase 4]: 04-03: checkpoint resolved [deferred — silence] — SC1 fidelity, SC3 UX feel, SC2/EN viewer inspection, backstop readability NOT run; re-surface via /gsd-verify-work 4 as human_needed UAT (Phase 1 pattern); automation green stands (223 tests incl. real-render parse-back gate)
+- [Phase 4]: 04-03: SelfCheckPanel takes the run's keywords prop ([Rule 3]) — backend sobrevivencia carries canonical only; run-language chips need the displayed-state lookup (D-10 intact); main Gerar CTA added to the symmetric lock ([Rule 2])
+- [Phase 4]: REVIEW-03 checked by 04-03 — user story completes with the self-check panel; human UAT pending noted on the REQUIREMENTS.md line
 
 ### Pending Todos
 
@@ -142,6 +154,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T21:42:30.711Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-09-27T22:08:25.250Z
+Stopped at: Completed 04-03-PLAN.md (phase 4 plans done; human UAT deferred to /gsd-verify-work 4)
 Resume file: None

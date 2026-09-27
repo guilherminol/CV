@@ -24,7 +24,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **REVIEW-01**: User can regenerate individual resume sections and edit generated text inline in the app before exporting
 - [x] **REVIEW-02**: User can export the resume as a single-column Google-format PDF with a clean, selectable text layer (ATS-parseable reading order)
-- [ ] **REVIEW-03**: User can run an ATS self-check that extracts the text from the exported PDF and verifies section order and keyword survival, in both languages
+- [x] **REVIEW-03**: User can run an ATS self-check that extracts the text from the exported PDF and verifies section order and keyword survival, in both languages *(automated criteria met 2026-09-27 — 04-03 panel shipped; human UAT of the panel deferred to /gsd-verify-work 4)*
 
 ### LinkedIn
 
@@ -77,7 +77,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RESUME-04 | Phase 3 | Complete |
 | REVIEW-01 | Phase 5 | Pending |
 | REVIEW-02 | Phase 4 | Complete |
-| REVIEW-03 | Phase 4 | Pending |
+| REVIEW-03 | Phase 4 | Complete |
 | LI-01 | Phase 6 | Pending |
 | LI-02 | Phase 6 | Pending |
 | LI-03 | Phase 6 | Pending |
@@ -92,4 +92,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-09-25*
-*Last updated: 2026-09-25 after roadmap creation*
+*Last updated: 2026-09-27 — REVIEW-02 (04-01) and REVIEW-03 (04-03) checked; REVIEW-03's human UAT pending, see .planning/phases/04-pdf-export-ats-self-check/04-03-SUMMARY.md*

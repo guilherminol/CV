@@ -137,7 +137,7 @@ Plans:
   2. The automated parse-back extraction gate passes on every export: text extracts in reading order with contact first, canonical headings, co-occurring company/title/dates, and intact PT-BR accents — verified in both PT-BR and EN exports.
   3. User can run the ATS self-check in-app and see verification of section order and keyword survival for the exported PDF, in both languages.
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed
 
 Plans:
 **Wave 1** *(gate first per D-02 — engine choice stays empirical)*
@@ -150,7 +150,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 — frontend consumes the envelope; ends with human verification)*
 
-- [ ] 04-03-PLAN.md — Frontend Zone 6: typed export client + blob download, Exportar PDF CTA + self-check panel per the approved UI-SPEC, symmetric locking + regeneration reset, end-of-phase human verification of SC1/SC3/SC2-EN (REVIEW-02, REVIEW-03)
+- [x] 04-03-PLAN.md — Frontend Zone 6: typed export client + blob download, Exportar PDF CTA + self-check panel per the approved UI-SPEC, symmetric locking + regeneration reset, end-of-phase human verification of SC1/SC3/SC2-EN (REVIEW-02, REVIEW-03)
 
 **UI hint**: yes
 
@@ -196,6 +196,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation — Scaffold + Master Profile | 3/3 | In Progress|  |
 | 2. LLM Generation Core | 5/5 | Complete    | 2026-09-26 |
 | 3. Resume Vertical Slice | 5/5 | Complete    | 2026-09-26 |
-| 4. PDF Export + ATS Self-Check | 2/3 | In Progress|  |
+| 4. PDF Export + ATS Self-Check | 3/3 | In Progress|  |
 | 5. Review Flow + Fact Safety | 0/TBD | Not started | - |
 | 6. LinkedIn Module + Bilingual Hardening | 0/TBD | Not started | - |
