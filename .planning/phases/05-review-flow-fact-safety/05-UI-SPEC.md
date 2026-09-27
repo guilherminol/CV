@@ -43,7 +43,7 @@ No new screen and no nav change. All Phase 5 mechanics live **inside the result 
 ```
 RESUMO                                    [Badge: Gerado | Editado]
 ─────────────────────────────────────────────────────────────
-Editar · Comparar com o perfil · Versões (2)   Adicionar dica · [Regenerar]
+Editar seção · Comparar com o perfil · Versões (2)   Adicionar dica · [Regenerar seção]
 [dica block — only when toggled open]
 <content — or the edit textarea while editing>
 [Comparação com o perfil — only when toggled open]
@@ -53,17 +53,17 @@ Editar · Comparar com o perfil · Versões (2)   Adicionar dica · [Regenerar]
 ```
 
 **Section action row** (`mt-2 flex flex-wrap items-center gap-x-3 gap-y-2`, directly under the section h4 border):
-- Quiet text buttons: `Editar`, `Comparar com o perfil` (swaps to `Ocultar comparação`), `Versões` (label `Versões ({count})` when count > 0, disabled at 0).
-- `Adicionar dica` quiet text toggle (swaps to `Ocultar dica`) + `Regenerar` compact secondary button (in-flight label `Regenerando…`). The hint (D-05) is **on demand**: the toggle reveals a labeled one-line input under the action row — visible label `Dica para esta seção (opcional)` + placeholder `Ex.: destacar experiência com métricas de impacto`. The input's value is attached to this section's next regen request only.
+- Quiet text buttons: `Editar seção`, `Comparar com o perfil` (swaps to `Ocultar comparação`), `Versões` (label `Versões ({count})` when count > 0, disabled at 0).
+- `Adicionar dica` quiet text toggle (swaps to `Ocultar dica`) + `Regenerar seção` compact secondary button (in-flight label `Regenerando {seção}…`). The hint (D-05) is **on demand**: the toggle reveals a labeled one-line input under the action row — visible label `Dica para esta seção (opcional)` + placeholder `Ex.: destacar experiência com métricas de impacto`. The input's value is attached to this section's next regen request only.
 
 **Edit mode (D-12) — click-to-edit, no modal, no separate view:**
-- The `Editar` control is the accessible affordance (always visible — discoverability does not depend on hover); the section content itself additionally responds to click (`cursor-pointer` + `hover:bg-gray-50` on the text block) as a redundant pointer affordance.
-- Editing replaces **that section's content** with a textarea (CurriculoHome `TEXTAREA_CLASSES` verbatim, `aria-label="Editar {seção}"`) + footer: `Salvar` (compact secondary) · `Cancelar` (quiet) + the policy line repeated in `text-xs text-gray-500`. Exact edit granularity:
+- The `Editar seção` control is the accessible affordance (always visible — discoverability does not depend on hover); the section content itself additionally responds to click (`cursor-pointer` + `hover:bg-gray-50` on the text block) as a redundant pointer affordance.
+- Editing replaces **that section's content** with a textarea (CurriculoHome `TEXTAREA_CLASSES` verbatim, `aria-label="Editar {seção}"`) + footer: `Salvar alterações` (compact secondary) · `Cancelar edição` (quiet) + the policy line repeated in `text-xs text-gray-500`. Exact edit granularity:
   - **Resumo** — one textarea, pre-filled with the current string; save replaces it whole.
-  - **Experiência** — one textarea **per entry** (each entry article gets its own `Editar` quiet control), pre-filled with that entry's bullets one per line; company/title stay fixed (they are the profile-fact anchor of the comparison). Save splits on newlines (trimmed, empties dropped); `Salvar` is disabled with the hint `Guarde pelo menos um item — a seção não pode ficar vazia.` while the parsed list is empty (envelope `min_length=1`).
+  - **Experiência** — one textarea **per entry** (each entry article gets its own `Editar entrada` quiet control), pre-filled with that entry's bullets one per line; company/title stay fixed (they are the profile-fact anchor of the comparison). Save splits on newlines (trimmed, empties dropped); `Salvar alterações` is disabled with the hint `Guarde pelo menos um item — a seção não pode ficar vazia.` while the parsed list is empty (envelope `min_length=1`).
   - **Habilidades** — one textarea, one skill per line; save splits on newlines (trimmed, empties dropped); same zero-items guard. Display re-joins with `, `.
-- Save: the pre-edit displayed version is pushed onto the section's version stack first (origin = its badge), the edited text mounts, badge → `Editado`. Cancel: reverts immediately when the textarea is unchanged; when dirty, swaps to the inline confirm strip (`Descartar as alterações desta edição?` — `Continuar editando` / `Descartar`).
-- **One editor at a time:** while any editor is open, all `Editar` controls are disabled.
+- Save: the pre-edit displayed version is pushed onto the section's version stack first (origin = its badge), the edited text mounts, badge → `Editado`. Cancel: reverts immediately when the textarea is unchanged; when dirty, swaps to the inline confirm strip (`Descartar as alterações desta edição?` — `Continuar editando` / `Descartar alterações`).
+- **One editor at a time:** while any editor is open, all `Editar seção` / `Editar entrada` controls are disabled.
 
 **Comparação com o perfil (D-09/D-10/D-11) — expandable per section:**
 - Toggle `Comparar com o perfil` (quiet, `aria-expanded`). Panel renders under the section content: `mt-3 rounded-md border border-gray-200 bg-gray-50 px-4 py-3` with a two-column grid `mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2` (stacks to one column on narrow viewports — never horizontal scroll).
@@ -74,26 +74,26 @@ Editar · Comparar com o perfil · Versões (2)   Adicionar dica · [Regenerar]
 - Highlights always compute against the text **currently displayed** (post-edit included). Where the deterministic tokenization runs (client TS vs backend reuse of the coverage fold/normalization primitives) is planner discretion — the contract pins only that identical normalization primitives are used and that the highlight is presented as suspicion per the legend.
 
 **Versões (D-08) — per-section version stack:**
-- Toggle `Versões` (quiet, disabled at count 0 — no ghost panel). Open panel: intro line (`mt-3 text-xs text-gray-500`) `Versões anteriores desta seção — mais recente primeiro.`, then rows `mt-2 space-y-2`, each `rounded-md border border-gray-200 bg-white px-3 py-2`: top line = origin Badge (`Gerado` or `Editado`) + `Restaurar` quiet text button; below it a `mt-1 line-clamp-2 text-sm text-gray-600` plain-text snippet of that version. In-memory session state only, no persistence (D-01) and no cap required for a single-user localhost session; never drops the most recent prior version.
-- `Restaurar` stacks the currently displayed version first (nothing is lost), mounts the restored version (removed from the stack), and sets the badge to the restored version's origin.
+- Toggle `Versões` (quiet, disabled at count 0 — no ghost panel). Open panel: intro line (`mt-3 text-xs text-gray-500`) `Versões anteriores desta seção — mais recente primeiro.`, then rows `mt-2 space-y-2`, each `rounded-md border border-gray-200 bg-white px-3 py-2`: top line = origin Badge (`Gerado` or `Editado`) + `Restaurar versão` quiet text button; below it a `mt-1 line-clamp-2 text-sm text-gray-600` plain-text snippet of that version. In-memory session state only, no persistence (D-01) and no cap required for a single-user localhost session; never drops the most recent prior version.
+- `Restaurar versão` stacks the currently displayed version first (nothing is lost), mounts the restored version (removed from the stack), and sets the badge to the restored version's origin.
 
 **Per-section regeneration (SC1):**
-- `Regenerar` targets exactly its section (one stage run via the gateway); sibling sections are byte-identical (D-07). In-flight: this section's `Regenerar`/`Editar`/dica input/`Restaurar` disable; an in-flight line renders in the section (`text-sm text-gray-600`): `Regenerando {seção}… as outras seções permanecem inalteradas.` The displayed text stays fully mounted (never blanked); the shared `aria-live="polite"` region carries the message (the card sits inside it).
+- `Regenerar seção` targets exactly its section (one stage run via the gateway); sibling sections are byte-identical (D-07). In-flight: this section's `Regenerar seção`/`Editar seção`/dica input/`Restaurar versão` disable; an in-flight line renders in the section (`text-sm text-gray-600`): `Regenerando {seção}… as outras seções permanecem inalteradas.` The displayed text stays fully mounted (never blanked); the shared `aria-live="polite"` region carries the message (the card sits inside it).
 - Success: the pre-regen displayed version is stacked first (origin = its badge), the stage output mounts, badge → `Gerado`, and the response's recomputed coverage swaps into Zone 5 (D-07 — chips may flip; never silently stale after a regen).
-- Failure: red panel scoped **inside the section** (ErrorPanel pattern verbatim): title `Não foi possível regenerar {seção}`, backend PT-BR `erros[]` lines verbatim, hint `Tente regenerar novamente. O detalhe técnico completo aparece no terminal onde o servidor está rodando.` No separate retry button — the section's `Regenerar` above is the retry path. Prior text stays mounted.
+- Failure: red panel scoped **inside the section** (ErrorPanel pattern verbatim): title `Não foi possível regenerar {seção}`, backend PT-BR `erros[]` lines verbatim, hint `Tente regenerar novamente. O detalhe técnico completo aparece no terminal onde o servidor está rodando.` No separate retry button — the section's `Regenerar seção` above is the retry path. Prior text stays mounted.
 
 **D-14 — regenerating never silently destroys edits:**
-- `Regenerar` on a section whose badge is `Editado`, or whose editor is open with a **dirty** textarea, renders the inline amber confirm strip directly under the action row (under the editor when one is open): `⚠ Isso vai descartar sua edição — continuar?` + note line (`mt-1 text-xs text-amber-700`) `A edição atual fica guardada em Versões.` + buttons `Cancelar` (quiet) / `Regenerar mesmo assim` (compact secondary). Confirming stacks the current text (displayed text if `Editado`; the dirty textarea content if editing) before the request — nothing is lost even without confirming. A clean open editor or a `Gerado` badge regenerates directly.
-- **Full `Gerar novamente` with edits:** unchanged no-confirm behavior when no section is `Editado` and no editor is open (Phase 3 contract). When any section carries edits, it asks once via the same amber strip under the card header: `Isso vai substituir suas edições — cada versão atual fica guardada em Versões. Continuar?` + `Cancelar` / `Gerar mesmo assim`; confirming stacks every section's current text first. While any editor is open, full regen is disabled outright (it would replace the section under an open editor).
+- `Regenerar seção` on a section whose badge is `Editado`, or whose editor is open with a **dirty** textarea, renders the inline amber confirm strip directly under the action row (under the editor when one is open): `⚠ Isso vai descartar sua edição — continuar?` + note line (`mt-1 text-xs text-amber-700`) `A edição atual fica guardada em Versões.` + buttons `Manter edição` (quiet) / `Regenerar mesmo assim` (compact secondary). Confirming stacks the current text (displayed text if `Editado`; the dirty textarea content if editing) before the request — nothing is lost even without confirming. A clean open editor or a `Gerado` badge regenerates directly.
+- **Full `Gerar novamente` with edits:** unchanged no-confirm behavior when no section is `Editado` and no editor is open (Phase 3 contract). When any section carries edits, it asks once via the same amber strip under the card header: `Isso vai substituir suas edições — cada versão atual fica guardada em Versões. Continuar?` + `Manter edições` / `Gerar mesmo assim`; confirming stacks every section's current text first. While any editor is open, full regen is disabled outright (it would replace the section under an open editor).
 
 **Interaction rules:**
 
 | Rule | Contract |
 |------|----------|
 | Scope | New controls render only on the 3 generated sections, only when a result is mounted (inside `ResumeResult`) |
-| One editor at a time | Any open editor disables all `Editar` controls; editors are per section (Experiência: per entry) |
-| Editor open → locks | `Exportar PDF`, `Gerar novamente`, and every `Restaurar` are disabled; `Regenerar` stays enabled (own section → D-14 confirm strip; sibling regen does not touch the open editor) |
-| One long operation at a time | While any regen (section or full) or export is pending: all `Regenerar`, `Gerar novamente`, `Exportar PDF`, `Editar`, `Restaurar`, dica toggle/input disabled. `Comparar`/`Versões` toggles stay usable (read-only) |
+| One editor at a time | Any open editor disables all `Editar seção` / `Editar entrada` controls; editors are per section (Experiência: per entry) |
+| Editor open → locks | `Exportar PDF`, `Gerar novamente`, and every `Restaurar versão` are disabled; `Regenerar seção` stays enabled (own section → D-14 confirm strip; sibling regen does not touch the open editor) |
+| One long operation at a time | While any regen (section or full) or export is pending: all `Regenerar seção`, `Gerar novamente`, `Exportar PDF`, `Editar seção`/`Editar entrada`, `Restaurar versão`, dica toggle/input disabled. `Comparar`/`Versões` toggles stay usable (read-only) |
 | Export state reset (extends Phase 4 rule) | ANY displayed-content mutation — edit save, section regen success, restore, full regen — clears the success receipt + self-check panel + export errors before mounting the new state (the exported PDF no longer matches); the `Exportar PDF` CTA remains for the new state |
 | Coverage truthfulness | Section regen updates Zone 5 from the response's recomputed coverage (D-07). Edits/restores keep the gerar-time snapshot client-side (no client matcher); the export self-check re-verifies server-side on the actual displayed text — that stays the post-edit truth |
 | Badge lifecycle | `Gerado` at mount/regen · `Editado` on save · restore adopts the restored version's origin · full regen sets all three to `Gerado` |
@@ -103,15 +103,15 @@ Editar · Comparar com o perfil · Versões (2)   Adicionar dica · [Regenerar]
 
 **State machine:** page-level unchanged (`idle → in-flight → result → exporting → result+checked / result+export-error`), with per-section sub-states added inside `result`: `viewing ⇄ editing (→ dirty-cancel confirm)` · `viewing → regen-pending → viewing | regen-error → viewing` · two orthogonal disclosures (comparação, versões). Export state resets on every displayed-content mutation (rule above); refresh returns to plain `result` (D-01).
 
-**Visual anchor per state:** viewing — the result card stays the anchor, action rows are quiet; editing — the textarea + `Salvar` are the local focal point of that section; regen-pending — the in-flight line + disabled controls mark the section; comparison open — the two-column amber-marked panel is the local focal block; regen-error — the red panel is the section's attention point with prior text intact.
+**Visual anchor per state:** viewing — the result card stays the anchor, action rows are quiet; editing — the textarea + `Salvar alterações` are the local focal point of that section; regen-pending — the in-flight line + disabled controls mark the section; comparison open — the two-column amber-marked panel is the local focal block; regen-error — the red panel is the section's attention point with prior text intact.
 
 ### Component conventions (new controls only — existing pinned classes are reused verbatim, never redefined)
 
 | Control | Classes |
 |---------|---------|
 | Section action row | `mt-2 flex flex-wrap items-center gap-x-3 gap-y-2` |
-| Quiet text button (Editar / Comparar / Versões / Adicionar dica / Cancelar / Restaurar) | `rounded text-xs font-semibold text-gray-600 underline-offset-2 hover:text-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50` |
-| Compact secondary button (Regenerar / Salvar / confirm actions) | `inline-flex min-h-9 items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50` |
+| Quiet text button (Editar seção/entrada / Comparar / Versões / Adicionar dica / Cancelar edição / Manter edição / Descartar alterações / Restaurar versão) | `rounded text-xs font-semibold text-gray-600 underline-offset-2 hover:text-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50` |
+| Compact secondary button (Regenerar seção / Salvar alterações / confirm actions) | `inline-flex min-h-9 items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50` |
 | Badge `Editado` (D-04, third state) | `normal-case rounded-full border border-blue-600 bg-blue-600 px-2 py-1 text-xs font-semibold text-white` — solid blue vs `Gerado`'s soft blue: provenance readable at a glance without a new hue |
 | Edit textarea | Reuse CurriculoHome `TEXTAREA_CLASSES` verbatim (`min-h-40 w-full rounded-md border border-gray-300 …`); promote the constant to `constants/ui.ts` (IN-04 pattern) so editor and form cannot drift |
 | Hint input | `w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:border-blue-600 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600` |
@@ -143,7 +143,7 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Major section breaks (`py-12`) |
 | 3xl | 64px | Page-level spacing (`py-16`) |
 
-Exceptions (unchanged from the approved Phase 3/4 scale): 12px (`mt-3`, `px-3`) and 20px (`py-5`) — already shipped in reused components. **No new exceptions in Phase 5** (`min-h-9` is a 36px height, a scale multiple; `<mark>` and version snippets carry no horizontal padding).
+Exceptions (unchanged from the approved Phase 3/4 scale): 12px (`mt-3`, `px-3`, and gap utilities — e.g. the section action row's `gap-x-3`) and 20px (`py-5`) — already shipped in reused components. **No new exceptions in Phase 5** (`min-h-9` is a 36px height, a scale multiple; `<mark>` and version snippets carry no horizontal padding).
 
 ---
 
@@ -183,27 +183,28 @@ All strings PT-BR, centralized in `frontend/src/constants/ui.ts` (established pa
 
 | Element | Copy |
 |---------|------|
+| Label rule (action buttons) | Every action button and confirm control is a specific verb + noun in PT-BR — bare verbs (`Salvar`, `Cancelar`, `Editar`, `Restaurar`, `Descartar`) are banned as labels; confirm pairs name what is kept vs what proceeds (`Manter edição` vs `Regenerar mesmo assim`). Noun disclosure toggles (`Versões`) open panels — they are not commands. All label strings live in `frontend/src/constants/ui.ts` |
 | Page-level primary CTAs | Unchanged — `Gerar currículo` / `Exportar PDF` (Phases 3/4 contracts) |
-| New section-level primary action | Regenerar (in-flight: Regenerando…) |
+| New section-level primary action | Regenerar seção (in-flight: Regenerando {seção}…) |
 | Edit-policy notice (D-02, permanent) | Edições valem apenas para esta execução — atualizar a página descarta. |
 | Badge third state (D-04) | Editado |
-| Section actions | Editar · Comparar com o perfil · Ocultar comparação · Versões · Versões ({count}) · Adicionar dica · Ocultar dica |
-| Edit footer actions | Salvar · Cancelar |
+| Section actions | Editar seção · Editar entrada (per Experiência entry) · Comparar com o perfil · Ocultar comparação · Versões · Versões ({count}) · Adicionar dica · Ocultar dica |
+| Edit footer actions | Salvar alterações · Cancelar edição |
 | Edit save guard | Guarde pelo menos um item — a seção não pode ficar vazia. |
 | Hint label | Dica para esta seção (opcional) |
 | Hint placeholder | Ex.: destacar experiência com métricas de impacto |
 | Regen in-flight line | Regenerando {seção}… as outras seções permanecem inalteradas. |
 | Section regen error title | Não foi possível regenerar {seção} |
 | Section regen error hint | Tente regenerar novamente. O detalhe técnico completo aparece no terminal onde o servidor está rodando. |
-| D-14 confirm strip (section regen over edits) | Isso vai descartar sua edição — continuar? · note: A edição atual fica guardada em Versões. · buttons: Cancelar / Regenerar mesmo assim |
-| Cancel-dirty-edit confirm strip | Descartar as alterações desta edição? · buttons: Continuar editando / Descartar |
-| Full-regen-with-edits confirm strip | Isso vai substituir suas edições — cada versão atual fica guardada em Versões. Continuar? · buttons: Cancelar / Gerar mesmo assim |
+| D-14 confirm strip (section regen over edits) | Isso vai descartar sua edição — continuar? · note: A edição atual fica guardada em Versões. · buttons: Manter edição / Regenerar mesmo assim |
+| Cancel-dirty-edit confirm strip | Descartar as alterações desta edição? · buttons: Continuar editando / Descartar alterações |
+| Full-regen-with-edits confirm strip | Isso vai substituir suas edições — cada versão atual fica guardada em Versões. Continuar? · buttons: Manter edições / Gerar mesmo assim |
 | Comparison column headers | Fatos do perfil / Texto no currículo |
 | Invention mark sr-only suffix | (não consta no perfil) |
 | Comparison legend (≥1 mark, D-11) | Os destaques em âmbar são termos que não constam nos fatos do perfil. A comparação é mecânica — paráfrases legítimas podem ser destacadas. Confira você mesmo antes de exportar. |
 | Comparison zero-suspects line | Nenhum termo suspeito nesta seção — todo o texto casa com os fatos do perfil. |
 | Versions intro | Versões anteriores desta seção — mais recente primeiro. |
-| Restore action | Restaurar |
+| Restore action | Restaurar versão |
 | Destructive confirmation | The three inline amber strips above are the phase's only confirmations — all are speed bumps, not danger guards (the "discarded" text is always stacked first). No browser dialogs, no irrecoverable destructive actions |
 
 Error copy follows the established fail-loud pattern (Phase 1 D-13/D-14): short PT-BR problem statement in the UI, backend lines verbatim, raw technical detail only in the terminal.
@@ -221,12 +222,12 @@ Applicable state considerations resolved: 14 covered, 1 backstop, 0 unresolved
 | empty | Version stack (count 0) | ✅ covered | `Versões` renders disabled without count suffix — no ghost panel; intro + rows exist only when count > 0 |
 | empty | Invention marks (zero suspects) | ✅ covered | Loud zero line replaces the legend — never a silently unmarked panel |
 | empty | Hint input | ✅ covered | Hidden until `Adicionar dica`; the toggle is always visible so the steering capability is discoverable |
-| loading | Per-section regen (media) | ✅ covered | `Regenerando…` label swap + in-flight line naming the section + sibling reassurance + symmetric lock of all regen/export/edit controls; displayed text stays mounted |
+| loading | Per-section regen (media) | ✅ covered | `Regenerando {seção}…` label swap + in-flight line naming the section + sibling reassurance + symmetric lock of all regen/export/edit controls; displayed text stays mounted |
 | error | Section regen failure (erro envelope) | ✅ covered | Red panel scoped inside the section; backend PT-BR verbatim; prior text stays mounted — failure never blanks |
 | error | Section regen fetch failure (server down) | ✅ covered | Same panel with the `erros=[]` generic hint (Phase 3 convention); raw detail terminal-only |
 | partial | Comparison with mixed marks | ✅ covered | Marked/unmarked terms render per token — never masked to all-clean |
 | populated | Comparison panel (two-column) | ✅ covered | Facts left / current text right; experiências aligned per entry by company; grid stacks to one column under `sm` — no horizontal scroll |
-| populated | Versions list | ✅ covered | Rows newest-first, origin badge + snippet + `Restaurar`; restore stacks the current version first |
+| populated | Versions list | ✅ covered | Rows newest-first, origin badge + snippet + `Restaurar versão`; restore stacks the current version first |
 | overflow | Version snippet long text | ✅ covered | `line-clamp-2` — the full text is never lost (restore mounts it whole) |
 | overflow | Comparison columns long text | ✅ covered | Columns wrap and grow vertically; page grows, never a table, never sideways scroll |
 | long-text | Edited textarea content | ✅ covered | `min-h-40` textarea scrolls internally; saved text wraps in the display exactly as the PDF will show it |
