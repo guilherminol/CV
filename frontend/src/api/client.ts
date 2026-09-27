@@ -239,7 +239,9 @@ export async function exportarCurriculo(payload: ExportarRequest): Promise<Expor
 /** D-11: the browser's native download UI. Bytes come from the same export
  *  response (atob → Uint8Array → Blob); the filename is the backend-generated
  *  `curriculo-{idioma}-{data}.pdf` — NEVER recomposed client-side. No new deps
- *  (STACK.md): object URL + detached anchor click, URL revoked immediately,
+ *  (STACK.md): object URL + detached anchor click, URL revoked on a subsequent
+ *  task (IN-03 — revoking in the same task as click() can abort the download
+ *  in non-Chromium engines; Chromium, the documented target, is unaffected),
  *  bytes never stored in module state. */
 export function downloadPdf(pdfBase64: string, filename: string): void {
   const bytes = Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0))
@@ -248,5 +250,5 @@ export function downloadPdf(pdfBase64: string, filename: string): void {
   anchor.href = url
   anchor.download = filename
   anchor.click()
-  URL.revokeObjectURL(url)
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
