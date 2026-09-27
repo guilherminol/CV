@@ -2,20 +2,26 @@
 
 The gate proves, on the PDF's own text layer and in both run languages, the
 properties SC2 names: (1) contact first, (2) headings in render order, (3)
-per generated experience company+title+dates co-occurring (Task 2 of this
-plan), (4) accent integrity (Task 2). D-02 sequencing: the gate EXISTS before
-the engine is trusted — the passing real-Chromium tests in
-tests/test_export_gate.py ARE the empirical verdict that embeds Playwright;
-WeasyPrint stays installable against this same gate.
+per generated experience company+title+dates co-occurring inside the
+Experiências→next-heading window (dates skipped per entry when the profile
+join found no match — no invented dates, ever), (4) accent integrity —
+exhaustive over resume-size content: every non-ASCII word of every rendered
+string found in the casefold-ONLY space (accent-SENSITIVE: "EXPERIÊNCIA"
+matches "experiência", mojibake does not) plus mojibake sentinels (no U+FFFD,
+no "Ã"/"â€" sequences). D-02 sequencing: the gate EXISTS before the engine is
+trusted — the passing real-Chromium tests in tests/test_export_gate.py ARE
+the empirical verdict that embeds Playwright; WeasyPrint stays installable
+against this same gate.
 
 Mechanics: plain-mode pypdf extraction (NEVER extraction_mode="layout" —
 slower and whitespace-quirky; plain mode follows content-stream order =
 reading order for single-column output). Whitespace is normalized ONCE
 (re.sub(r"\\s+", " ")) before ALL position math (Pitfall 5). Order/heading
-comparisons run on the coverage fold — casefold + NFKD — because the print
-pipeline can bake text-transform into the extracted layer (the template ships
-none, but the fold keeps the check robust). The fold is IMPORTED from
-app.resume.coverage, never re-implemented (D-15 family determinism).
+and window/co-occurrence comparisons run on the coverage fold — casefold +
+NFKD — because the print pipeline can bake text-transform into the extracted
+layer (the template ships none, but the fold keeps the checks robust). The
+fold AND the lookaround term pattern are IMPORTED from app.resume.coverage,
+never re-implemented (D-15 family determinism).
 
 Fail behavior (D-08): the FIRST failing check short-circuits; its PT-BR line
 lands in GateResult.erros_ptbr, the extracted text + which-word detail in
@@ -31,10 +37,11 @@ from dataclasses import dataclass
 from pypdf import PdfReader
 
 from app.export.errors import ExportError
-from app.resume.coverage import _fold
+from app.resume.coverage import _fold, _term_pattern
 
 # --- D-08 message set: each PT-BR gate line exists EXACTLY here. ------------
 MSG_CONTATO_FORA_DO_TOPO = "Contato não encontrado no topo do PDF."
+MSG_ACENTOS_CORROMPIDOS = "Acentos corrompidos na camada de texto do PDF."
 MSG_EXTRACAO_FALHOU = "Não foi possível extrair o texto do PDF para verificação."
 
 
@@ -43,11 +50,21 @@ def msg_secao_fora_de_ordem(secao: str) -> str:
     return f"Seção {secao} fora de ordem no PDF."
 
 
+def msg_coocorrencia(company: str) -> str:
+    """Check-3 line; names the failing entry's company."""
+    return f"Empresa, cargo ou datas não extraídos juntos para {company}."
+
+
+# Mojibake sentinels (check 4b): U+FFFD replacement char, and the UTF-8→Latin-1
+# byte-mangling leads "Ã" (e.g. "ão" → "Ã£o") / "â€" (e.g. "…" → "â€œ").
+_MOJIBAKE_SENTINELS = ("\ufffd", "Ã", "â€")
+
+
 @dataclass(frozen=True)
 class ExpectedExperience:
-    """Check-3 expectation for one generated experience entry (Task 2).
+    """Check-3 expectation for one generated experience entry.
 
-    `dates` is the RENDERED range string (format_date_range) when the
+    `dates` is the RENDERED range string (render.format_date_range) when the
     profile join matched, or None for a dateless entry — the gate then skips
     ONLY the date sub-check (company+title still asserted; no invented dates,
     ever — research Open Question 1 resolution).
@@ -66,7 +83,7 @@ class ExpectedDoc:
     contact_tokens: tuple[str, ...]  # email at minimum
     headings: tuple[tuple[str, str], ...]  # (section key, label) in render order
     experiences: tuple[ExpectedExperience, ...] = ()
-    accent_strings: tuple[str, ...] = ()  # Task 2: every rendered string
+    accent_strings: tuple[str, ...] = ()  # every rendered string (render.iter_rendered_strings)
 
 
 @dataclass(frozen=True)
@@ -164,14 +181,73 @@ def check_extracted_text(text: str, expected: ExpectedDoc) -> GateResult:
             ordem_titulos=False,
         )
 
-    # Checks 3 (co-occurrence) and 4 (accent integrity) land with Task 2.
+    # --- Check 3: company+title+dates co-occurrence per experience ----------
+    coocorrencia = True
+    failing_company: str | None = None
+    if expected.experiences and positions and "experiencias" in positions:
+        window_start = positions["experiencias"]
+        later = [pos for pos in positions.values() if pos > window_start]
+        window_end = min(later) if later else len(folded)
+        window = folded[window_start:window_end]
+        for entry in expected.experiences:
+            company_found = _term_pattern(entry.company).search(window)
+            title_found = _term_pattern(entry.title).search(window)
+            # Graceful skip: a dateless entry asserts company+title only.
+            dates_found = entry.dates is None or _term_pattern(entry.dates).search(window)
+            if not (company_found and title_found and dates_found):
+                coocorrencia = False
+                failing_company = entry.company
+                break
+    if not coocorrencia:
+        return GateResult(
+            ok=False,
+            erros_ptbr=[msg_coocorrencia(failing_company or "")],
+            raw=raw,
+            contato_primeiro=True,
+            ordem_titulos=True,
+            coocorrencia=False,
+        )
+
+    # --- Check 4: accent integrity (casefold-ONLY space + mojibake sentinels)
+    acentos, accent_detail = _check_accents(flat, expected.accent_strings)
+    if not acentos:
+        return GateResult(
+            ok=False,
+            erros_ptbr=[MSG_ACENTOS_CORROMPIDOS],
+            raw=f"{raw}\n\n{accent_detail}",
+            contato_primeiro=True,
+            ordem_titulos=True,
+            coocorrencia=True,
+            acentos=False,
+        )
+
     return GateResult(
         ok=True,
         erros_ptbr=[],
         raw=raw,
         contato_primeiro=True,
         ordem_titulos=True,
+        coocorrencia=True,
+        acentos=True,
     )
+
+
+def _check_accents(flat: str, accent_strings: tuple[str, ...]) -> tuple[bool, str]:
+    """(ok, raw_detail): every non-ASCII word of every rendered string must
+    appear in the casefold-only space — accent-SENSITIVE, so one lost accent
+    fails the gate — plus the mojibake sentinels. Exhaustive, never sampled;
+    the failing word/string detail goes to GateResult.raw ONLY (D-08)."""
+    casefolded = flat.casefold()
+    for sentinel in _MOJIBAKE_SENTINELS:
+        if sentinel in flat:
+            return False, f"sentinela de mojibake encontrada no texto extraído: {sentinel!r}"
+    for string in accent_strings:
+        for word in string.split():
+            if all(char.isascii() for char in word):
+                continue
+            if word.casefold() not in casefolded:
+                return False, f"palavra acentuada ausente da camada de texto: {word!r} (string renderizada: {string!r})"
+    return True, ""
 
 
 def parse_back_check(pdf_bytes: bytes, expected: ExpectedDoc) -> GateResult:

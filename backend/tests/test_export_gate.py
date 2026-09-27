@@ -6,10 +6,12 @@ renders — the persona HTML goes through the actual engine (local Chromium,
 test consumes those bytes. If Chromium is missing the fixture FAILS LOUD with
 the PT-BR setup hint inside the raised ExportError — never skip-silent.
 Synthetic-text tests (via the pure check_extracted_text core) cover the
-failure branches with zero browser involvement.
+failure branches with zero browser involvement (test_coverage.py table style).
 
 Assertion discipline: LOGICAL properties only (order, presence, co-occurrence)
 — NEVER byte equality against a fixture (Chromium embeds timestamps).
+Every D-08 PT-BR gate line is imported from gate.py — the message set lives
+in exactly one place.
 """
 
 import ast
@@ -18,10 +20,14 @@ from pathlib import Path
 
 import pytest
 
-from conftest import full_profile
+from conftest import full_profile, minimal_profile
 from app.export.gate import (
+    MSG_ACENTOS_CORROMPIDOS,
     MSG_CONTATO_FORA_DO_TOPO,
     ExpectedDoc,
+    ExpectedExperience,
+    check_extracted_text,
+    msg_coocorrencia,
     msg_secao_fora_de_ordem,
     parse_back_check,
 )
@@ -29,13 +35,15 @@ from app.export.pdf import html_to_pdf
 from app.export.render import (
     HEADINGS,
     build_resume_html,
+    format_date_range,
+    iter_rendered_strings,
+    join_experience_dates,
     section_keys,
 )
 from app.llm.schemas import ExperienciaGerada
 from app.profile.models import Profile
 
 EXPORT_DIR = Path(__file__).resolve().parents[1] / "app" / "export"
-CORE_KEYS = ("resumo", "experiencias", "habilidades")  # tracer montage (Task 2 completes the rest)
 EMAIL = "ana.exemplo@example.com"
 
 # --- Persona (conftest-shaped; deliberate PT-BR accents: São Paulo,
@@ -102,7 +110,8 @@ def _persona(idioma: str) -> tuple[Profile, _Secoes]:
 
 def _render_persona(idioma: str) -> bytes:
     profile, secoes = _persona(idioma)
-    html_doc = build_resume_html(profile, secoes, {}, idioma)
+    datas = join_experience_dates(profile, secoes)
+    html_doc = build_resume_html(profile, secoes, datas, idioma)
     return html_to_pdf(html_doc)
 
 
@@ -116,13 +125,25 @@ def rendered_pdfs() -> dict[str, bytes]:
     return {idioma: _render_persona(idioma) for idioma in ("pt-BR", "en")}
 
 
-def _core_expected_doc(idioma: str) -> ExpectedDoc:
-    """Tracer ExpectedDoc: email + the 3 headings the tracer montage renders,
-    labels taken from THE shared HEADINGS map (single source, D-03)."""
+def _full_expected_doc(idioma: str) -> ExpectedDoc:
+    """ExpectedDoc built from render.py outputs exactly as the route will in
+    plan 04-02 — headings from THE shared HEADINGS map, dates from
+    join_experience_dates, accent universe from iter_rendered_strings."""
+    profile, secoes = _persona(idioma)
+    datas = join_experience_dates(profile, secoes)
     labels = HEADINGS[idioma]
+    entry = secoes.experiencias[0]
     return ExpectedDoc(
         contact_tokens=(EMAIL,),
-        headings=tuple((key, labels[key]) for key in CORE_KEYS),
+        headings=tuple((key, labels[key]) for key in section_keys),
+        experiences=(
+            ExpectedExperience(
+                company=entry.company,
+                title=entry.title,
+                dates=format_date_range(*datas[entry.company]),
+            ),
+        ),
+        accent_strings=tuple(iter_rendered_strings(profile, secoes, datas, idioma)),
     )
 
 
@@ -151,7 +172,8 @@ def _imports_playwright(source: str) -> bool:
 
 
 def test_engine_seam_pdf_is_the_only_playwright_import() -> None:
-    """D-01: every export module is browser-free except the one-function seam."""
+    """D-01: every export module is browser-free except the one-function seam
+    (join_experience_dates stays importable with zero browser machinery)."""
     for path, source in _export_sources().items():
         if path.name == "pdf.py":
             assert _imports_playwright(source), f"{path.name} must carry the engine seam"
@@ -160,9 +182,10 @@ def test_engine_seam_pdf_is_the_only_playwright_import() -> None:
 
 
 def test_gate_reuses_coverage_fold() -> None:
-    """D-15 family: the fold is imported from app.resume.coverage, never re-implemented."""
+    """D-15 family: fold + lookaround pattern imported from app.resume.coverage,
+    never re-implemented."""
     source = (EXPORT_DIR / "gate.py").read_text(encoding="utf-8")
-    assert "from app.resume.coverage import _fold" in source
+    assert "from app.resume.coverage import _fold, _term_pattern" in source
 
 
 def test_pdf_bytes_never_written_to_disk() -> None:
@@ -196,15 +219,180 @@ def test_render_html_escapes_hostile_strings() -> None:
     assert "&quot;" in html_doc  # quote=True
 
 
-def test_render_html_headings_follow_section_order() -> None:
+def test_render_html_full_montage_in_preview_order() -> None:
+    """D-05: all 7 headings render in PREVIEW order for the full persona;
+    the company join renders RAW stored strings ("2022-03 – atual" — Open
+    Question 3); dateless-montage convention holds for the minimal persona."""
     profile, secoes = _persona("pt-BR")
-    html_doc = build_resume_html(profile, secoes, {}, "pt-BR")
-    labels = HEADINGS["pt-BR"]
-    assert (
-        html_doc.index(labels["resumo"])
-        < html_doc.index(labels["experiencias"])
-        < html_doc.index(labels["habilidades"])
+    datas = join_experience_dates(profile, secoes)
+    html_doc = build_resume_html(profile, secoes, datas, "pt-BR")
+    positions = [html_doc.index(HEADINGS["pt-BR"][key]) for key in section_keys]
+    assert positions == sorted(positions)
+    assert "2022-03 – atual" in html_doc
+
+    minimal = Profile.model_validate(minimal_profile())
+    minimal_doc = build_resume_html(
+        minimal,
+        _Secoes(resumo="Resumo.", experiencias=[], habilidades=["Python"]),
+        {},
+        "pt-BR",
     )
+    assert HEADINGS["pt-BR"]["formacao"] not in minimal_doc  # empty passthrough hidden
+    assert HEADINGS["pt-BR"]["projetos"] not in minimal_doc
+
+
+def test_join_experience_dates_pure_and_accent_tolerant() -> None:
+    """Open Question 1: strip+fold company join; unmatched entries are absent
+    (dateless render — no invented dates). Pure: direct call, no browser."""
+    profile, secoes = _persona("pt-BR")
+    datas = join_experience_dates(profile, secoes)
+    assert datas == {"Exemplo IA": ("2022-03", None)}
+
+    secoes.experiencias[0].company = "exemplo ia "  # case/whitespace drift still joins
+    assert join_experience_dates(profile, secoes) == {"exemplo ia ": ("2022-03", None)}
+
+    secoes.experiencias[0].company = "Outra Empresa"  # unmatched → absent
+    assert join_experience_dates(profile, secoes) == {}
+
+
+# --- Order-check failure branches (synthetic text — NO browser) ---------------
+
+_ORDER_DOC = ExpectedDoc(
+    contact_tokens=("ana@exemplo.com",),
+    headings=(
+        ("resumo", "Resumo"),
+        ("experiencias", "Experiência"),
+        ("habilidades", "Habilidades"),
+    ),
+)
+
+
+@pytest.mark.parametrize(
+    ("scenario", "text", "expected_erros"),
+    [
+        (
+            "contato depois do primeiro título",
+            "Resumo alfa Experiência beta Habilidades gama ana@exemplo.com",
+            [MSG_CONTATO_FORA_DO_TOPO],
+        ),
+        (
+            "títulos fora de ordem",
+            "ana@exemplo.com Resumo alfa Habilidades gama Experiência beta",
+            [msg_secao_fora_de_ordem("habilidades")],
+        ),
+        (
+            "título ausente do PDF",
+            "ana@exemplo.com Resumo alfa Experiência beta",
+            [msg_secao_fora_de_ordem("habilidades")],
+        ),
+    ],
+)
+def test_order_failures(scenario: str, text: str, expected_erros: list[str]) -> None:
+    """Each corruption shape fails LOUD with its exact D-08 PT-BR line."""
+    result = check_extracted_text(text, _ORDER_DOC)
+    assert result.ok is False, scenario
+    assert result.erros_ptbr == expected_erros, scenario
+
+
+# --- Co-occurrence + accent failure branches (synthetic text — NO browser) ----
+
+_COOC_DOC = ExpectedDoc(
+    contact_tokens=("ana@exemplo.com",),
+    headings=(
+        ("resumo", "Resumo"),
+        ("experiencias", "Experiência"),
+        ("habilidades", "Habilidades"),
+    ),
+    experiences=(
+        ExpectedExperience(
+            company="Exemplo IA",
+            title="Engenheira de Software Sênior",
+            dates="2022-03 – atual",
+        ),
+    ),
+    accent_strings=("São Paulo, SP", "Engenheira de Software Sênior"),
+)
+_GOOD_TEXT = (
+    "Ana Exemplo ana@exemplo.com · São Paulo, SP "
+    "Resumo atuação da Ana em São Paulo. "
+    "Experiência Exemplo IA · Engenheira de Software Sênior 2022-03 – atual "
+    "Implementou um pipeline RAG. Habilidades Python, Docker"
+)
+
+
+@pytest.mark.parametrize(
+    ("scenario", "text", "doc", "expected_ok", "expected_erros"),
+    [
+        (
+            "empresa sem o cargo na janela",
+            (
+                "ana@exemplo.com Resumo alfa. Experiência Exemplo IA "
+                "2022-03 – atual Habilidades Python"
+            ),
+            _COOC_DOC,
+            False,
+            [msg_coocorrencia("Exemplo IA")],
+        ),
+        (
+            "entrada sem datas passa (graceful skip)",
+            _GOOD_TEXT,
+            ExpectedDoc(
+                contact_tokens=_COOC_DOC.contact_tokens,
+                headings=_COOC_DOC.headings,
+                experiences=(
+                    ExpectedExperience(
+                        company="Exemplo IA",
+                        title="Engenheira de Software Sênior",
+                        dates=None,
+                    ),
+                ),
+                accent_strings=_COOC_DOC.accent_strings,
+            ),
+            True,
+            [],
+        ),
+        (
+            "acento perdido reprova (espaço casefold-ONLY)",
+            _GOOD_TEXT.replace("Sênior", "Senior"),
+            _COOC_DOC,
+            False,
+            [MSG_ACENTOS_CORROMPIDOS],
+        ),
+        (
+            "mojibake Ã reprova",
+            _GOOD_TEXT.replace("São Paulo", "SÃ£o Paulo"),
+            _COOC_DOC,
+            False,
+            [MSG_ACENTOS_CORROMPIDOS],
+        ),
+        (
+            "U+FFFD reprova",
+            f"{_GOOD_TEXT} \ufffd",
+            _COOC_DOC,
+            False,
+            [MSG_ACENTOS_CORROMPIDOS],
+        ),
+        (
+            "texto limpo passa (todas as checagens)",
+            _GOOD_TEXT,
+            _COOC_DOC,
+            True,
+            [],
+        ),
+    ],
+)
+def test_cooccurrence_and_accents(
+    scenario: str,
+    text: str,
+    doc: ExpectedDoc,
+    expected_ok: bool,
+    expected_erros: list[str],
+) -> None:
+    result = check_extracted_text(text, doc)
+    assert result.ok is expected_ok, f"{scenario}: {result.erros_ptbr}"
+    assert result.erros_ptbr == expected_erros, scenario
+    if expected_ok:
+        assert result.coocorrencia and result.acentos, scenario
 
 
 # --- Real-render gate (integration — local Chromium, offline) -----------------
@@ -212,12 +400,15 @@ def test_render_html_headings_follow_section_order() -> None:
 
 @pytest.mark.parametrize("idioma", ["pt-BR", "en"])
 def test_gate_passes_real_pdf(rendered_pdfs: dict[str, bytes], idioma: str) -> None:
-    """SC2 (partial — checks 1-2 this task) on a REAL Chromium export."""
+    """SC2 complete (all four checks) on REAL Chromium exports in both run
+    languages — the empirical D-02 verdict that embeds Playwright."""
     pdf_bytes = rendered_pdfs[idioma]
     assert pdf_bytes.startswith(b"%PDF")  # real PDF, in memory only
-    result = parse_back_check(pdf_bytes, _core_expected_doc(idioma))
+    result = parse_back_check(pdf_bytes, _full_expected_doc(idioma))
     assert result.contato_primeiro, result.raw
     assert result.ordem_titulos, result.raw
+    assert result.coocorrencia, result.raw
+    assert result.acentos, result.raw
     assert result.ok, result.raw
 
 
