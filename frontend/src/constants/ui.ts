@@ -91,6 +91,11 @@ export const CURRICULO_LINT_TITLE = 'Lacunas do perfil para esta vaga'
 export const CURRICULO_LINT_CLEAR = 'Nenhum gap relevante encontrado para esta vaga.'
 export const CURRICULO_LINT_HINT =
   'Você pode gerar mesmo com avisos — resolvê-los antes deixa o resultado mais forte.'
+// Zone 2 fetch-level failure (server down / non-200 → lintQuery.isError):
+// generic PT-BR hint only — raw detail is terminal-only (D-08 split), the
+// same fail-loud convention as the gerar/exportar erros=[] panels (WR-02).
+export const CURRICULO_LINT_FETCH_ERRO =
+  'Não foi possível verificar a vaga. Tente novamente — o detalhe técnico completo aparece no terminal onde o servidor está rodando.'
 
 export const CURRICULO_RESULT_TITLE = 'Currículo gerado'
 export const BADGE_GERADO = 'Gerado'

@@ -30,6 +30,7 @@ import {
   CURRICULO_IDIOMA_LABEL,
   CURRICULO_IDIOMA_OPTIONS,
   CURRICULO_INFLIGHT_HINT,
+  CURRICULO_LINT_FETCH_ERRO,
   CURRICULO_JD_LABEL,
   CURRICULO_JD_PLACEHOLDER,
   CURRICULO_JD_TOO_SHORT_HINT,
@@ -265,6 +266,14 @@ export default function CurriculoHome() {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+      {/* WR-02: fetch-level failure (server down / non-200 → lintQuery.isError)
+          renders the SAME fail-loud red-panel convention as gerar/exportar —
+          generic PT-BR hint, raw detail terminal-only. Never silent. */}
+      {lintReady && lintQuery.isError && (
+        <div className="rounded-md border border-red-300 bg-red-50 px-4 py-3">
+          <p className="text-sm text-red-700">{CURRICULO_LINT_FETCH_ERRO}</p>
         </div>
       )}
 
