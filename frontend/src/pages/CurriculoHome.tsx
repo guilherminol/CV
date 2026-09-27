@@ -2,17 +2,22 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 import {
+  downloadPdf,
+  exportarCurriculo,
   fetchProfile,
   fetchResumeLint,
   gerarCurriculo,
   type GerarResponse,
   type ResumeLanguage,
+  type SelfCheckDTO,
 } from '../api/client'
 import { ErrorPanel } from '../components/ErrorPanel'
+import { ExportZone } from '../components/ExportZone'
 import { KeywordsPanel } from '../components/KeywordsPanel'
 import { LintPanel, type LintOk } from '../components/LintPanel'
 import { PlaceholderBanner } from '../components/PlaceholderBanner'
 import { ResumeResult } from '../components/ResumeResult'
+import { SelfCheckPanel } from '../components/SelfCheckPanel'
 import { StatusLine } from '../components/StatusLine'
 import {
   CURRICULO_CTA,
@@ -29,6 +34,7 @@ import {
   CURRICULO_JD_PLACEHOLDER,
   CURRICULO_JD_TOO_SHORT_HINT,
   CURRICULO_PAGE_TITLE,
+  EXPORTAR_INFLIGHT_HINT,
   PERFIL_ERROR_TITLE,
   PERFIL_LOADING,
 } from '../constants/ui'
@@ -52,13 +58,15 @@ const IDIOMA_UNSELECTED_CLASSES =
   'cursor-pointer rounded px-3 py-1 text-sm text-gray-600 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600'
 
 /**
- * The Currículo screen (plan 03-04): paste JD → choose language → JD-tied lint
- * (≥80 debounced chars) → generate → assembled result + honest coverage.
- * State machine: idle → typing → in-flight → result (zones 4–5; the form stays
- * at top for edits). Failure never blanks the page — any prior result stays
- * mounted. Generated content is React state only (D-06 ephemeral); a refresh
- * returns to idle. All renders are JSX text children — no raw-HTML path
- * (T-03-08 posture).
+ * The Currículo screen (plans 03-04 + 04-03): paste JD → choose language →
+ * JD-tied lint (≥80 debounced chars) → generate → assembled result + honest
+ * coverage → export + ATS self-check. State machine: idle → typing → in-flight
+ * → result (zones 4–5; the form stays at top for edits) → exporting (controls
+ * locked symmetrically) → result+checked (receipt + panel) or result+export-
+ * error (prior checked state preserved). Failure never blanks the page — any
+ * prior result stays mounted. Generated content and export state are React
+ * state only (D-06/D-16 ephemeral); a refresh returns to idle/unexported. All
+ * renders are JSX text children — no raw-HTML path (T-03-08 posture).
  */
 export default function CurriculoHome() {
   // Profile gate — the SAME ['perfil'] query PerfilHome uses; React Query dedupes.
@@ -72,6 +80,12 @@ export default function CurriculoHome() {
   const [resultado, setResultado] = useState<GerarOk | null>(null)
   // Generation failure (erro envelope lines, or [] for a thrown fetch failure).
   const [gerarErros, setGerarErros] = useState<string[] | null>(null)
+  // Zone 6 export state — React session state only (D-16 ephemeral, like D-06):
+  // a refresh returns to the unexported result state.
+  const [receiptFilename, setReceiptFilename] = useState<string | null>(null)
+  const [selfcheck, setSelfcheck] = useState<SelfCheckDTO | null>(null)
+  // Export failure (backend PT-BR lines, or [] for a thrown fetch failure).
+  const [exportarErros, setExportarErros] = useState<string[] | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedJd(jdText), DEBOUNCE_MS)
@@ -94,6 +108,12 @@ export default function CurriculoHome() {
     mutationFn: gerarCurriculo,
     onSuccess: (data) => {
       if (data.status === 'ok') {
+        // Regeneration reset (UI-SPEC): the prior exported PDF no longer matches
+        // the displayed resume — clear the receipt + self-check panel + export
+        // errors BEFORE mounting the new result. The export CTA stays available.
+        setReceiptFilename(null)
+        setSelfcheck(null)
+        setExportarErros(null)
         setResultado(data)
         setGerarErros(null)
       } else {
@@ -105,6 +125,31 @@ export default function CurriculoHome() {
       // Fetch-level failure (server down): fail-loud panel + retry, prior
       // result stays mounted. Raw detail is in the uvicorn terminal only.
       setGerarErros([])
+    },
+  })
+
+  // Zone 6 export (D-07/D-11/D-13): ONE POST drives all three effects — the
+  // automatic download starts from this response's bytes, the green receipt
+  // names the backend filename, the self-check panel mounts. Erro paths NEVER
+  // clear receiptFilename/selfcheck (a failure never blanks prior checked state).
+  const exportar = useMutation({
+    mutationFn: exportarCurriculo,
+    onSuccess: (data) => {
+      if (data.status === 'ok') {
+        downloadPdf(data.pdf_base64, data.filename)
+        setReceiptFilename(data.filename)
+        setSelfcheck(data.selfcheck)
+        setExportarErros(null)
+      } else {
+        // Gate failure (D-08): no file was delivered — backend PT-BR lines
+        // naming the failed check, rendered verbatim by ExportZone.
+        setExportarErros(data.erros)
+      }
+    },
+    onError: () => {
+      // Fetch-level failure (server down): same panel, generic hint (the
+      // erros=[] Phase 3 convention). Raw detail is terminal-only.
+      setExportarErros([])
     },
   })
 
@@ -133,6 +178,11 @@ export default function CurriculoHome() {
 
   const lintOk: LintOk | null =
     lintQuery.data && lintQuery.data.status === 'ok' ? lintQuery.data : null
+
+  // Narrowed ok payload (guaranteed by the early returns above), captured as a
+  // const so the Zone 6 export callback closes over a stable, typed value —
+  // TS narrowing does not persist into closures over mutable query objects.
+  const perfilOk = perfilQuery.data
 
   return (
     <div className="space-y-6">
@@ -196,7 +246,7 @@ export default function CurriculoHome() {
 
           <button
             type="submit"
-            disabled={trimmed.length < JD_MIN_CHARS || gerar.isPending}
+            disabled={trimmed.length < JD_MIN_CHARS || gerar.isPending || exportar.isPending}
             className={PRIMARY_BUTTON_CLASSES}
           >
             {gerar.isPending ? CURRICULO_CTA_INFLIGHT : CURRICULO_CTA}
@@ -218,9 +268,11 @@ export default function CurriculoHome() {
         </div>
       )}
 
-      {/* Zones 3/4/5 — one aria-live region: in-flight hint, error panel, result. */}
+      {/* Zones 3/4/5/6 — one aria-live region: in-flight hints, error panels,
+          result, export control + self-check. */}
       <div aria-live="polite" className="space-y-6">
         {gerar.isPending && <p className="text-sm text-gray-600">{CURRICULO_INFLIGHT_HINT}</p>}
+        {exportar.isPending && <p className="text-sm text-gray-600">{EXPORTAR_INFLIGHT_HINT}</p>}
 
         {gerarErros !== null && !gerar.isPending && (
           <section
@@ -254,14 +306,36 @@ export default function CurriculoHome() {
         {resultado && (
           <>
             {/* Zone 4 — assembled card from the shared ['perfil'] data + the
-                generate response; Zone 5 stacks the coverage panel below. */}
+                generate response; Zone 6 (export + self-check) stacks directly
+                below the artifact it exports (D-09); Zone 5 closes the page. */}
             <ResumeResult
               perfil={perfilQuery.data.perfil}
               secoes={resultado.secoes}
               idioma={resultado.idioma}
               onRegenerar={gerarAgora}
-              regenerando={gerar.isPending}
+              regenerando={gerar.isPending || exportar.isPending}
             />
+            <ExportZone
+              onExportar={() =>
+                exportar.mutate({
+                  perfil: perfilOk.perfil,
+                  secoes: resultado.secoes,
+                  keywords: resultado.keywords,
+                  idioma: resultado.idioma,
+                })
+              }
+              exporting={exportar.isPending}
+              ctaDisabled={gerar.isPending || exportar.isPending}
+              receiptFilename={receiptFilename}
+              erros={exportarErros}
+            />
+            {selfcheck && (
+              <SelfCheckPanel
+                selfcheck={selfcheck}
+                keywords={resultado.keywords}
+                idioma={resultado.idioma}
+              />
+            )}
             <KeywordsPanel
               keywords={resultado.keywords}
               cobertura={resultado.cobertura}
