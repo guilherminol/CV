@@ -363,6 +363,11 @@ _ORDER_DOC = ExpectedDoc(
             "ana@exemplo.com Resumo alfa Experiência beta",
             [msg_secao_fora_de_ordem("habilidades")],
         ),
+        (
+            "contato ok mas primeiro título ausente (a falha correta é a seção, IN-02)",
+            "ana@exemplo.com alfa Experiência beta Habilidades gama",
+            [msg_secao_fora_de_ordem("resumo")],
+        ),
     ],
 )
 def test_order_failures(scenario: str, text: str, expected_erros: list[str]) -> None:

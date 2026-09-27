@@ -202,8 +202,12 @@ def check_extracted_text(text: str, expected: ExpectedDoc) -> GateResult:
         found = all(pos >= 0 for pos in contact_positions)
         if expected.headings:
             first_heading_pos = folded.find(_fold(expected.headings[0][1]))
-            contato_primeiro = (
-                found and first_heading_pos >= 0 and min(contact_positions) < first_heading_pos
+            # IN-02: compare ONLY when the first heading was actually found.
+            # An absent Resumo heading is a heading-ORDER failure — check 2
+            # names it exactly (msg_secao_fora_de_ordem) — never blame the
+            # contact position for it.
+            contato_primeiro = found and (
+                first_heading_pos < 0 or min(contact_positions) < first_heading_pos
             )
         else:
             contato_primeiro = found
