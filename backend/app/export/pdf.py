@@ -30,6 +30,15 @@ _BROWSER_MISSING_PTBR = (
     "Execute `uv run playwright install chromium` e tente novamente."
 )
 
+# IN-01: render-stage failures (set_content timeout, page.pdf() error) are NOT
+# fixed by installing a browser — blaming the install misleads the user. The
+# generic retry hint keeps the fail-loud PT-BR envelope honest; the raw detail
+# stays terminal-only (D-08).
+_RENDER_FALHOU_PTBR = (
+    "Falha ao renderizar o PDF. Tente novamente — o detalhe técnico completo "
+    "aparece no terminal onde o servidor está rodando."
+)
+
 
 def html_to_pdf(html: str) -> bytes:
     """Render a complete HTML document to A4 PDF bytes via headless Chromium.
@@ -38,10 +47,21 @@ def html_to_pdf(html: str) -> bytes:
     template's @page rule win (A4, 1.6cm margins); tagged=True emits a
     tagged/accessible PDF — real heading structure helps some ATS parsers
     (probe A4: real embedded text layer, accents byte-perfect).
+
+    The failure STAGE picks the PT-BR line (IN-01): launch/executable-lookup
+    failures carry the Chromium install hint (the actionable remediation);
+    every other failure — render, driver startup — carries the generic retry
+    hint, because `playwright install` will not fix it. Raw detail goes to
+    the terminal in BOTH branches, never the envelope (D-08).
     """
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            try:
+                browser = p.chromium.launch(headless=True)
+            except Exception as exc:  # browser missing / executable lookup (Pitfall 4)
+                raise ExportError(
+                    _BROWSER_MISSING_PTBR, f"{type(exc).__name__}: {exc}"
+                ) from exc
             try:
                 page = browser.new_page()
                 page.set_content(html, wait_until="load")
@@ -51,9 +71,13 @@ def html_to_pdf(html: str) -> bytes:
                     prefer_css_page_size=True,
                     tagged=True,
                 )
+            except Exception as exc:  # render-stage failure (IN-01) — install won't help
+                raise ExportError(
+                    _RENDER_FALHOU_PTBR, f"{type(exc).__name__}: {exc}"
+                ) from exc
             finally:
                 browser.close()
     except ExportError:
         raise
-    except Exception as exc:  # launch / executable-lookup / set_content failures
-        raise ExportError(_BROWSER_MISSING_PTBR, f"{type(exc).__name__}: {exc}") from exc
+    except Exception as exc:  # driver/playwright startup — generic hint (IN-01)
+        raise ExportError(_RENDER_FALHOU_PTBR, f"{type(exc).__name__}: {exc}") from exc

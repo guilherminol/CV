@@ -21,6 +21,7 @@ from pathlib import Path
 import pytest
 
 from conftest import full_profile, minimal_profile
+from app.export.errors import ExportError
 from app.export.gate import (
     MSG_ACENTOS_CORROMPIDOS,
     MSG_CONTATO_FORA_DO_TOPO,
@@ -31,7 +32,7 @@ from app.export.gate import (
     msg_secao_fora_de_ordem,
     parse_back_check,
 )
-from app.export.pdf import html_to_pdf
+from app.export.pdf import _BROWSER_MISSING_PTBR, html_to_pdf
 from app.export.render import (
     HEADINGS,
     build_resume_html,
@@ -661,3 +662,81 @@ def test_selfcheck_gate_footer_from_same_gate_result() -> None:
     assert set(payload) == {"ordem", "sobrevivencia", "gate"}
     assert payload["gate"] == {"coocorrencia": False, "acentos": False}
     assert payload["ordem"] == failing.ordem_rows
+
+
+# --- IN-01: html_to_pdf failure STAGE picks the PT-BR line (offline fakes) ----
+
+
+class _FakeBrowser:
+    """Launch succeeded; the render stage raises the stored error."""
+
+    def __init__(self, error: Exception) -> None:
+        self._error = error
+
+    def new_page(self):
+        raise self._error
+
+    def close(self) -> None:
+        pass
+
+
+class _FakePlaywright:
+    """sync_playwright() stand-in: configurable launch/render failures."""
+
+    def __init__(self, launch_error: Exception | None = None, render_error: Exception | None = None):
+        self._launch_error = launch_error
+        self._render_error = render_error
+
+    @property
+    def chromium(self):
+        return self
+
+    def launch(self, headless: bool):
+        if self._launch_error is not None:
+            raise self._launch_error
+        return _FakeBrowser(self._render_error)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+
+def test_html_to_pdf_launch_failure_carries_install_hint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """IN-01 branch 1: a launch/executable-lookup failure (Chromium missing)
+    keeps the actionable install hint as the envelope line; raw detail is
+    terminal-only."""
+    import app.export.pdf as pdf_module
+
+    monkeypatch.setattr(
+        pdf_module,
+        "sync_playwright",
+        lambda: _FakePlaywright(launch_error=RuntimeError("Executable doesn't exist")),
+    )
+    with pytest.raises(ExportError) as excinfo:
+        pdf_module.html_to_pdf("<html></html>")
+    assert excinfo.value.message_ptbr == _BROWSER_MISSING_PTBR
+    assert "Executable doesn't exist" in excinfo.value.raw
+
+
+def test_html_to_pdf_render_failure_gets_generic_retry_hint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """IN-01 branch 2: a RENDER-stage failure (set_content / page.pdf) no
+    longer blames the browser install — the generic retry hint is the
+    envelope line; the raw detail stays terminal-only."""
+    import app.export.pdf as pdf_module
+
+    monkeypatch.setattr(
+        pdf_module,
+        "sync_playwright",
+        lambda: _FakePlaywright(render_error=RuntimeError("page crashed")),
+    )
+    with pytest.raises(ExportError) as excinfo:
+        pdf_module.html_to_pdf("<html></html>")
+    assert excinfo.value.message_ptbr != _BROWSER_MISSING_PTBR
+    assert "install" not in excinfo.value.message_ptbr.lower()
+    assert "page crashed" in excinfo.value.raw
