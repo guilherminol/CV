@@ -122,13 +122,15 @@ def _expected_doc(
             ExpectedExperience(
                 company=exp.company,
                 title=exp.title,
+                # WR-01: datas is the per-entry join output — element i carries
+                # secoes.experiencias[i]'s own range (None = dateless entry).
                 dates=(
-                    format_date_range(*datas[exp.company])
-                    if exp.company in datas
+                    format_date_range(*datas[idx])
+                    if idx < len(datas) and datas[idx] is not None
                     else None
                 ),
             )
-            for exp in payload.secoes.experiencias
+            for idx, exp in enumerate(payload.secoes.experiencias)
         ),
         accent_strings=tuple(
             iter_rendered_strings(payload.perfil, payload.secoes, datas, payload.idioma)

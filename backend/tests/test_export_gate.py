@@ -147,7 +147,7 @@ def _full_expected_doc(
             ExpectedExperience(
                 company=entry.company,
                 title=entry.title,
-                dates=format_date_range(*datas[entry.company]),
+                dates=format_date_range(*datas[0]),  # WR-01: per-entry join output
             ),
         ),
         accent_strings=tuple(iter_rendered_strings(profile, secoes, datas, idioma)),
@@ -218,7 +218,7 @@ def test_render_html_escapes_hostile_strings() -> None:
     hostile payload can never reach the HTML as markup."""
     profile, secoes = _persona("pt-BR")
     secoes.experiencias[0].company = '<script>alert("x")</script> & cia <b>negrito</b>'
-    html_doc = build_resume_html(profile, secoes, {}, "pt-BR")
+    html_doc = build_resume_html(profile, secoes, [], "pt-BR")
     assert "<script>" not in html_doc
     assert "<b>negrito</b>" not in html_doc
     assert "&lt;script&gt;" in html_doc
@@ -241,7 +241,7 @@ def test_render_html_full_montage_in_preview_order() -> None:
     minimal_doc = build_resume_html(
         minimal,
         _Secoes(resumo="Resumo.", experiencias=[], habilidades=["Python"]),
-        {},
+        [],
         "pt-BR",
     )
     assert HEADINGS["pt-BR"]["formacao"] not in minimal_doc  # empty passthrough hidden
@@ -272,17 +272,64 @@ def test_rendered_section_keys_matches_template_hidden_sections() -> None:
 
 
 def test_join_experience_dates_pure_and_accent_tolerant() -> None:
-    """Open Question 1: strip+fold company join; unmatched entries are absent
-    (dateless render — no invented dates). Pure: direct call, no browser."""
+    """Open Question 1: strip+fold company join; unmatched entries are None
+    (dateless render — no invented dates); one result element PER generated
+    entry, in order. Pure: direct call, no browser."""
     profile, secoes = _persona("pt-BR")
     datas = join_experience_dates(profile, secoes)
-    assert datas == {"Exemplo IA": ("2022-03", None)}
+    assert datas == [("2022-03", None)]
 
     secoes.experiencias[0].company = "exemplo ia "  # case/whitespace drift still joins
-    assert join_experience_dates(profile, secoes) == {"exemplo ia ": ("2022-03", None)}
+    assert join_experience_dates(profile, secoes) == [("2022-03", None)]
 
-    secoes.experiencias[0].company = "Outra Empresa"  # unmatched → absent
-    assert join_experience_dates(profile, secoes) == {}
+    secoes.experiencias[0].company = "Outra Empresa"  # unmatched → dateless
+    assert join_experience_dates(profile, secoes) == [None]
+
+
+def test_join_experience_dates_same_company_stints_map_positionally() -> None:
+    """WR-01 regression: two profile stints at ONE company (career
+    progression) map to the generated entries IN ORDER — each generated entry
+    carries its OWN dates. The previous dict-by-company shape collapsed both
+    entries onto the last stored range, silently printing the later stint's
+    dates on the earlier entry (factually wrong, on a sendable document)."""
+    raw = full_profile()
+    raw["experiences"].append(
+        {
+            "company": "Exemplo IA",
+            "title": {"pt-BR": "Analista de Software", "en": "Software Analyst"},
+            "start_date": "2018-02",
+            "end_date": "2022-02",
+            "description": {"pt-BR": "Descrição de exemplo.", "en": "Example description."},
+            "impacts": [],
+        }
+    )
+    profile = Profile.model_validate(raw)
+    secoes = _Secoes(
+        resumo=PT_SUMMARY,
+        experiencias=[
+            ExperienciaGerada.model_validate(
+                {
+                    "company": "Exemplo IA",
+                    "title": "Engenheira de Software Sênior",
+                    "bullets": ["Implementou um pipeline RAG."],
+                }
+            ),
+            ExperienciaGerada.model_validate(
+                {
+                    "company": "Exemplo IA",
+                    "title": "Analista de Software",
+                    "bullets": ["Automatizou relatórios."],
+                }
+            ),
+        ],
+        habilidades=HABILIDADES,
+    )
+    datas = join_experience_dates(profile, secoes)
+    assert datas == [("2022-03", None), ("2018-02", "2022-02")]
+
+    html_doc = build_resume_html(profile, secoes, datas, "pt-BR")
+    assert "2022-03 – atual" in html_doc  # the senior stint's own range
+    assert "2018-02 – 2022-02" in html_doc  # the analyst stint's own range
 
 
 # --- Order-check failure branches (synthetic text — NO browser) ---------------

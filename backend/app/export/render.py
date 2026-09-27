@@ -15,11 +15,15 @@ presentation-only divergence from the in-app PT-BR passthrough-label
 convention; content itself still travels verbatim (D-10).
 
 Dates on generated experiences (research Open Questions 1+3):
-join_experience_dates joins perfil.experiences to secoes.experiencias by
-folded company; matched entries render `format_date_range(start, end)` —
-RAW stored strings, "start – end" or "start – atual" (the in-app dateRange()
-convention, no locale formatting). Unmatched entries render dateless — no
-invented dates, ever.
+join_experience_dates joins perfil.experiences date ranges onto
+secoes.experiencias — one result element PER generated entry, in order.
+Matching is by folded company, then POSITIONAL within the company bucket
+(WR-01: two stints at one employer keep their own dates — the old
+dict-by-company shape collapsed both entries onto the last stored range).
+Matched entries render `format_date_range(start, end)` — RAW stored
+strings, "start – end" or "start – atual" (the in-app dateRange()
+convention, no locale formatting). Unmatched (or exhausted-bucket) entries
+render dateless — no invented dates, ever.
 
 Safety (V5.3, T-04-01): every data string passes through esc() —
 html.escape(quote=True) — so profile/LLM text can never inject markup into
@@ -113,26 +117,32 @@ def format_date_range(start: str, end: str | None) -> str:
 
 def join_experience_dates(
     perfil, secoes
-) -> dict[str, tuple[str, str | None]]:
-    """Join perfil.experiences dates onto the generated entries by company.
+) -> list[tuple[str, str | None] | None]:
+    """Join perfil.experiences date ranges onto the generated entries — one
+    result element PER secoes.experiencias entry, in order.
 
     Match key: strip + coverage._fold (casefold + NFKD — the D-15 family
-    primitive; proper-noun accents like São/Sao still join). Returns
-    {secoes company EXACT string -> (start_date, end_date | None)} for every
-    generated entry that matched. Unmatched entries are simply ABSENT: the
-    render leaves them dateless and the gate skips ONLY the date sub-check —
+    primitive; proper-noun accents like São/Sao still join). Stored ranges
+    are grouped per folded company, then consumed POSITIONALLY (WR-01): the
+    first generated entry for a company takes the profile's first stored
+    range for that company, the second takes the second — two stints at one
+    employer (career progression) each keep their own dates; the previous
+    dict-by-company shape collapsed both entries onto the LAST stored range,
+    printing factually wrong dates on a sendable document. An entry whose
+    company matches nothing — or whose bucket is exhausted — is None: the
+    render leaves it dateless and the gate skips ONLY the date sub-check —
     no invented dates, ever (Open Question 1 resolution). Pure function: no
     I/O, no browser import — importable from anywhere.
     """
-    dates_by_folded_company = {
-        _fold(exp.company.strip()): (exp.start_date, exp.end_date)
-        for exp in perfil.experiences
-    }
-    joined: dict[str, tuple[str, str | None]] = {}
+    ranges_by_folded_company: dict[str, list[tuple[str, str | None]]] = {}
+    for exp in perfil.experiences:
+        ranges_by_folded_company.setdefault(_fold(exp.company.strip()), []).append(
+            (exp.start_date, exp.end_date)
+        )
+    joined: list[tuple[str, str | None] | None] = []
     for exp in secoes.experiencias:
-        match = dates_by_folded_company.get(_fold(exp.company.strip()))
-        if match is not None:
-            joined[exp.company] = match
+        bucket = ranges_by_folded_company.get(_fold(exp.company.strip()))
+        joined.append(bucket.pop(0) if bucket else None)
     return joined
 
 
@@ -195,9 +205,17 @@ def _impact_line(impact, idioma: str) -> str:
     return f"{line} ({context})" if context else line
 
 
-def _sections_content(perfil, secoes, datas_por_empresa: dict[str, tuple[str, str | None]], idioma: str) -> list[_Section]:
+def _sections_content(
+    perfil,
+    secoes,
+    datas_por_experiencia: list[tuple[str, str | None] | None],
+    idioma: str,
+) -> list[_Section]:
     """The D-05 montage as plain strings, in render order — THE single
     traversal consumed by both build_resume_html and iter_rendered_strings.
+
+    datas_por_experiencia: join_experience_dates output — one element per
+    generated experience entry, in order (None = dateless entry).
 
     Generated sections (resumo/experiencias/habilidades) always render (the
     backend envelope is all-or-nothing); passthrough sections render only
@@ -210,9 +228,9 @@ def _sections_content(perfil, secoes, datas_por_empresa: dict[str, tuple[str, st
 
     # experiencias (gerado) — company · title, date line when joined, bullets
     exp_blocks: list[_Block] = []
-    for exp in secoes.experiencias:
+    for idx, exp in enumerate(secoes.experiencias):
         exp_blocks.append(_Block("h3", f"{exp.company}{CONTACT_SEPARATOR}{exp.title}"))
-        dates = datas_por_empresa.get(exp.company)
+        dates = datas_por_experiencia[idx] if idx < len(datas_por_experiencia) else None
         if dates is not None:
             exp_blocks.append(_Block("meta", format_date_range(dates[0], dates[1])))
         exp_blocks.extend(_Block("li", bullet) for bullet in exp.bullets)
@@ -278,7 +296,7 @@ def _sections_content(perfil, secoes, datas_por_empresa: dict[str, tuple[str, st
 def rendered_section_keys(
     perfil,
     secoes,
-    datas_por_empresa: dict[str, tuple[str, str | None]],
+    datas_por_experiencia: list[tuple[str, str | None] | None],
     idioma: str,
 ) -> tuple[str, ...]:
     """The section keys _sections_content ACTUALLY renders, in render order —
@@ -292,18 +310,23 @@ def rendered_section_keys(
     drift (D-03)."""
     return tuple(
         section.key
-        for section in _sections_content(perfil, secoes, datas_por_empresa, idioma)
+        for section in _sections_content(perfil, secoes, datas_por_experiencia, idioma)
     )
 
 
-def iter_rendered_strings(perfil, secoes, datas_por_empresa: dict[str, tuple[str, str | None]], idioma: str) -> list[str]:
+def iter_rendered_strings(
+    perfil,
+    secoes,
+    datas_por_experiencia: list[tuple[str, str | None] | None],
+    idioma: str,
+) -> list[str]:
     """Every plain string the template interpolates — header, heading labels
     and all section content, in render order. This list IS the gate's
     accent-integrity universe (check 4): exhaustive over resume-size content,
     never sampled. Same traversal as build_resume_html → no drift."""
     strings = [perfil.name, _contact_line(perfil)]
     labels = HEADINGS[idioma]
-    for section in _sections_content(perfil, secoes, datas_por_empresa, idioma):
+    for section in _sections_content(perfil, secoes, datas_por_experiencia, idioma):
         strings.append(labels[section.key])
         strings.extend(block.text for block in section.blocks)
     return [text for text in strings if text]
@@ -347,7 +370,7 @@ def _render_blocks(blocks: list[_Block]) -> str:
 def build_resume_html(
     perfil,
     secoes,
-    datas_por_empresa: dict[str, tuple[str, str | None]],
+    datas_por_experiencia: list[tuple[str, str | None] | None],
     idioma: str,
 ) -> str:
     """Render the D-05 montage to a complete HTML document.
@@ -355,8 +378,9 @@ def build_resume_html(
     perfil: app.profile.models.Profile. secoes: object carrying the three
     generated sections — `resumo: str`, `experiencias:
     list[ExperienciaGerada]`, `habilidades: list[str]` (the strict request
-    model lands in plan 04-02). datas_por_empresa: join_experience_dates
-    output. idioma: "pt-BR" | "en" — picks the HEADINGS map.
+    model lands in plan 04-02). datas_por_experiencia: join_experience_dates
+    output — one element per generated experience entry, in order (None =
+    dateless). idioma: "pt-BR" | "en" — picks the HEADINGS map.
 
     Pure: same inputs → same HTML string, no I/O, no clock, no engine calls.
     """
@@ -375,7 +399,7 @@ def build_resume_html(
     if contact:
         parts.append(f'<p class="contact">{esc(contact)}</p>')
 
-    for section in _sections_content(perfil, secoes, datas_por_empresa, idioma):
+    for section in _sections_content(perfil, secoes, datas_por_experiencia, idioma):
         parts.append(
             f'<section><h2>{esc(labels[section.key])}</h2>{_render_blocks(section.blocks)}</section>'
         )
