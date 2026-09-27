@@ -1,7 +1,8 @@
 ---
 phase: "5"
 slug: "review-flow-fact-safety"
-status: draft
+status: approved
+reviewed_at: "2026-09-27"
 shadcn_initialized: false
 preset: none
 created: "2026-09-27"
