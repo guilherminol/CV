@@ -69,7 +69,7 @@ Phase 4 is technically de-risked to an unusual degree because the decisive quest
 
 The build is then: a pure Python HTML builder (no template engine — house discretion), a thin Playwright PDF function, the pypdf parse-back gate (order + co-occurrence + accent-integrity, reusing `coverage._fold`), a `POST /api/resume/exportar` route returning a **JSON 200-envelope with base64 PDF + self-check payload** (uniform error path; gate failure = `{status:"erro", erros:[PT-BR naming the failed check]}` per D-08), and frontend export mutation + Blob download + self-check panel reusing Phase 3 chip semantics. No new frontend deps; backend adds exactly two packages: `playwright==1.62.0` (pins chromium-1234, **already downloaded on this machine** — zero browser install) and `pypdf>=6.19` (pure Python).
 
-**Primary recommendation:** Build gate-first behind an engine seam (`render_resume_html()` → `html_to_pdf()` → `parse_back_check()`), pin `playwright==1.62.0` + `pypdf`, ship the base64-envelope endpoint, and treat both SC2 languages as parametrized tests. Flag the two surfaced tensions (dates on generated experiences; EN-run passthrough headings) — both have recommended resolutions in Open Questions.
+**Primary recommendation:** Build gate-first behind an engine seam (`render_resume_html()` → `html_to_pdf()` → `parse_back_check()`), pin `playwright==1.62.0` + `pypdf`, ship the base64-envelope endpoint, and treat both SC2 languages as parametrized tests. The surfaced tensions (dates on generated experiences; EN-run passthrough headings; date format) are RESOLVED — all three adopted into `04-01-PLAN.md` tasks (see Open Questions (RESOLVED)).
 
 ## Architectural Responsibility Map
 
@@ -284,7 +284,7 @@ Request body (strict, `extra="forbid"` — reuses existing Pydantic models direc
 
 ### Pitfall 7: EN-run passthrough headings (design, not code)
 **What goes wrong:** an otherwise-English PDF renders "Formação/Certificações" (in-app UI convention reuses PT-BR labels for passthrough sections — constants/ui.ts:133-137), failing the "genuinely sendable" bar and making EN canonical-heading checks incoherent.
-**How to avoid:** the EXPORT template localizes ALL 7 headings by run language (pt map + en map, owned by render.py); the gate asserts against the same per-language map. Divergence from the in-app preview convention is presentation-only; content is untouched (D-10 honored). Surfaced as Assumption A2 for confirmation.
+**How to avoid:** the EXPORT template localizes ALL 7 headings by run language (pt map + en map, owned by render.py); the gate asserts against the same per-language map. Divergence from the in-app preview convention is presentation-only; content is untouched (D-10 honored). RESOLVED: adopted in 04-01 Task 1; the user confirms or declines at the 04-01 Task 0 checkpoint (A2).
 
 ## Code Examples
 
@@ -414,21 +414,23 @@ def exportar_curriculo(payload: ExportarRequest) -> dict:
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
 | A1 | Per-request Chromium launch (~0.9s + 0.7s render ≈ acceptable per export; no browser reuse needed for a single local user) | Architecture Pattern 2 | Low — worst case a future optimization (dedicated render thread); no correctness risk |
-| A2 | Export template localizes ALL 7 headings by run language (diverging from the in-app convention of PT-BR passthrough labels in EN runs) | Pitfall 7 / Open Question 2 | Cosmetic-to-moderate: EN PDF with PT headings fails the "genuinely sendable" intent; needs user confirmation via planner checkpoint |
+| A2 | Export template localizes ALL 7 headings by run language (diverging from the in-app convention of PT-BR passthrough labels in EN runs) | Pitfall 7 / Open Question 2 (RESOLVED) | RESOLVED — adopted in 04-01 Task 1 (HEADINGS pt/en maps shared with the gate); the user confirms or declines at the 04-01 Task 0 human checkpoint (pre-execution), and a decline confines the change to render.py's HEADINGS map |
 | A3 | Chromium + pypdf rendering/extraction are deterministic enough on fixed input that logical gate assertions (not byte equality) are stable across runs on this machine | Pattern 3 / Validation | Low — gate asserts order/presence, which are layout-structural, not rendering-incidental |
 | A4 | `tagged=True` improves (or at least never harms) ATS parseability of this output | Code Examples | Low — worst case neutral; optional flag, trivially removable |
 | A5 | WeasyPrint fallback viability (MSYS2 Pango path) is accurately characterized but NOT probed live (install not performed) | Standard Stack | Low — fallback only; if ever needed, D-02's gate re-runs empirically anyway |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Dates on generated experience entries (D-06 vs the D-05 montage)**
+> RESOLVED at planning (2026-09-27): all three questions below were adopted into `.planning/phases/04-pdf-export-ats-self-check/04-01-PLAN.md`. None remains open. Each question carries its inline RESOLVED note citing the adopting task.
+
+1. **Dates on generated experience entries (D-06 vs the D-05 montage)** — **RESOLVED: adopted in 04-01 Task 2 (`join_experience_dates`).**
    - What we know: SC2/D-06 require company+title+**dates** co-occurring per experience, but the generated entries carry no dates (`ExperienciaGerada` = company/title/bullets [VERIFIED: schemas.py:52-57]) and the in-app montage renders none (ResumeResult.tsx:102-117). Profile experiences DO carry `start_date`/`end_date` [VERIFIED: models.py:111-112].
    - What's unclear: intended source of the PDF's dates.
-   - Recommendation: backend-side join by casefolded company name between `perfil.experiences` and `secoes.experiencias`; render `start – end|atual` (raw strings, display parity); unmatched entries render dateless and the gate skips only the date sub-check for that entry. Planner should surface as a one-question checkpoint (cheap to confirm).
+   - Resolution (adopted): backend-side join by casefolded company name between `perfil.experiences` and `secoes.experiencias`; render `start – end|atual` (raw strings, display parity); unmatched entries render dateless and the gate skips only the date sub-check for that entry (company+title still asserted — no invented dates, ever). Implemented as the pure function `join_experience_dates(perfil, secoes)` in 04-01 Task 2.
 
-2. **EN-run heading language for passthrough sections** — see Assumption A2 / Pitfall 7. Recommendation: localize all headings in the export template (pt/en maps); confirm with user.
+2. **EN-run heading language for passthrough sections** (see Assumption A2 / Pitfall 7) — **RESOLVED: adopted in 04-01 Task 1 (`HEADINGS` pt/en maps shared with the gate).** All 7 headings localize by run language in the export template (an EN run renders Summary/Experience/Education/Skills/...). The divergence from the in-app PT-BR passthrough-label convention is confirmed or declined by the user at the 04-01 Task 0 human checkpoint (pre-execution — not discharged post-hoc); a decline confines the change to render.py's HEADINGS map (gate asserts against the same map either way). Verdict recorded in the 04-01 summary.
 
-3. **Date format parity** — raw ISO-ish profile strings ("2022-03 – atual", matching the in-app `dateRange()` convention) vs locale-formatted ("março de 2020"). Recommendation: raw strings for display parity + exact gate matching; prettifying can come later as a pure template change.
+3. **Date format parity** — **RESOLVED: adopted in 04-01 Task 2.** Raw stored strings win: dates render exactly as profiled ("2022-03 – atual", the in-app `dateRange()` convention) for display parity and exact gate matching; no locale formatting. Prettifying remains a pure future template change confined to render.py.
 
 ## Environment Availability
 
