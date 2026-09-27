@@ -137,7 +137,21 @@ Plans:
   2. The automated parse-back extraction gate passes on every export: text extracts in reading order with contact first, canonical headings, co-occurring company/title/dates, and intact PT-BR accents — verified in both PT-BR and EN exports.
   3. User can run the ATS self-check in-app and see verification of section order and keyword survival for the exported PDF, in both languages.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+**Wave 1** *(gate first per D-02 — engine choice stays empirical)*
+
+- [ ] 04-01-PLAN.md — Package legitimacy checkpoint (playwright==1.62.0 + pypdf>=6.19.0) + gate-first tracer: engine seam (pdf.py), engine-agnostic HTML template mirroring the D-05 montage, pypdf parse-back gate with contact-first/heading-order/co-occurrence/accent-integrity checks, proven on real Chromium renders in both languages (REVIEW-02)
+
+**Wave 2** *(blocked on Wave 1 — endpoint consumes the proven gate)*
+
+- [ ] 04-02-PLAN.md — Self-check payload builder (order rows + honest keyword survival via the Phase 3 matcher) + POST /api/resume/exportar with the strict request model, 200-envelope bytes+filename+selfcheck, gate-failure rejection (D-07/D-08), full API test family (REVIEW-02, REVIEW-03)
+
+**Wave 3** *(blocked on Wave 2 — frontend consumes the envelope; ends with human verification)*
+
+- [ ] 04-03-PLAN.md — Frontend Zone 6: typed export client + blob download, Exportar PDF CTA + self-check panel per the approved UI-SPEC, symmetric locking + regeneration reset, end-of-phase human verification of SC1/SC3/SC2-EN (REVIEW-02, REVIEW-03)
+
 **UI hint**: yes
 
 ### Phase 5: Review Flow + Fact Safety
@@ -182,6 +196,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation — Scaffold + Master Profile | 3/3 | In Progress|  |
 | 2. LLM Generation Core | 5/5 | Complete    | 2026-09-26 |
 | 3. Resume Vertical Slice | 5/5 | Complete    | 2026-09-26 |
-| 4. PDF Export + ATS Self-Check | 0/TBD | Not started | - |
+| 4. PDF Export + ATS Self-Check | 0/3 | Not started | - |
 | 5. Review Flow + Fact Safety | 0/TBD | Not started | - |
 | 6. LinkedIn Module + Bilingual Hardening | 0/TBD | Not started | - |
