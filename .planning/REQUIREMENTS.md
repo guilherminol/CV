@@ -23,7 +23,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Revisão e Export
 
 - [ ] **REVIEW-01**: User can regenerate individual resume sections and edit generated text inline in the app before exporting
-- [ ] **REVIEW-02**: User can export the resume as a single-column Google-format PDF with a clean, selectable text layer (ATS-parseable reading order)
+- [x] **REVIEW-02**: User can export the resume as a single-column Google-format PDF with a clean, selectable text layer (ATS-parseable reading order)
 - [ ] **REVIEW-03**: User can run an ATS self-check that extracts the text from the exported PDF and verifies section order and keyword survival, in both languages
 
 ### LinkedIn
@@ -76,7 +76,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RESUME-03 | Phase 3 | Complete |
 | RESUME-04 | Phase 3 | Complete |
 | REVIEW-01 | Phase 5 | Pending |
-| REVIEW-02 | Phase 4 | Pending |
+| REVIEW-02 | Phase 4 | Complete |
 | REVIEW-03 | Phase 4 | Pending |
 | LI-01 | Phase 6 | Pending |
 | LI-02 | Phase 6 | Pending |

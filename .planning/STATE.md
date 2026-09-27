@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 4
 current_phase_name: PDF Export + ATS Self-Check
 status: executing
-stopped_at: Phase 3 complete, ready to plan Phase 1
-last_updated: "2026-09-27T20:42:50.079Z"
-last_activity: 2026-09-26
-last_activity_desc: Phase 3 complete, transitioned to Phase 1
-state_head: 3aaaddb7f7203ae408fd4c8a6eaef0eae73d7941
+stopped_at: Completed 04-01-PLAN.md (PDF export engine + parse-back gate)
+last_updated: "2026-09-27T21:22:49.107Z"
+last_activity: 2026-09-27
+last_activity_desc: Phase 4 execution started
+state_head: 5d0eb1e9c168442fa86bc32c08c4858a4b99173a
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 16
-  completed_plans: 13
+  completed_plans: 14
   percent: 33
 ---
 
@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-25)
 
 **Core value:** Paste a job description (or state a career objective for LinkedIn) and get polished, ATS-optimized, keyword-targeted output in English or Portuguese that the user would actually send or post — without manual rewriting from scratch.
-**Current focus:** Phase 1 — Foundation (human verification deferred; phases 4–6 queued after it)
+**Current focus:** Phase 4 — PDF Export + ATS Self-Check
 
 ## Deferred Verification
 
@@ -39,10 +39,10 @@ by this deferral).
 
 ## Current Position
 
-Phase: 4 (PDF Export + ATS Self-Check) — READY TO EXECUTE
-Plan: Not started
+Phase: 4 (PDF Export + ATS Self-Check) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-09-26 — Phase 3 complete, transitioned to Phase 1
+Last activity: 2026-09-27 — Phase 4 execution started
 
 Progress: [███░░░░░░░] 33%
 
@@ -86,6 +86,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 3 P03 | 9 min | 2 tasks | 5 files |
 | Phase 3 P04 | 13 min | 3 tasks | 8 files |
 | Phase 3 P5 | 12 min | 3 tasks | 2 files |
+| Phase 4 P04-01 | 23 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,9 @@ Recent decisions affecting current work:
 - [Phase 3]: 03-04: view switch without router — useState curriculo|perfil, Currículo default landing; StatusLine extracted to shared component (no circular import)
 - [Phase 3]: 03-04: coverage tally singular keyed on total===1 (noun agreement with total); chips by fixed CATEGORY_ORDER, aria-hidden glyph + visually-hidden status text
 - [Phase 3]: 03-04: lint query gated on 800ms-debounced JD at >=80 trimmed chars (T-03-10 bound); generate failure never unmounts a prior result; generated content React-state only (D-06)
+- [Phase 4]: [Phase 4]: 04-01 D-02 empirical engine verdict — Playwright embeds: the parse-back gate was built first and real Chromium renders passed all four SC2 checks in BOTH languages; the engines were never both installed (WeasyPrint never installed — documented MSYS2/Pango fallback against the same gate)
+- [Phase 4]: [Phase 4]: 04-01 A2 resolved [auto — silence]: EN runs localize ALL 7 export headings (render.py HEADINGS pt/en = single source, gate asserts the same map); presentation-only divergence from the in-app PT-BR passthrough labels — pending user review
+- [Phase 4]: [Phase 4]: 04-01 playwright pinned 1.62.0 (DIVERGES from STACK.md 1.63.0 on purpose — bundles cached chromium-1234, zero download; WeasyPrint swap = one function, AST-pinned); dates join renders raw stored strings with graceful dateless skip (no invented dates)
 
 ### Pending Todos
 
@@ -121,7 +125,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 4: resolve Playwright vs WeasyPrint empirically via the parse-back gate (WeasyPrint is the pre-approved fallback) — consider `--research-phase 4` at planning
+- Phase 4: RESOLVED by 04-01 (D-02, empirical) — the parse-back gate was built first and real Chromium renders passed all four checks in both languages; Playwright embeds, WeasyPrint stays the documented uninstalled fallback
 - Phase 2: no OpenRouter model pinned yet — validate strict json_schema compliance and PT-BR quality via the fixture harness; model slugs stay in config
 - Phase 6: LinkedIn character limits (220/2,600/2,000) rest on MEDIUM-confidence sources — verify at planning
 
@@ -135,6 +139,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T01:11:56.536Z
-Stopped at: Autonomous run halted — phase 1 human verification deferred (phases 4–6 pending)
-Resume file: .planning/phases/01-foundation-scaffold-master-profile/01-VERIFICATION.md (Human Verification section)
+Last session: 2026-09-27T21:22:48.898Z
+Stopped at: Completed 04-01-PLAN.md (PDF export engine + parse-back gate)
+Resume file: None
