@@ -11,6 +11,16 @@ frontend/   Vite + React + TypeScript SPA (Tailwind v4, React Query)
 .env        Local secrets (gitignored) — OPENROUTER_API_KEY lives here, never in git
 ```
 
+## Backend setup
+
+After a fresh clone, install the Python dependencies and the one-time PDF-rendering browser:
+
+```bash
+cd backend && uv sync && uv run playwright install chromium
+```
+
+`uv sync` resolves everything from `backend/uv.lock`; `uv run playwright install chromium` downloads headless Chromium (~170MB, once — cached in `%LOCALAPPDATA%\ms-playwright` on Windows) and is required for PDF export. Skip the browser step only if the cache already holds the pinned revision (playwright 1.62.0 → chromium-1234).
+
 ## Running the app
 
 ### Daily use — single process (build once, then serve)
