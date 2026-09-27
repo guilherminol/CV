@@ -38,6 +38,7 @@ import {
   EXPORTAR_INFLIGHT_HINT,
   PERFIL_ERROR_TITLE,
   PERFIL_LOADING,
+  PRIMARY_BUTTON_CLASSES,
 } from '../constants/ui'
 
 type GerarOk = Extract<GerarResponse, { status: 'ok' }>
@@ -46,9 +47,9 @@ const JD_MIN_CHARS = 80 // boundary: exactly 80 trimmed chars enable CTA + lint 
 const DEBOUNCE_MS = 800 // one lint call per settled typing state (T-03-10 bound)
 
 // Pinned class strings from the UI-SPEC Component conventions (plan 03-04).
+// PRIMARY_BUTTON_CLASSES now lives in constants/ui.ts — single definition
+// shared with ExportZone (IN-04).
 const CARD_CLASSES = 'rounded-md border border-gray-200 bg-white shadow-sm p-4'
-const PRIMARY_BUTTON_CLASSES =
-  'min-h-10 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
 const SECONDARY_BUTTON_CLASSES =
   'min-h-10 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
 const TEXTAREA_CLASSES =

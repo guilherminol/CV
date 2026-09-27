@@ -66,6 +66,13 @@ export const PREVIEW_SECTIONS = {
 export const PREVIEW_PRESENT = 'atual'
 export const PREVIEW_CONTACT_SEPARATOR = ' · '
 
+// --- pinned class strings (UI-SPEC Component conventions) ---
+// Single definition of the primary CTA classes — imported by CurriculoHome
+// AND ExportZone (IN-04: the "never redefined" rule previously lived as two
+// module-local copies that could silently drift).
+export const PRIMARY_BUTTON_CLASSES =
+  'min-h-10 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
+
 // --- currículo screen (UI-SPEC Copywriting Contract, plan 03-04) ---
 export const CURRICULO_PAGE_TITLE = 'Currículo'
 export const CURRICULO_EMPTY_TITLE = 'Comece pela vaga'

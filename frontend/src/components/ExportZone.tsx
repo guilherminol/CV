@@ -5,12 +5,8 @@ import {
   EXPORTAR_ERROR_HINT,
   EXPORTAR_ERROR_TITLE,
   EXPORTAR_RECEIPT,
+  PRIMARY_BUTTON_CLASSES,
 } from '../constants/ui'
-
-// Pinned UI-SPEC class strings (Component conventions, plan 04-03) — the CTA
-// reuses CurriculoHome's PRIMARY_BUTTON_CLASSES verbatim (never redefined).
-const PRIMARY_BUTTON_CLASSES =
-  'min-h-10 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
 
 interface ExportZoneProps {
   /** Fires the one export POST — the caller (CurriculoHome) owns the mutation
