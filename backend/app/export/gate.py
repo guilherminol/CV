@@ -32,7 +32,7 @@ that split is plan 04-02). The D-08 message set lives EXACTLY in this module
 
 import io
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from pypdf import PdfReader
 
@@ -93,6 +93,16 @@ class GateResult:
     The per-check booleans feed the selfcheck footer in the plan-04-02 export
     payload (research Pattern 4 "gate" block — checks the ordem panel does
     not show). A check not yet run is False; ok=True implies all True.
+
+    Plan-04-02 additions — ONE gate pass feeds the WHOLE self-check payload
+    (no second extraction, no divergent verdicts):
+    - flat_text: the whitespace-normalized extraction — the exact text the
+      survival matcher classifies (selfcheck.build_selfcheck input).
+    - ordem_rows: {"id": "contato" | section key, "ok": bool} in render
+      order, recorded during the heading walk. On a FAILING gate the rows
+      still record what was found — a future UI could show partial order
+      even though export rejects. Ids come from ExpectedDoc.headings keys,
+      which the route builds from render.section_keys (D-03 single source).
     """
 
     ok: bool
@@ -102,6 +112,8 @@ class GateResult:
     ordem_titulos: bool = False
     coocorrencia: bool = False
     acentos: bool = False
+    flat_text: str = ""
+    ordem_rows: list[dict] = field(default_factory=list)
 
 
 def _extract_flat_text(pdf_bytes: bytes) -> str:
@@ -137,6 +149,30 @@ def _scan_headings(
     return positions, None
 
 
+def _ordem_rows(
+    contato_ok: bool,
+    positions: dict[str, int] | None,
+    failed_key: str | None,
+    headings: tuple[tuple[str, str], ...],
+) -> list[dict]:
+    """Ordem rows (plan 04-02): contato first, then one row per RENDERED
+    section in order — ok=True when the heading was found at its monotonic
+    position, False otherwise. When the scan failed at failed_key, every row
+    BEFORE it was found monotonically; failed_key and the rows after it were
+    not, and record ok=False — honest partial order, even on a rejected
+    export. Pure: derived from the SAME walk as the check-2 verdict."""
+    rows: list[dict] = [{"id": "contato", "ok": contato_ok}]
+    if positions is None:
+        seen_failure = False
+        for key, _label in headings:
+            if key == failed_key:
+                seen_failure = True
+            rows.append({"id": key, "ok": not seen_failure})
+        return rows
+    rows.extend({"id": key, "ok": True} for key, _label in headings)
+    return rows
+
+
 def check_extracted_text(text: str, expected: ExpectedDoc) -> GateResult:
     """The SC2 checks over ALREADY-extracted text — pure, no pypdf, no browser.
 
@@ -161,16 +197,23 @@ def check_extracted_text(text: str, expected: ExpectedDoc) -> GateResult:
             )
         else:
             contato_primeiro = found
+    # Heading positions are walked ONCE for BOTH the check-2 verdict and the
+    # plan-04-02 ordem rows — one gate pass feeds the whole self-check
+    # payload (no second extraction, no divergent verdicts).
+    positions, failed_key = _scan_headings(folded, expected.headings)
+    ordem_rows = _ordem_rows(contato_primeiro, positions, failed_key, expected.headings)
+
     if not contato_primeiro:
         return GateResult(
             ok=False,
             erros_ptbr=[MSG_CONTATO_FORA_DO_TOPO],
             raw=raw,
             contato_primeiro=False,
+            flat_text=flat,
+            ordem_rows=ordem_rows,
         )
 
     # --- Check 2: headings in render order ----------------------------------
-    positions, failed_key = _scan_headings(folded, expected.headings)
     ordem_titulos = failed_key is None
     if not ordem_titulos:
         return GateResult(
@@ -179,6 +222,8 @@ def check_extracted_text(text: str, expected: ExpectedDoc) -> GateResult:
             raw=raw,
             contato_primeiro=True,
             ordem_titulos=False,
+            flat_text=flat,
+            ordem_rows=ordem_rows,
         )
 
     # --- Check 3: company+title+dates co-occurrence per experience ----------
@@ -206,6 +251,8 @@ def check_extracted_text(text: str, expected: ExpectedDoc) -> GateResult:
             contato_primeiro=True,
             ordem_titulos=True,
             coocorrencia=False,
+            flat_text=flat,
+            ordem_rows=ordem_rows,
         )
 
     # --- Check 4: accent integrity (casefold-ONLY space + mojibake sentinels)
@@ -219,6 +266,8 @@ def check_extracted_text(text: str, expected: ExpectedDoc) -> GateResult:
             ordem_titulos=True,
             coocorrencia=True,
             acentos=False,
+            flat_text=flat,
+            ordem_rows=ordem_rows,
         )
 
     return GateResult(
@@ -229,6 +278,8 @@ def check_extracted_text(text: str, expected: ExpectedDoc) -> GateResult:
         ordem_titulos=True,
         coocorrencia=True,
         acentos=True,
+        flat_text=flat,
+        ordem_rows=ordem_rows,
     )
 
 

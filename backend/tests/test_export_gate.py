@@ -40,7 +40,8 @@ from app.export.render import (
     join_experience_dates,
     section_keys,
 )
-from app.llm.schemas import ExperienciaGerada
+from app.export.selfcheck import build_selfcheck
+from app.llm.schemas import ExperienciaGerada, Keyword
 from app.profile.models import Profile
 
 EXPORT_DIR = Path(__file__).resolve().parents[1] / "app" / "export"
@@ -426,3 +427,131 @@ def test_gate_short_circuits_on_shuffled_headings(rendered_pdfs: dict[str, bytes
     assert result.ok is False
     assert result.erros_ptbr == [msg_secao_fora_de_ordem("experiencias")]
     assert MSG_CONTATO_FORA_DO_TOPO not in result.erros_ptbr  # contact check passed
+
+
+# --- Self-check payload over REAL extracted PDF text (plan 04-02) -------------
+
+
+def _kw(canonical: str, **overrides) -> Keyword:
+    """Keyword factory — schema defaults for pt/en/aliases unless overridden."""
+    base: dict = {
+        "canonical": canonical,
+        "aliases": [],
+        "pt": None,
+        "en": None,
+        "category": "competencias",
+    }
+    base.update(overrides)
+    return Keyword.model_validate(base)
+
+
+@pytest.mark.parametrize("idioma", ["pt-BR", "en"])
+def test_survival_on_pdf_text(rendered_pdfs: dict[str, bytes], idioma: str) -> None:
+    """Pinned Wave-0 seed: keyword survival over the REAL extracted PDF text,
+    per language — the SAME Phase 3 matcher (zero new matching logic). The pt
+    rendering survives on a pt-BR run, the en rendering wins on an en run
+    (candidate order); an absent keyword carries termo None + status ausente;
+    alias-only presence survives via the alias string; a zero-keyword list
+    yields sobrevivencia == [] (the loud-zero line 04-03 consumes)."""
+    gate = parse_back_check(rendered_pdfs[idioma], _full_expected_doc(idioma))
+    assert gate.ok, gate.raw  # the 04-01 verdict — fixture sanity for this test
+    assert gate.flat_text  # the normalized extraction rode the same GateResult
+
+    titulo = _kw(
+        "Engenheira de Software Sênior",
+        pt="Engenheira de Software Sênior",
+        en="Senior Software Engineer",
+        category="titulos_de_vaga",
+    )
+    ausente = _kw("Kubernetes", pt="Kubernetes", en="Kubernetes", category="ferramentas")
+    alias_only = _kw(
+        "Contêineres",
+        pt="Contêineres",  # absent from the PDF either way
+        en="Containers",
+        aliases=["Docker"],  # Docker renders in Habilidades — alias-only presence
+        category="ferramentas",
+    )
+
+    zero = build_selfcheck(gate.flat_text, [], idioma, gate)
+    assert zero["sobrevivencia"] == []
+
+    selfcheck = build_selfcheck(gate.flat_text, [titulo, ausente, alias_only], idioma, gate)
+    assert set(selfcheck) == {"ordem", "sobrevivencia", "gate"}
+    sobrevivencia = selfcheck["sobrevivencia"]
+    assert len(sobrevivencia) == 3
+    for entry in sobrevivencia:  # structural honesty pin: NO aggregate field
+        assert set(entry) == {"canonical", "category", "termo", "status"}
+    assert sobrevivencia[0]["status"] == "coberto"
+    assert sobrevivencia[0]["termo"] == (
+        "Engenheira de Software Sênior" if idioma == "pt-BR" else "Senior Software Engineer"
+    )
+    assert sobrevivencia[1] == {
+        "canonical": "Kubernetes",
+        "category": "ferramentas",
+        "termo": None,
+        "status": "ausente",
+    }
+    assert sobrevivencia[2]["status"] == "coberto"
+    assert sobrevivencia[2]["termo"] == "Docker"  # survived via the alias string
+
+
+@pytest.mark.parametrize("idioma", ["pt-BR", "en"])
+def test_ordem_rows_on_real_pdf(rendered_pdfs: dict[str, bytes], idioma: str) -> None:
+    """Ordem rows (D-14): a leading contato row, then one row per exported
+    section — ids from render.py's section_keys (the 04-03 label-mapping
+    contract) — all ok=True on the real renders, in render order."""
+    gate = parse_back_check(rendered_pdfs[idioma], _full_expected_doc(idioma))
+    rows = gate.ordem_rows
+    assert rows[0] == {"id": "contato", "ok": True}
+    assert [row["id"] for row in rows[1:]] == list(section_keys)
+    assert all(row["ok"] for row in rows), rows
+
+
+def test_ordem_rows_record_partial_order_on_failure() -> None:
+    """A FAILING gate still records what was found: rows before the failed
+    key were found at monotonic positions (ok), the failed key and everything
+    after it were not (ok=False) — honest partial order despite rejection."""
+    labels = HEADINGS["pt-BR"]
+    expected = ExpectedDoc(
+        contact_tokens=(EMAIL,),
+        headings=(
+            ("resumo", labels["resumo"]),
+            ("habilidades", labels["habilidades"]),  # asked BEFORE experiencias
+            ("experiencias", labels["experiencias"]),
+        ),
+    )
+    result = check_extracted_text(
+        f"{EMAIL} Resumo alfa Experiência beta Habilidades gama", expected
+    )
+    assert result.ok is False
+    assert result.erros_ptbr == [msg_secao_fora_de_ordem("experiencias")]
+    assert result.ordem_rows == [
+        {"id": "contato", "ok": True},
+        {"id": "resumo", "ok": True},  # found at its monotonic position
+        {"id": "habilidades", "ok": True},  # found (after resumo) — honest
+        {"id": "experiencias", "ok": False},  # never found after habilidades
+    ]
+
+
+def test_ordem_rows_contato_row_false_on_contact_failure() -> None:
+    """Contact-first failure: the contato row records ok=False while the
+    section rows still record what the heading walk found."""
+    result = check_extracted_text(
+        "Resumo alfa ana@exemplo.com Experiência beta Habilidades gama", _ORDER_DOC
+    )
+    assert result.ok is False
+    assert result.erros_ptbr == [MSG_CONTATO_FORA_DO_TOPO]
+    assert result.ordem_rows[0] == {"id": "contato", "ok": False}
+    assert [row["ok"] for row in result.ordem_rows[1:]] == [True, True, True]
+
+
+def test_selfcheck_gate_footer_from_same_gate_result() -> None:
+    """The footer booleans come from the PASSED-IN GateResult — a failing
+    gate yields False footers; ordem passes through verbatim; the payload
+    carries no score/ratio anywhere (counts-only honesty, D-15)."""
+    failing = check_extracted_text("sem contato", _ORDER_DOC)
+    assert failing.ok is False
+    payload = build_selfcheck("texto qualquer", [], "pt-BR", failing)
+    assert set(payload) == {"ordem", "sobrevivencia", "gate"}
+    assert payload["gate"] == {"coocorrencia": False, "acentos": False}
+    assert payload["ordem"] == failing.ordem_rows
