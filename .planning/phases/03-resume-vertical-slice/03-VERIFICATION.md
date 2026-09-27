@@ -1,7 +1,9 @@
 ---
 phase: 03-resume-vertical-slice
 verified: 2026-09-26T23:06:25Z
-status: human_needed
+human_accepted: 2026-09-26T23:59:00Z
+acceptance_note: "User accepted both pending UAT items without live run during autonomous mode (2026-09-26): Currículo browser walkthrough + live-API grounding run (spend) waived."
+status: passed
 score: 5/7 must-haves verified
 covered_files:
   - .planning/phases/03-resume-vertical-slice/03-01-PLAN.md
