@@ -8,7 +8,9 @@ join found no match — no invented dates, ever), (4) accent integrity —
 exhaustive over resume-size content: every non-ASCII word of every rendered
 string found in the casefold-ONLY space (accent-SENSITIVE: "EXPERIÊNCIA"
 matches "experiência", mojibake does not) plus mojibake sentinels (no U+FFFD,
-no "Ã"/"â€" sequences). D-02 sequencing: the gate EXISTS before the engine is
+no "â€" lead, and no Ã-before-non-ASCII signature — CR-02: a LEGIT uppercase
+Ã ("SÃO PAULO", "MANHÃ") is followed by an ASCII char and passes). D-02
+sequencing: the gate EXISTS before the engine is
 trusted — the passing real-Chromium tests in tests/test_export_gate.py ARE
 the empirical verdict that embeds Playwright; WeasyPrint stays installable
 against this same gate.
@@ -55,9 +57,15 @@ def msg_coocorrencia(company: str) -> str:
     return f"Empresa, cargo ou datas não extraídos juntos para {company}."
 
 
-# Mojibake sentinels (check 4b): U+FFFD replacement char, and the UTF-8→Latin-1
-# byte-mangling leads "Ã" (e.g. "ão" → "Ã£o") / "â€" (e.g. "…" → "â€œ").
-_MOJIBAKE_SENTINELS = ("\ufffd", "Ã", "â€")
+# Mojibake sentinels (check 4b): U+FFFD replacement char and the UTF-8→Latin-1
+# byte-mangling lead "â€" (e.g. "…" → "â€œ") stay BARE substrings — neither
+# occurs in legit PT-BR/EN text. The "Ã" lead is CONTEXTUAL (CR-02): every C3-
+# led UTF-8 byte pair mangles to "Ã" + a U+0080–U+00FF char ("ão" → "Ã£o", Ã
+# before U+00A3), while a LEGIT uppercase Ã ("SÃO PAULO", "MANHÃ") is always
+# followed by an ASCII character — so the sentinel fires only on the mangled
+# signature, never on all-caps accented words.
+_MOJIBAKE_SENTINELS = ("\ufffd", "â€")
+_MOJIBAKE_A_TILDE = re.compile(r"Ã(?=[^\x00-\x7f])")  # Ã followed by non-ASCII
 
 
 @dataclass(frozen=True)
@@ -294,6 +302,9 @@ def _check_accents(flat: str, accent_strings: tuple[str, ...]) -> tuple[bool, st
     for sentinel in _MOJIBAKE_SENTINELS:
         if sentinel in flat:
             return False, f"sentinela de mojibake encontrada no texto extraído: {sentinel!r}"
+    a_tilde = _MOJIBAKE_A_TILDE.search(flat)
+    if a_tilde:
+        return False, f"sentinela de mojibake encontrada no texto extraído: {a_tilde.group(0)!r}"
     for string in accent_strings:
         for word in string.split():
             if all(char.isascii() for char in word):

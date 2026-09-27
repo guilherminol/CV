@@ -110,8 +110,8 @@ def _persona(idioma: str) -> tuple[Profile, _Secoes]:
     return profile, secoes
 
 
-def _render_persona(idioma: str) -> bytes:
-    profile, secoes = _persona(idioma)
+def _render_persona(idioma: str, persona: tuple[Profile, _Secoes] | None = None) -> bytes:
+    profile, secoes = persona or _persona(idioma)
     datas = join_experience_dates(profile, secoes)
     html_doc = build_resume_html(profile, secoes, datas, idioma)
     return html_to_pdf(html_doc)
@@ -127,11 +127,13 @@ def rendered_pdfs() -> dict[str, bytes]:
     return {idioma: _render_persona(idioma) for idioma in ("pt-BR", "en")}
 
 
-def _full_expected_doc(idioma: str) -> ExpectedDoc:
+def _full_expected_doc(
+    idioma: str, persona: tuple[Profile, _Secoes] | None = None
+) -> ExpectedDoc:
     """ExpectedDoc built from render.py outputs exactly as the route will in
     plan 04-02 — headings from THE shared HEADINGS map, dates from
     join_experience_dates, accent universe from iter_rendered_strings."""
-    profile, secoes = _persona(idioma)
+    profile, secoes = persona or _persona(idioma)
     datas = join_experience_dates(profile, secoes)
     labels = HEADINGS[idioma]
     entry = secoes.experiencias[0]
@@ -387,11 +389,25 @@ _GOOD_TEXT = (
             [MSG_ACENTOS_CORROMPIDOS],
         ),
         (
-            "mojibake Ã reprova",
-            _GOOD_TEXT.replace("São Paulo", "SÃ£o Paulo"),
+            "mojibake Ã+não-ASCII reprova (assinatura real: 'ão' → 'Ã£o')",
+            _GOOD_TEXT.replace("São Paulo", "S\u00c3\u00a3o Paulo"),
             _COOC_DOC,
             False,
             [MSG_ACENTOS_CORROMPIDOS],
+        ),
+        (
+            "Ã maiúsculo legítimo passa (SÃO PAULO no contato)",
+            _GOOD_TEXT.replace("São Paulo", "SÃO PAULO"),
+            _COOC_DOC,
+            True,
+            [],
+        ),
+        (
+            "Ã final de palavra legítimo passa (MANHÃ)",
+            f"{_GOOD_TEXT} Alinhamento marcado para a MANHÃ.",
+            _COOC_DOC,
+            True,
+            [],
         ),
         (
             "U+FFFD reprova",
@@ -436,6 +452,22 @@ def test_gate_passes_real_pdf(rendered_pdfs: dict[str, bytes], idioma: str) -> N
     assert result.contato_primeiro, result.raw
     assert result.ordem_titulos, result.raw
     assert result.coocorrencia, result.raw
+    assert result.acentos, result.raw
+    assert result.ok, result.raw
+
+
+def test_gate_passes_real_pdf_with_uppercase_accented_contact() -> None:
+    """CR-02 end-to-end (real Chromium): a profile storing its contact
+    location in caps ("SÃO PAULO, SP" — common in Brazilian addresses)
+    renders clean and PASSES all four checks — a legit uppercase Ã is never
+    mojibake; the byte-perfect accent check still holds every rendered word
+    (casefold-only space, accents REQUIRED)."""
+    profile, secoes = _persona("pt-BR")
+    profile.contact.location = "SÃO PAULO, SP"
+    pdf_bytes = _render_persona("pt-BR", persona=(profile, secoes))
+    result = parse_back_check(
+        pdf_bytes, _full_expected_doc("pt-BR", persona=(profile, secoes))
+    )
     assert result.acentos, result.raw
     assert result.ok, result.raw
 
