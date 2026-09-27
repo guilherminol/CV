@@ -14,17 +14,17 @@ Paste a job description (or state a career objective for LinkedIn) and get polis
 
 <!-- Shipped and confirmed valuable. -->
 
-(None yet — ship to validate)
+- ✓ Shared master profile: Markdown/YAML base in git, schema-validated, example data — Phase 1
+- ✓ Resume generation from pasted JD (PT/EN, grounded in profile facts, coverage checklist) — Phase 3
+- ✓ PDF export in Google single-column format with automated parse-back ATS gate + in-app ATS self-check — Phase 4
+- ✓ Keyword optimization: extraction with PT↔EN mapping, deterministic coverage matching — Phases 2–3
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] Resume module: generate tailored, ATS-optimized resume from pasted job description (PT/EN, Google format, PDF)
 - [ ] LinkedIn module: generate headline, About, experience descriptions, and skills from a career objective (PT/EN)
-- [ ] Shared master profile: Markdown/YAML base in git holding all experiences, projects, technologies, impacts — with schema + example data
 - [ ] Review flow: regenerate individual sections and edit text in-app before exporting the final PDF
-- [ ] Keyword optimization: extract and target keywords from the vacancy/objective for the current tech market
 
 ### Out of Scope
 
@@ -64,6 +64,8 @@ Paste a job description (or state a career objective for LinkedIn) and get polis
 | OpenRouter as LLM provider | Model flexibility without code changes; user already plans to use it | — Pending |
 | Markdown/YAML in git as master profile store | Versioned, editable in any editor, no admin UI or DB needed | — Pending |
 | Review-before-export flow (per-section regenerate + inline edit) | Quality control before sending real applications | — Pending |
+| PDF engine: Playwright pinned 1.62.0 (cached Chromium), empirical gate-first decision, WeasyPrint as uninstalled fallback | Zero-download setup on this machine; parse-back gate proves the text layer on every export | ✓ Phase 4 |
+| EN exports localize all 7 section headings (render.py HEADINGS single source, shared with gate + self-check) | The PDF is the sendable artifact; SC2 requires canonical headings in both languages | ✓ Phase 4 [auto — silence, user review pending] |
 | LinkedIn module driven by career objective, not vacancy | A LinkedIn profile targets a direction, not one specific posting | — Pending |
 | ATS-friendly Google-format PDF as the only resume output | ATS parsing reliability beats visual flair for job applications | — Pending |
 | Local web app with simple routes + meta-prompts | Matches the "meta prompts and simple routes" vision; personal use | — Pending |
@@ -86,4 +88,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-25 after initialization*
+*Last updated: 2026-09-27 after Phase 4*

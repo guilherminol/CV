@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 4
-current_phase_name: PDF Export + ATS Self-Check
-status: verifying
-stopped_at: Completed 04-03-PLAN.md (phase 4 plans done; human UAT deferred to /gsd-verify-work 4)
-last_updated: "2026-09-27T22:08:41.259Z"
+current_phase: 1
+current_phase_name: Foundation — Scaffold + Master Profile
+status: planning
+stopped_at: Phase 4 complete, ready to plan Phase 1
+last_updated: "2026-09-27T23:13:46.175Z"
 last_activity: 2026-09-27
-last_activity_desc: Phase 4 execution started
-state_head: 353808979787560db3f699fb57187c8f4a10589b
+last_activity_desc: Phase 4 complete, transitioned to Phase 1
+state_head: 3343da35603f40909204d41869ab9a38617ca9a8
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 16
   completed_plans: 16
-  percent: 33
+  percent: 50
 ---
 
 # Project State
@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-25)
 
 **Core value:** Paste a job description (or state a career objective for LinkedIn) and get polished, ATS-optimized, keyword-targeted output in English or Portuguese that the user would actually send or post — without manual rewriting from scratch.
-**Current focus:** Phase 4 — PDF Export + ATS Self-Check
+**Current focus:** Phases 5–6 — Review Flow + Fact Safety, then LinkedIn Module (phase 1 UAT deferred)
 
 ## Deferred Verification
 
@@ -47,18 +47,18 @@ frontend build green). /gsd-verify-work 4 re-surfaces all four as human_needed U
 
 ## Current Position
 
-Phase: 4 (PDF Export + ATS Self-Check) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-09-27 — Phase 4 plans executed (04-01..04-03); human UAT deferred to /gsd-verify-work 4
+Phase: 5 — Review Flow + Fact Safety (autonomous run; phase 1 UAT deferred to /gsd-verify-work 1)
+Plan: Not started
+Status: Ready to discuss
+Last activity: 2026-09-27 — Phase 4 complete (verified passed), advancing to Phase 5
 
-Progress: [███░░░░░░░] 33%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 10
+- Total plans completed: 13
 - Average duration: —
 - Total execution time: —
 
@@ -68,6 +68,7 @@ Progress: [███░░░░░░░] 33%
 |-------|-------|-------|----------|
 | 2 | 5 | - | - |
 | 3 | 5 | - | - |
+| 4 | 3 | - | - |
 
 **Recent Trend:**
 
@@ -123,8 +124,11 @@ Recent decisions affecting current work:
 - [Phase 3]: [Phase 3]: 03-03 keyword-extraction language fixed pt-BR in BOTH paths (lint + gerar); gerar echoes ITS OWN extraction verbatim — never trusts a prior lint call
 - [Phase 3]: [Phase 3]: 03-03 cobertura_resumo tallied server-side {cobertos,total} — no score field, no JS test runner introduced (no-new-frontend-deps contract held)
 - [Phase 3]: 03-04: view switch without router — useState curriculo|perfil, Currículo default landing; StatusLine extracted to shared component (no circular import)
-- [Phase 3]: 03-04: coverage tally singular keyed on total===1 (noun agreement with total); chips by fixed CATEGORY_ORDER, aria-hidden glyph + visually-hidden status text
 - [Phase 3]: 03-04: lint query gated on 800ms-debounced JD at >=80 trimmed chars (T-03-10 bound); generate failure never unmounts a prior result; generated content React-state only (D-06)
+- [Phase 4]: engine seam = one playwright import (pdf.py); template engine-agnostic (block-only CSS); parse-back gate runs on every export and rejects bytes loudly on failure (D-07/D-08)
+- [Phase 4]: expected headings derived from render.rendered_section_keys() (template = truth — CR-01 fix); mojibake sentinel is contextual (Ã followed by non-ASCII — CR-02 fix)
+- [Phase 4]: experience dates joined backend-side by company name with graceful skip (no invented dates); raw date strings for gate exactness
+- [Phase 4]: review-fix round: 8 findings fixed (2 critical), 3 skipped with reasons; full suite 232 passed; UAT executed by the autonomous agent (browser automation + extraction evidence)
 - [Phase 4]: [Phase 4]: 04-01 D-02 empirical engine verdict — Playwright embeds: the parse-back gate was built first and real Chromium renders passed all four SC2 checks in BOTH languages; the engines were never both installed (WeasyPrint never installed — documented MSYS2/Pango fallback against the same gate)
 - [Phase 4]: [Phase 4]: 04-01 A2 resolved [auto — silence]: EN runs localize ALL 7 export headings (render.py HEADINGS pt/en = single source, gate asserts the same map); presentation-only divergence from the in-app PT-BR passthrough labels — pending user review
 - [Phase 4]: [Phase 4]: 04-01 playwright pinned 1.62.0 (DIVERGES from STACK.md 1.63.0 on purpose — bundles cached chromium-1234, zero download; WeasyPrint swap = one function, AST-pinned); dates join renders raw stored strings with graceful dateless skip (no invented dates)
@@ -155,5 +159,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-09-27T22:08:25.250Z
-Stopped at: Completed 04-03-PLAN.md (phase 4 plans done; human UAT deferred to /gsd-verify-work 4)
+Stopped at: Phase 4 complete, ready to plan Phase 1
 Resume file: None
