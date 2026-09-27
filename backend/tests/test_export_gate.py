@@ -38,6 +38,7 @@ from app.export.render import (
     format_date_range,
     iter_rendered_strings,
     join_experience_dates,
+    rendered_section_keys,
     section_keys,
 )
 from app.export.selfcheck import build_selfcheck
@@ -136,7 +137,10 @@ def _full_expected_doc(idioma: str) -> ExpectedDoc:
     entry = secoes.experiencias[0]
     return ExpectedDoc(
         contact_tokens=(EMAIL,),
-        headings=tuple((key, labels[key]) for key in section_keys),
+        headings=tuple(
+            (key, labels[key])
+            for key in rendered_section_keys(profile, secoes, datas, idioma)
+        ),
         experiences=(
             ExpectedExperience(
                 company=entry.company,
@@ -240,6 +244,29 @@ def test_render_html_full_montage_in_preview_order() -> None:
     )
     assert HEADINGS["pt-BR"]["formacao"] not in minimal_doc  # empty passthrough hidden
     assert HEADINGS["pt-BR"]["projetos"] not in minimal_doc
+
+
+def test_rendered_section_keys_matches_template_hidden_sections() -> None:
+    """CR-01: rendered_section_keys is THE single source the gate's heading
+    expectations derive from — the full persona renders all 7 keys; a persona
+    with EMPTY passthrough sections renders only the three generated ones,
+    and build_resume_html confirms the hidden headings are truly absent from
+    the HTML (template = truth, one traversal)."""
+    profile, secoes = _persona("pt-BR")
+    datas = join_experience_dates(profile, secoes)
+    assert rendered_section_keys(profile, secoes, datas, "pt-BR") == section_keys
+
+    for field in ("education", "certifications", "languages", "projects"):
+        setattr(profile, field, [])
+    datas = join_experience_dates(profile, secoes)
+    assert rendered_section_keys(profile, secoes, datas, "pt-BR") == (
+        "resumo",
+        "experiencias",
+        "habilidades",
+    )
+    html_doc = build_resume_html(profile, secoes, datas, "pt-BR")
+    for key in ("formacao", "certificacoes", "idiomas", "projetos"):
+        assert HEADINGS["pt-BR"][key] not in html_doc
 
 
 def test_join_experience_dates_pure_and_accent_tolerant() -> None:

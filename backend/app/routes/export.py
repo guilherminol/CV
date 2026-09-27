@@ -52,7 +52,7 @@ from app.export.render import (
     format_date_range,
     iter_rendered_strings,
     join_experience_dates,
-    section_keys,
+    rendered_section_keys,
 )
 from app.export.selfcheck import build_selfcheck
 from app.llm.schemas import ExperienciaGerada, Keyword
@@ -106,7 +106,18 @@ def _expected_doc(
     labels = HEADINGS[payload.idioma]
     return ExpectedDoc(
         contact_tokens=(payload.perfil.contact.email,),
-        headings=tuple((key, labels[key]) for key in section_keys),
+        # CR-01: the template is the truth — expected headings derive from the
+        # SAME rendered-section traversal build_resume_html renders from, so a
+        # hidden empty passthrough section (Profile defaults: education,
+        # certifications, languages, projects all default to []) is never
+        # demanded of the PDF. Order checks stay intact: the keys come back in
+        # render order.
+        headings=tuple(
+            (key, labels[key])
+            for key in rendered_section_keys(
+                payload.perfil, payload.secoes, datas, payload.idioma
+            )
+        ),
         experiences=tuple(
             ExpectedExperience(
                 company=exp.company,

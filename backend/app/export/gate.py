@@ -102,7 +102,9 @@ class GateResult:
       order, recorded during the heading walk. On a FAILING gate the rows
       still record what was found — a future UI could show partial order
       even though export rejects. Ids come from ExpectedDoc.headings keys,
-      which the route builds from render.section_keys (D-03 single source).
+      which the route builds from render.rendered_section_keys — one row per
+      RENDERED section (CR-01: the template hides empty passthrough sections;
+      D-03 single source).
     """
 
     ok: bool

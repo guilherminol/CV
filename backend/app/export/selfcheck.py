@@ -6,9 +6,11 @@ no divergent verdicts):
 
 - "ordem": gate.ordem_rows verbatim — {"id": ..., "ok": bool} rows, contato
   first, then one row per exported section in render order; ids come from
-  render.py's section_keys (D-03 single source). The frontend maps ids to
+  the route's ExpectedDoc (render.rendered_section_keys — one row per
+  RENDERED section; an empty passthrough section is template-hidden and
+  never listed — CR-01, D-03 single source). The frontend maps ids to
   labels and renders UNKNOWN ids raw — never silently dropped (D-14; the
-  normative id set is "contato" + section_keys).
+  normative id set is "contato" + the rendered sections).
 - "sobrevivencia": classify_coverage(keywords, pdf_text, idioma) VERBATIM —
   the SAME deterministic Phase 3 matcher (canonical OR alias, case/
   punctuation-insensitive, run-language candidate order — D-15 locked reuse,

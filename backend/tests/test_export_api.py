@@ -30,7 +30,7 @@ from app.config import RUNS_LOG
 from app.export.gate import GateResult, MSG_ACENTOS_CORROMPIDOS
 from app.export.errors import ExportError
 from app.export.pdf import _BROWSER_MISSING_PTBR
-from app.export.render import section_keys
+from app.export.render import join_experience_dates, rendered_section_keys
 from app.main import app
 from test_export_gate import _persona  # the same session persona as 04-01
 
@@ -357,7 +357,13 @@ def test_exportar_real_render_ok_envelope(real_ok_envelope: dict) -> None:
     selfcheck = body["selfcheck"]
     assert set(selfcheck) == {"ordem", "sobrevivencia", "gate"}
     assert selfcheck["ordem"][0] == {"id": "contato", "ok": True}
-    assert [row["id"] for row in selfcheck["ordem"][1:]] == list(section_keys)
+    # CR-01: the ordem ids mirror the RENDERED sections — derived here from
+    # the same render.rendered_section_keys traversal the route uses.
+    profile, secoes = _persona("pt-BR")
+    datas = join_experience_dates(profile, secoes)
+    assert [row["id"] for row in selfcheck["ordem"][1:]] == list(
+        rendered_section_keys(profile, secoes, datas, "pt-BR")
+    )
     assert all(row["ok"] for row in selfcheck["ordem"]), selfcheck["ordem"]
     assert selfcheck["gate"] == {"coocorrencia": True, "acentos": True}
     # the travelled keyword survived on the REAL PDF text (full-text input —
@@ -370,3 +376,24 @@ def test_exportar_real_render_ok_envelope(real_ok_envelope: dict) -> None:
             "status": "coberto",
         }
     ]
+
+
+def test_exportar_partial_profile_exports_ok() -> None:
+    """CR-01 regression (REAL chain): a persona with EMPTY education and
+    certifications (Profile defaults) exports OK. The template hides those
+    passthrough sections, and _expected_doc derives its headings from the
+    SAME rendered-section traversal — the old all-7 unconditional heading
+    demand rejected every such profile with 'Seção formacao fora de ordem'.
+    The ordem rows name only the RENDERED sections, all ok=True."""
+    payload = _export_payload("pt-BR")
+    payload["perfil"]["education"] = []
+    payload["perfil"]["certifications"] = []
+    resp = client.post("/api/resume/exportar", json=payload)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "ok", body.get("erros")
+    ordem_ids = [row["id"] for row in body["selfcheck"]["ordem"]]
+    assert ordem_ids[0] == "contato"
+    assert "formacao" not in ordem_ids
+    assert "certificacoes" not in ordem_ids
+    assert all(row["ok"] for row in body["selfcheck"]["ordem"])

@@ -275,6 +275,27 @@ def _sections_content(perfil, secoes, datas_por_empresa: dict[str, tuple[str, st
     return sections
 
 
+def rendered_section_keys(
+    perfil,
+    secoes,
+    datas_por_empresa: dict[str, tuple[str, str | None]],
+    idioma: str,
+) -> tuple[str, ...]:
+    """The section keys _sections_content ACTUALLY renders, in render order —
+    the template as the single source of truth for the gate's heading
+    expectations (CR-01): generated sections always render; passthrough
+    sections render only when their source list is non-empty
+    (ProfilePreview convention). The export route derives ExpectedDoc.headings
+    from THIS same traversal (app.routes.export._expected_doc), so a profile
+    with an empty passthrough section can never have that heading demanded of
+    its PDF. Same traversal as build_resume_html → template and gate cannot
+    drift (D-03)."""
+    return tuple(
+        section.key
+        for section in _sections_content(perfil, secoes, datas_por_empresa, idioma)
+    )
+
+
 def iter_rendered_strings(perfil, secoes, datas_por_empresa: dict[str, tuple[str, str | None]], idioma: str) -> list[str]:
     """Every plain string the template interpolates — header, heading labels
     and all section content, in render order. This list IS the gate's
