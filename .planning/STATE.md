@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 4
 current_phase_name: PDF Export + ATS Self-Check
 status: executing
-stopped_at: Completed 04-01-PLAN.md (PDF export engine + parse-back gate)
-last_updated: "2026-09-27T21:22:49.107Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-09-27T21:42:30.864Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 4 execution started
-state_head: 5d0eb1e9c168442fa86bc32c08c4858a4b99173a
+state_head: 83ef32d44f860120023b520a6a1f82175010ccda
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 33
 ---
 
@@ -40,7 +40,7 @@ by this deferral).
 ## Current Position
 
 Phase: 4 (PDF Export + ATS Self-Check) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-09-27 — Phase 4 execution started
 
@@ -87,6 +87,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 3 P04 | 13 min | 3 tasks | 8 files |
 | Phase 3 P5 | 12 min | 3 tasks | 2 files |
 | Phase 4 P04-01 | 23 min | 3 tasks | 9 files |
+| Phase 04 P02 | 14min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,8 @@ Recent decisions affecting current work:
 - [Phase 4]: [Phase 4]: 04-01 D-02 empirical engine verdict — Playwright embeds: the parse-back gate was built first and real Chromium renders passed all four SC2 checks in BOTH languages; the engines were never both installed (WeasyPrint never installed — documented MSYS2/Pango fallback against the same gate)
 - [Phase 4]: [Phase 4]: 04-01 A2 resolved [auto — silence]: EN runs localize ALL 7 export headings (render.py HEADINGS pt/en = single source, gate asserts the same map); presentation-only divergence from the in-app PT-BR passthrough labels — pending user review
 - [Phase 4]: [Phase 4]: 04-01 playwright pinned 1.62.0 (DIVERGES from STACK.md 1.63.0 on purpose — bundles cached chromium-1234, zero download; WeasyPrint swap = one function, AST-pinned); dates join renders raw stored strings with graceful dateless skip (no invented dates)
+- [Phase 4]: Export envelope contract pinned by tests (04-02): ok={status, filename, pdf_base64, selfcheck{ordem, sobrevivencia, gate}}, erro={status, erros} with NO PDF key ever; ordem ids = contato + render.section_keys; resumo bounded 1..8000, experiencias/habilidades min_length=1
+- [Phase 4]: REVIEW-03 left pending after 04-02 — its data layer (selfcheck payload + export endpoint) is complete; the user story completes with 04-03's panel
 
 ### Pending Todos
 
@@ -139,6 +142,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T21:22:48.898Z
-Stopped at: Completed 04-01-PLAN.md (PDF export engine + parse-back gate)
+Last session: 2026-09-27T21:42:30.711Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
