@@ -189,3 +189,64 @@ export async function gerarCurriculo(payload: {
   }
   return (await resp.json()) as GerarResponse
 }
+
+// --- export + self-check endpoints (plan 04-03) — mirrors the NORMATIVE envelope
+// contract pinned in .planning/phases/04-pdf-export-ats-self-check/04-02-SUMMARY.md,
+// implemented by backend/app/routes/export.py (plan 04-02). Change BOTH together;
+// tsc -b is the drift gate. Key names pdf_base64/selfcheck/ordem/sobrevivencia/gate
+// must match the backend exactly.
+
+/** The honest ATS self-check over the extracted PDF text (D-14/D-15): order rows
+ *  (contato first, then one per rendered section), per-keyword survival verdicts
+ *  (SAME shape as the Phase 3 coverage chips — D-15), and the gate booleans the
+ *  download was conditioned on (D-06/D-07 — surfaced as the panel's footer). */
+export interface SelfCheckDTO {
+  ordem: { id: string; ok: boolean }[]
+  sobrevivencia: CoberturaItemDTO[]
+  gate: { coocorrencia: boolean; acentos: boolean }
+}
+
+/** 04-02 envelope: ok carries filename + bytes + selfcheck; the erro branch
+ *  carries ONLY erros — no filename/pdf_base64/selfcheck key EVER (D-07/D-08:
+ *  a failed gate never delivers bytes as if they were good). */
+export type ExportarResponse =
+  | { status: 'ok'; filename: string; pdf_base64: string; selfcheck: SelfCheckDTO }
+  | { status: 'erro'; erros: string[] }
+
+/** The displayed mounted state (D-10) travels verbatim to the export — field
+ *  names lifted from GerarResponse + the perfilQuery payload so the caller
+ *  passes exactly what the screen shows, with no refetch or recomputation. */
+export interface ExportarRequest {
+  perfil: PerfilDTO
+  secoes: SecoesDTO
+  keywords: KeywordDTO[] // may be [] — zero-keyword runs are legitimate
+  idioma: ResumeLanguage // REQUIRED — the PDF follows the run language (D-12)
+}
+
+/** One-shot export: render → PDF → parse-back gate → self-check in ONE request. */
+export async function exportarCurriculo(payload: ExportarRequest): Promise<ExportarResponse> {
+  const resp = await fetch('/api/resume/exportar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!resp.ok) {
+    throw new Error(`POST /api/resume/exportar falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as ExportarResponse
+}
+
+/** D-11: the browser's native download UI. Bytes come from the same export
+ *  response (atob → Uint8Array → Blob); the filename is the backend-generated
+ *  `curriculo-{idioma}-{data}.pdf` — NEVER recomposed client-side. No new deps
+ *  (STACK.md): object URL + detached anchor click, URL revoked immediately,
+ *  bytes never stored in module state. */
+export function downloadPdf(pdfBase64: string, filename: string): void {
+  const bytes = Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0))
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }))
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  URL.revokeObjectURL(url)
+}

@@ -136,3 +136,49 @@ export const CURRICULO_GENERATED_SECTIONS = {
   'pt-BR': { resumo: 'Resumo', experiencias: 'Experiência', habilidades: 'Habilidades' },
   en: { resumo: 'Summary', experiencias: 'Experience', habilidades: 'Skills' },
 } as const
+
+// --- export + self-check (UI-SPEC Copywriting Contract, plan 04-03) ---
+export const EXPORTAR_CTA = 'Exportar PDF'
+export const EXPORTAR_CTA_INFLIGHT = 'Exportando PDF…'
+export const EXPORTAR_CAPTION =
+  'O download começa automaticamente após a verificação ATS do arquivo.'
+export const EXPORTAR_INFLIGHT_HINT = 'Renderizando o PDF e executando a verificação ATS…'
+// {filename} interpolation slot — the backend-generated download name (D-11),
+// rendered as plain wrapped text (never truncated).
+export const EXPORTAR_RECEIPT = 'PDF exportado e verificado — {filename}'
+export const EXPORTAR_ERROR_TITLE = 'Não foi possível exportar o PDF'
+// Backend gate-failure lines render VERBATIM between title and hint — no
+// per-line frontend constants, by design (D-13/D-14 division of labor).
+export const EXPORTAR_ERROR_HINT =
+  'Tente exportar novamente. O detalhe técnico completo aparece no terminal onde o servidor está rodando.'
+
+export const SELFCHECK_TITLE = 'Verificação ATS do PDF'
+export const SELFCHECK_ORDEM_LABEL = 'Ordem das seções'
+export const SELFCHECK_CONTATO_LABEL = 'Contato no topo'
+// Map render.section_keys ids (plan 04-02: resumo, experiencias, formacao,
+// habilidades, certificacoes, idiomas, projetos) → PT-BR labels; values copied
+// from PREVIEW_SECTIONS + the Contato entry. Unknown ids render raw — never
+// silently dropped (D-14).
+export const SELFCHECK_ORDEM_LABELS = {
+  contato: 'Contato no topo',
+  resumo: 'Resumo',
+  experiencias: 'Experiência',
+  formacao: 'Formação',
+  habilidades: 'Habilidades',
+  certificacoes: 'Certificações',
+  idiomas: 'Idiomas',
+  projetos: 'Projetos',
+} as const
+export const SELFCHECK_SOBREVIVENCIA_LABEL = 'Sobrevivência de keywords'
+// {survived}/{total} interpolation slots — plain factual tally ONLY:
+// never a percentage, score, or progress meter (REQUIREMENTS Out of Scope).
+export const SELFCHECK_SOBREVIVENCIA_SINGULAR =
+  '{survived} de {total} keyword da vaga aparece no PDF exportado.'
+export const SELFCHECK_SOBREVIVENCIA_PLURAL =
+  '{survived} de {total} keywords da vaga aparecem no PDF exportado.'
+export const SELFCHECK_KEYWORD_NO_PDF = 'no PDF'
+export const SELFCHECK_KEYWORD_AUSENTE = 'ausente no PDF'
+export const SELFCHECK_KEYWORDS_ZERO =
+  'Nenhuma keyword foi extraída nesta execução — nada para verificar no PDF.'
+export const SELFCHECK_GATE_FOOTER =
+  'Antes do download, o gate automático também provou empresa, cargo e datas juntos em cada experiência e acentos intactos na camada de texto.'
