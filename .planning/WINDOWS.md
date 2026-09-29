@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 7
+open_count: 9
 waived_count: 0
 fixed_count: 2
-total_count: 9
-last_updated: 2026-09-29T21:20:27.871Z
+total_count: 11
+last_updated: 2026-09-29T23:06:47.634Z
 ---
 
 # Broken Windows Ledger
@@ -24,6 +24,8 @@ last_updated: 2026-09-29T21:20:27.871Z
 | 7 | 4 | unrun-verify | .planning/phases/04-pdf-export-ats-self-check/04-VALIDATION.md |  | 04-03 Task 3 human checkpoint deferred [auto - silence]: SC1 PDF-vs-screen fidelity, SC3 download UX feel, SC2/EN heading viewer inspection, backstop full-page readability not executable by the executor - routed to /gsd-verify-work 4 as human_needed UAT (automation green: 223 tests incl. real-render parse-back gate, build green) | open |  | 2026-09-27T22:06:40.390Z |  |
 | 8 | 5 | unrun-verify | .planning/phases/05-review-flow-fact-safety/05-VALIDATION.md |  | 05-04 human checkpoint deferred (run convention): SC4 locking matrix across the 4 destructive paths, SC3 comparison amber marks + legend + zero-suspects line + company fallback, SC2 edits-flow-to-export, policy line + refresh return, disclosures-open backstop were NOT executed in the browser (user unavailable). Routed to /gsd-verify-work 5 as human_needed UAT. Automation green stands: 266 passed/7 deselected + frontend build (standing proofs per check in 05-04-SUMMARY.md Deferred table) | open |  | 2026-09-29T18:31:24.665Z |  |
 | 9 | 06 | stub | frontend/src/pages/LinkedInHome.tsx |  | Tracer scope: result card renders only the Headline block (in-flight hint names four blocks) — 06-02 delivers the full quartet | open |  | 2026-09-29T21:20:27.871Z |  |
+| 10 | 06 | unrun-verify | backend/tests/test_llm_harness.py |  | Full-file DoD run (uv run pytest tests/test_llm_harness.py -m llm -q) incomplete: OpenRouter 402 credit exhaustion mid-run; the dedicated linkedin run (-k linkedin) passed both labels green before exhaustion. Re-run the full command after topping up credits at openrouter.ai/settings/credits. | open |  | 2026-09-29T22:57:35.831Z |  |
+| 11 | 06 | unrun-verify | .planning/phases/06-linkedin-module-bilingual-hardening/06-06-SUMMARY.md |  | Phase 6 end-of-phase human UAT deferred (run convention): copy-paste UX, counters/over-limit path, QA panel framing, max-volume backstop NOT browser-run — automation green stands (403 offline tests + build + 06-05 dedicated bilingual DoD run); /gsd-verify-work 6 re-surfaces as human_needed per the 06-06-SUMMARY Deferred table | open |  | 2026-09-29T23:06:47.634Z |  |
 
 ````json
 [
@@ -141,6 +143,32 @@ last_updated: 2026-09-29T21:20:27.871Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-29T21:20:27.871Z",
+    "resolved_at": null,
+    "milestone": null
+  },
+  {
+    "id": 10,
+    "kind": "unrun-verify",
+    "phase": "06",
+    "file": "backend/tests/test_llm_harness.py",
+    "line": null,
+    "description": "Full-file DoD run (uv run pytest tests/test_llm_harness.py -m llm -q) incomplete: OpenRouter 402 credit exhaustion mid-run; the dedicated linkedin run (-k linkedin) passed both labels green before exhaustion. Re-run the full command after topping up credits at openrouter.ai/settings/credits.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-29T22:57:35.831Z",
+    "resolved_at": null,
+    "milestone": null
+  },
+  {
+    "id": 11,
+    "kind": "unrun-verify",
+    "phase": "06",
+    "file": ".planning/phases/06-linkedin-module-bilingual-hardening/06-06-SUMMARY.md",
+    "line": null,
+    "description": "Phase 6 end-of-phase human UAT deferred (run convention): copy-paste UX, counters/over-limit path, QA panel framing, max-volume backstop NOT browser-run — automation green stands (403 offline tests + build + 06-05 dedicated bilingual DoD run); /gsd-verify-work 6 re-surfaces as human_needed per the 06-06-SUMMARY Deferred table",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-29T23:06:47.634Z",
     "resolved_at": null,
     "milestone": null
   }

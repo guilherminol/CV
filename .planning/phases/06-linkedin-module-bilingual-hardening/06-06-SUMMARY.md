@@ -31,7 +31,7 @@ metrics:
   completed: 2026-09-29
 status: complete
 actuals:
-  tokens: 2900 # chars/4 over the realized diff (docs-only: this SUMMARY)
+  tokens: 2633 # chars/4 over the realized diff (docs-only: this SUMMARY, 10532 diff chars)
   tasks: 1
   commits: 2 # MEASURED: git rev-list --count 062206e..HEAD (SUMMARY commit + final state/docs commit)
 plan_head_before: 062206eb13e404a431bb746b3c2c64d65d049fc1

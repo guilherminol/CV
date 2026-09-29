@@ -199,7 +199,7 @@ Plans:
   3. All outputs are copy-paste text blocks the user can paste straight into LinkedIn.
   4. PT-BR outputs pass the language QA gate (terminology glossary applied, no English bleed), and the both-language fixture suite runs as definition-of-done for every prompt change.
 
-**Plans**: 5/6 plans executed
+**Plans**: 6/6 plans executed
 
 Plans:
 **Wave 1**
@@ -224,7 +224,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5; end-of-phase gate — autonomous:false, resolved-as-deferred per run convention)*
 
-- [ ] 06-06-PLAN.md — Checkpoint: copy-paste UX + counters + QA panel framing + max-volume backstop UAT (LI-01..LI-05)
+- [x] 06-06-PLAN.md — Checkpoint: copy-paste UX + counters + QA panel framing + max-volume backstop UAT (LI-01..LI-05)
 
 **UI hint**: yes
 
@@ -240,4 +240,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Resume Vertical Slice | 5/5 | Complete    | 2026-09-26 |
 | 4. PDF Export + ATS Self-Check | 3/3 | Complete    | 2026-09-27 |
 | 5. Review Flow + Fact Safety | 4/4 | Complete    | 2026-09-29 |
-| 6. LinkedIn Module + Bilingual Hardening | 5/6 | In Progress|  |
+| 6. LinkedIn Module + Bilingual Hardening | 6/6 | In Progress|  |
