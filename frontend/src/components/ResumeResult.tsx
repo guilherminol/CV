@@ -36,8 +36,11 @@ import {
   REGEN_SECTION_CTA,
   REGEN_SECTION_INFLIGHT,
   REGEN_SECAO_LABELS,
+  VERSOES_TOGGLE,
+  VERSOES_TOGGLE_COUNT,
 } from '../constants/ui'
 import { SectionEditor, textoEditorValido, type SecaoEditorState } from './SectionEditor'
+import { SectionVersionsPanel, type OrigemBadge, type SectionVersion } from './SectionVersionsPanel'
 
 // Pinned UI-SPEC class strings (Component conventions, plan 03-04).
 const CARD_CLASSES = 'rounded-md border border-gray-200 bg-white px-6 py-5 shadow-sm'
@@ -64,10 +67,6 @@ function dateRange(start: string, end: string | null | undefined): string {
 }
 
 type BadgeKind = 'gerado' | 'perfil' | 'editado'
-
-/** Badge origin for GENERATED sections (D-04): 'editado' after an inline
- *  save or the restore of an edited version; 'gerado' at mount/regen. */
-export type OrigemBadge = 'gerado' | 'editado'
 
 /**
  * D-04 tri-state badges: Gerado (soft blue — LLM product), Do perfil (muted
@@ -127,6 +126,10 @@ function GeneratedSection({
   badge,
   onEditarSecao,
   locksEdicao,
+  versoes,
+  versoesAberta,
+  onVersoesToggle,
+  onRestaurar,
   onRegenerarSecao,
   secaoRegenerando,
   regenerando,
@@ -144,6 +147,11 @@ function GeneratedSection({
   onEditarSecao: (() => void) | null
   /** An editor is open (any section) OR a long op is pending. */
   locksEdicao: boolean
+  /** Prior versions of this section (newest first) + their disclosure state. */
+  versoes: SectionVersion[]
+  versoesAberta: boolean
+  onVersoesToggle: () => void
+  onRestaurar: (indice: number) => void
   onRegenerarSecao: (secao: SecaoId) => void
   secaoRegenerando: SecaoId | null
   regenerando: boolean
@@ -170,6 +178,20 @@ function GeneratedSection({
             {EDITAR_SECAO_CTA}
           </button>
         )}
+        {/* Versoes toggle (D-08): read-only disclosure — usable even while a
+            long op is pending; disabled with NO count suffix at zero versions
+            (no ghost panel). */}
+        <button
+          type="button"
+          onClick={onVersoesToggle}
+          aria-expanded={versoesAberta}
+          disabled={versoes.length === 0}
+          className={QUIET_BUTTON_CLASSES}
+        >
+          {versoes.length > 0
+            ? VERSOES_TOGGLE_COUNT.replace('{count}', String(versoes.length))
+            : VERSOES_TOGGLE}
+        </button>
         <button
           type="button"
           onClick={() => onDicaToggle(secao)}
@@ -205,6 +227,14 @@ function GeneratedSection({
         </div>
       )}
       {children}
+      {versoesAberta && versoes.length > 0 && (
+        <SectionVersionsPanel
+          secao={secao}
+          versoes={versoes}
+          restaurarDesabilitado={locksEdicao}
+          onRestaurar={onRestaurar}
+        />
+      )}
       {pending && (
         <p className="text-sm text-gray-600">{REGEN_INFLIGHT_LINE.replace('{secao}', label)}</p>
       )}
@@ -318,6 +348,14 @@ interface ResumeResultProps {
   onDicaChange: (secao: SecaoId, valor: string) => void
   dicaAberta: Record<SecaoId, boolean>
   onDicaToggle: (secao: SecaoId) => void
+  // --- per-section version stack (plan 05-02, D-08) ---
+  /** Prior versions per section, newest first (session memory only). */
+  versoes: Record<SecaoId, SectionVersion[]>
+  /** Per-section Versoes disclosure state. */
+  versoesAbertas: Record<SecaoId, boolean>
+  onVersoesToggle: (secao: SecaoId) => void
+  /** Restore = stack current FIRST, then mount the chosen version (D-08). */
+  onRestaurar: (secao: SecaoId, indice: number) => void
   // --- inline editing (plan 05-02, D-02/D-04/D-12) ---
   /** Badge origin per generated section: 'gerado' at mount/regen, 'editado'
    *  after a save or an editado-origem restore. */
@@ -367,6 +405,10 @@ export function ResumeResult({
   onDicaChange,
   dicaAberta,
   onDicaToggle,
+  versoes,
+  versoesAbertas,
+  onVersoesToggle,
+  onRestaurar,
   origens,
   editor,
   locksEdicao,
@@ -438,6 +480,10 @@ export function ResumeResult({
             onDicaChange={onDicaChange}
             dicaAberta={dicaAberta.resumo}
             onDicaToggle={onDicaToggle}
+            versoes={versoes.resumo}
+            versoesAberta={versoesAbertas.resumo}
+            onVersoesToggle={() => onVersoesToggle('resumo')}
+            onRestaurar={(indice) => onRestaurar('resumo', indice)}
           >
             {editor?.secao === 'resumo' ? (
               <SectionEditor
@@ -475,6 +521,10 @@ export function ResumeResult({
             onDicaChange={onDicaChange}
             dicaAberta={dicaAberta.experiencias}
             onDicaToggle={onDicaToggle}
+            versoes={versoes.experiencias}
+            versoesAberta={versoesAbertas.experiencias}
+            onVersoesToggle={() => onVersoesToggle('experiencias')}
+            onRestaurar={(indice) => onRestaurar('experiencias', indice)}
           >
             {editor?.secao === 'experiencias' ? (
               <SectionEditor
@@ -533,6 +583,10 @@ export function ResumeResult({
             onDicaChange={onDicaChange}
             dicaAberta={dicaAberta.habilidades}
             onDicaToggle={onDicaToggle}
+            versoes={versoes.habilidades}
+            versoesAberta={versoesAbertas.habilidades}
+            onVersoesToggle={() => onVersoesToggle('habilidades')}
+            onRestaurar={(indice) => onRestaurar('habilidades', indice)}
           >
             {editor?.secao === 'habilidades' ? (
               <SectionEditor

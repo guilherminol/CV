@@ -20,9 +20,10 @@ import { ExportZone } from '../components/ExportZone'
 import { KeywordsPanel } from '../components/KeywordsPanel'
 import { LintPanel, type LintOk } from '../components/LintPanel'
 import { PlaceholderBanner } from '../components/PlaceholderBanner'
-import { ResumeResult, type OrigemBadge } from '../components/ResumeResult'
+import { ResumeResult } from '../components/ResumeResult'
 import { SelfCheckPanel } from '../components/SelfCheckPanel'
 import { StatusLine } from '../components/StatusLine'
+import type { OrigemBadge, SectionVersion } from '../components/SectionVersionsPanel'
 import { dividirLinhas, textoEditorValido, type SecaoEditorState } from '../components/SectionEditor'
 import {
   CURRICULO_CTA,
@@ -52,13 +53,6 @@ type GerarOk = Extract<GerarResponse, { status: 'ok' }>
 // --- inline editing / version stack (plan 05-02, D-01/D-04/D-08/D-12) ---
 // Session React state ONLY — no persistence layer, no shadow copy of
 // resultado.secoes (D-01); a refresh returns to the last generated result.
-/** A stored prior version of one section: the displayed text (in the
- *  section's own value shape) + the badge origin it carried. */
-interface SectionVersion {
-  secao: SecaoId
-  origem: OrigemBadge
-  valor: SecoesDTO[SecaoId]
-}
 
 const JD_MIN_CHARS = 80 // boundary: exactly 80 trimmed chars enable CTA + lint query
 const DEBOUNCE_MS = 800 // one lint call per settled typing state (T-03-10 bound)
@@ -155,12 +149,17 @@ export default function CurriculoHome() {
   // full regen — pushes the current displayed text + badge origin here FIRST
   // via empilharVersaoAtual. Newest first; never capped (single-user
   // localhost session), never silently dropped.
-  // (`_versoes` reads nothing until Task 2's SectionVersionsPanel consumes
-  // the stacks — the underscore keeps tsc's noUnusedLocals quiet meanwhile.)
-  const [_versoes, setVersoes] = useState<Record<SecaoId, SectionVersion[]>>({
+  const [versoes, setVersoes] = useState<Record<SecaoId, SectionVersion[]>>({
     resumo: [],
     experiencias: [],
     habilidades: [],
+  })
+  // Per-section Versoes disclosure state (read-only — usable even while a
+  // long op is pending, per the UI-SPEC locking matrix).
+  const [versoesAbertas, setVersoesAbertas] = useState<Record<SecaoId, boolean>>({
+    resumo: false,
+    experiencias: false,
+    habilidades: false,
   })
   // Badge origin per generated section (D-04 tri-state): 'gerado' at
   // mount/regen, 'editado' after a save or the restore of an edited version.
@@ -208,6 +207,7 @@ export default function CurriculoHome() {
         // hint lifecycle: the dica persists until cleared or replaced).
         setDicas({ resumo: '', experiencias: '', habilidades: '' })
         setDicaAberta({ resumo: false, experiencias: false, habilidades: false })
+        setVersoesAbertas({ resumo: false, experiencias: false, habilidades: false })
         setRegenErros({})
       } else {
         // 200-envelope erro: backend PT-BR lines, rendered verbatim below.
@@ -376,6 +376,28 @@ export default function CurriculoHome() {
   // ConfirmStrip; by the time this runs the user confirmed (or was clean).
   function fecharEditor() {
     setEditor(null)
+  }
+
+  // Restore (D-08/SC4): stack the CURRENT displayed version FIRST, then mount
+  // the chosen version (removed from the stack — not duplicated) and adopt
+  // its origin badge; then the export-state reset triple. Coverage chips stay
+  // untouched (gerar-time snapshot rule — restores never recompute coverage).
+  function restaurar(secao: SecaoId, indice: number) {
+    if (!resultado) return
+    const alvo = versoes[secao][indice]
+    if (!alvo) return
+    empilharVersaoAtual(secao)
+    // empilharVersaoAtual PREPENDS the current text, shifting the restored
+    // entry down by one — remove it at indice + 1 (queued updaters apply in
+    // order: prepend, then filter).
+    setVersoes((prev) => ({ ...prev, [secao]: prev[secao].filter((_, i) => i !== indice + 1) }))
+    setResultado((prev) =>
+      prev ? { ...prev, secoes: secoesComValor(prev.secoes, secao, alvo.valor) } : prev,
+    )
+    setOrigens((prev) => ({ ...prev, [secao]: alvo.origem }))
+    setReceiptFilename(null)
+    setSelfcheck(null)
+    setExportarErros(null)
   }
 
   if (perfilQuery.isPending) {
@@ -559,6 +581,10 @@ export default function CurriculoHome() {
               onDicaChange={(secao, valor) => setDicas((prev) => ({ ...prev, [secao]: valor }))}
               dicaAberta={dicaAberta}
               onDicaToggle={(secao) => setDicaAberta((prev) => ({ ...prev, [secao]: !prev[secao] }))}
+              versoes={versoes}
+              versoesAbertas={versoesAbertas}
+              onVersoesToggle={(secao) => setVersoesAbertas((prev) => ({ ...prev, [secao]: !prev[secao] }))}
+              onRestaurar={restaurar}
               origens={origens}
               editor={editor}
               locksEdicao={locksEdicao}
