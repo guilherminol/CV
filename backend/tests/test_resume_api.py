@@ -302,7 +302,7 @@ def test_handlers_are_sync_def_never_coroutines() -> None:
     endpoints = {
         path: endpoint for path, endpoint, _ in _iter_api_routes() if endpoint is not None
     }
-    for path in ("/api/resume/lint", "/api/resume/gerar"):
+    for path in ("/api/resume/lint", "/api/resume/gerar", "/api/resume/regenerar"):
         endpoint = endpoints[path]  # KeyError would mean the route is missing
         # Pitfall 2: plain def → Starlette threadpool; async would freeze the
         # event loop during the ~60s synchronous SDK run.
@@ -315,7 +315,7 @@ def test_resume_router_registered_before_spa_mount() -> None:
         pos for path, endpoint, pos in entries if endpoint is None and path in ("", "/")
     ]
     assert mount_positions, "SPA mount expected at / (frontend/dist guard, Pitfall 5)"
-    for path in ("/api/resume/lint", "/api/resume/gerar"):
+    for path in ("/api/resume/lint", "/api/resume/gerar", "/api/resume/regenerar"):
         positions = [pos for p, _, pos in entries if p == path]
         assert positions, f"route missing: {path}"
         assert max(positions) < mount_positions[0], path  # Pitfall 3/5
