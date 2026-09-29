@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: LinkedIn Module + Bilingual Hardening
 status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-09-29T21:21:16.462Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-09-29T21:52:03.773Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 6 execution started
-state_head: 9a83092a01d86a8a90cb3f8f21d1198ec395f347
+state_head: f41814fe492801d4328102183b666e9d088e69cc
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 26
-  completed_plans: 21
+  completed_plans: 22
   percent: 67
 ---
 
@@ -57,7 +57,7 @@ per-check standing proofs in 05-04-SUMMARY.md, Deferred Human Verification table
 ## Current Position
 
 Phase: 6 (LinkedIn Module + Bilingual Hardening) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 6 execution started
 
@@ -113,6 +113,7 @@ Progress: [███████░░░] 67%
 | Phase 05 P03 | 11 min | 2 tasks | 5 files |
 | Phase 5 P04 | 4 min | 1 tasks | 1 files |
 | Phase 06 P01 | 16 min | 3 tasks | 16 files |
+| Phase 06 P02 | 20 min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,9 @@ Recent decisions affecting current work:
 - [Phase 1]: [Phase 5]: 05-04 checkpoint resolved [deferred - run convention] — SC4 matrix, SC3 framing, SC2 edits-to-export, policy+refresh, backstop NOT browser-run; automation green stands (266 tests + build); /gsd-verify-work 5 re-surfaces all five as human_needed UAT (05-04-SUMMARY.md Deferred table)
 - [Phase 1]: LinkedIn tracer: only linkedin-headline registered in _STAGE_SCHEMAS (minimal surface); the other 3 wire schemas drift-locked but register with prompt files in 06-02
 - [Phase 1]: D-07 posture pinned: LinkedIn LLM-layer output models carry NO length bounds — oversize guards prove over-limit strings validate; limits live post-generation + client mirrors
+- [Phase 1]: Experiências alignment: profile order via company fold-match, first UNUSED match wins (same-company entries never collide); ANY failed pairing flips wholesale to returned-order fallback (UI-SPEC)
+- [Phase 1]: Skills dedupe first-occurrence-wins, no sort anywhere — LLM returned order IS the priority order (LI-05); empty habilidades fails only on skills-bearing profiles
+- [Phase 1]: Dica framing extracted as facts.append_dica_block shared by resume + LinkedIn regen composes (Rule 3: verbatim compose_regen_stage_input reuse mislabeled the LinkedIn base); LinkedinSecoes lives in app/linkedin/models.py
 
 ### Pending Todos
 
@@ -186,6 +190,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T21:21:16.221Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-09-29T21:52:03.345Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
