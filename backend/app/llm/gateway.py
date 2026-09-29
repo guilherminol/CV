@@ -32,10 +32,12 @@ from app.llm.logging import write_run_line, write_run_summary
 from app.llm.prompts import load_prompt
 from app.llm.schemas import (
     KEYWORD_STRICT_SCHEMA,
+    LINKEDIN_HEADLINE_STRICT_SCHEMA,
     RESUME_EXPERIENCIAS_STRICT_SCHEMA,
     RESUME_SKILLS_STRICT_SCHEMA,
     RESUME_SUMMARY_STRICT_SCHEMA,
     KeywordExtraction,
+    LinkedinHeadline,
     ResumeExperiencias,
     ResumeSkills,
     ResumeSummary,
@@ -51,6 +53,11 @@ _STAGE_SCHEMAS: dict[str, tuple[type, dict]] = {
     "resume-summary": (ResumeSummary, RESUME_SUMMARY_STRICT_SCHEMA),
     "resume-experiencias": (ResumeExperiencias, RESUME_EXPERIENCIAS_STRICT_SCHEMA),
     "resume-skills": (ResumeSkills, RESUME_SKILLS_STRICT_SCHEMA),
+    # Phase 6 (D-09): mirrors the resume stages; the stage string becomes the
+    # runs.jsonl `stage` value (D-10: plain strings, contract intact) and the
+    # wire-schema name via stage.replace("-", "_"). Registration is the ONLY
+    # gateway edit — retry, wire enforcement, and audit are inherited.
+    "linkedin-headline": (LinkedinHeadline, LINKEDIN_HEADLINE_STRICT_SCHEMA),
 }
 
 

@@ -69,6 +69,25 @@ class ResumeSkills(_Strict):
     habilidades: list[str]
 
 
+# --- LinkedIn stage outputs (Plan 06-01, D-09). CRITICAL (research Pitfall 1
+# / D-07): PLAIN str fields — NO max_length anywhere. A length bound here
+# makes the gateway retry over-limit output and abort the whole run at
+# exhaustion (gateway retry ladder); limits are enforced POST-generation in
+# app.linkedin.pipeline (limites.{limite,tamanho,excesso}) + client-side.
+# Over-limit output must survive to be surfaced, never rejected (D-07/SC2).
+
+
+class LinkedinHeadline(_Strict):
+    """linkedin-headline stage — one run-language headline line.
+
+    Target ≤ LINKEDIN_HEADLINE_MAX_CHARS is GUIDANCE (prompt-level) — the
+    post-generation check owns the bound (D-07); this model deliberately
+    accepts any length so over-limit text survives to be flagged.
+    """
+
+    headline: str
+
+
 # Hand-maintained STRICT JSON Schema for KeywordExtraction — sent as
 # response_format json_schema to the provider (RESEARCH Pattern 2; PATTERNS
 # §schemas.py: never send model_json_schema() raw — Pitfall 1). OpenAI strict
@@ -151,5 +170,21 @@ RESUME_SKILLS_STRICT_SCHEMA: dict = {
         "habilidades": {"type": "array", "items": {"type": "string"}},
     },
     "required": ["habilidades"],
+    "additionalProperties": False,
+}
+
+
+# Hand-maintained STRICT wire schema for the linkedin-headline stage (plan
+# 06-01) — same rules as the resume schemas above (sent as response_format
+# json_schema with strict: true, never derived from model_json_schema() at
+# runtime; every property in `required`, additionalProperties: false). The
+# drift-lock harness (tests/test_linkedin_schema.py) fails CI if this dict and
+# LinkedinHeadline diverge (threat T-02-08/T-06-02) — edit BOTH together.
+LINKEDIN_HEADLINE_STRICT_SCHEMA: dict = {
+    "type": "object",
+    "properties": {
+        "headline": {"type": "string"},
+    },
+    "required": ["headline"],
     "additionalProperties": False,
 }
