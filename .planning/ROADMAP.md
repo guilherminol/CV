@@ -199,7 +199,7 @@ Plans:
   3. All outputs are copy-paste text blocks the user can paste straight into LinkedIn.
   4. PT-BR outputs pass the language QA gate (terminology glossary applied, no English bleed), and the both-language fixture suite runs as definition-of-done for every prompt change.
 
-**Plans**: 2/6 plans executed
+**Plans**: 3/6 plans executed
 
 Plans:
 **Wave 1**
@@ -212,7 +212,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 06-03-PLAN.md — Frontend expansion: lint zone, four-block result card (experiência group + skills ordered list), Copiar everywhere, over-limit flags + editor save guard, versions + comparison, regen wiring + locking matrix (LI-02..LI-05)
+- [x] 06-03-PLAN.md — Frontend expansion: lint zone, four-block result card (experiência group + skills ordered list), Copiar everywhere, over-limit flags + editor save guard, versions + comparison, regen wiring + locking matrix (LI-02..LI-05)
 
 **Wave 4** *(blocked on Wave 2)*
 
@@ -240,4 +240,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Resume Vertical Slice | 5/5 | Complete    | 2026-09-26 |
 | 4. PDF Export + ATS Self-Check | 3/3 | Complete    | 2026-09-27 |
 | 5. Review Flow + Fact Safety | 4/4 | Complete    | 2026-09-29 |
-| 6. LinkedIn Module + Bilingual Hardening | 2/6 | In Progress|  |
+| 6. LinkedIn Module + Bilingual Hardening | 3/6 | In Progress|  |
