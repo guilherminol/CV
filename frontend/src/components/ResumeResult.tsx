@@ -707,7 +707,12 @@ export function ResumeResult({
                     </h5>
                     {(ed.start_date || ed.end_date) && (
                       <p className="text-xs text-gray-500">
-                        {dateRange(ed.start_date ?? '', ed.end_date)}
+                        {/* IN-03: start_date is optional — with only an end
+                            present, render just the end (never a malformed
+                            " – 2019" from an empty start placeholder). */}
+                        {ed.start_date
+                          ? dateRange(ed.start_date, ed.end_date)
+                          : (ed.end_date ?? '')}
                       </p>
                     )}
                   </div>
