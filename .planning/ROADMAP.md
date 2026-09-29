@@ -167,7 +167,7 @@ Plans:
   3. User sees a side-by-side comparison of profile source facts vs generated text, making any invention immediately visible.
   4. Regenerating a section never silently destroys user edits — prior versions of each section remain accessible, and the edit policy (ephemeral vs written back to profile files) is explicit in the UI.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 **UI hint**: yes
 
 **Wave 1**
@@ -184,7 +184,7 @@ Plans:
 
 **Wave 4** *(blocked on Waves 1-3; end-of-phase gate)*
 
-- [ ] 05-04-PLAN.md — Checkpoint: SC4 locking matrix + comparison + edits→export UAT (autonomous:false; resolved-as-deferred per run convention)
+- [x] 05-04-PLAN.md — Checkpoint: SC4 locking matrix + comparison + edits→export UAT (autonomous:false; resolved-as-deferred per run convention)
 
 ### Phase 6: LinkedIn Module + Bilingual Hardening
 
@@ -213,5 +213,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. LLM Generation Core | 5/5 | Complete    | 2026-09-26 |
 | 3. Resume Vertical Slice | 5/5 | Complete    | 2026-09-26 |
 | 4. PDF Export + ATS Self-Check | 3/3 | Complete    | 2026-09-27 |
-| 5. Review Flow + Fact Safety | 3/4 | In Progress|  |
+| 5. Review Flow + Fact Safety | 4/4 | In Progress|  |
 | 6. LinkedIn Module + Bilingual Hardening | 0/TBD | Not started | - |

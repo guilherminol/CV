@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Review Flow + Fact Safety
-status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-09-29T18:23:28.281Z"
+status: verifying
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-09-29T18:32:48.421Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 5 execution started
-state_head: 8fe2a9abd908274bd7652473521948cace43dcd6
+state_head: 1a2e8f19176cbed4989ee0ac3ee42941c2189cd6
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 19
+  completed_plans: 20
   percent: 50
 ---
 
@@ -31,6 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 |-------|-------|--------|
 | 1 | verification_deferred_human | /gsd-verify-work 1 |
 | 4 | verification_deferred_human | /gsd-verify-work 4 |
+| 5 | verification_deferred_human | /gsd-verify-work 5 |
 
 Deferred during autonomous run (2026-09-26): user chose to defer phase 1's 6 human checks
 (browser smoke, broken-profile state, edit-refresh, pt-BR preview, 3 code prohibitions,
@@ -45,11 +46,19 @@ green stands (223 tests incl. the real-render parse-back gate = the automated SC
 frontend build green). /gsd-verify-work 4 re-surfaces all four as human_needed UAT
 (instructions in 04-03-SUMMARY.md, Deferred Human Verification section).
 
+Phase 5 deferred during autonomous run (2026-09-29): 05-04's end-of-phase checkpoint resolved
+"deferred — record UAT" — SC4 locking matrix (4 destructive paths), SC3 comparison framing
+(amber marks + legend + zero-suspects line + company fallback), SC2 edits→export, policy
+line + refresh return, and the disclosures-open backstop were NOT run in the browser.
+Automation green stands (266 tests incl. the TS/Python comparison mirror vectors + frontend
+build). /gsd-verify-work 5 re-surfaces all five as human_needed UAT (instructions and
+per-check standing proofs in 05-04-SUMMARY.md, Deferred Human Verification table).
+
 ## Current Position
 
 Phase: 5 (Review Flow + Fact Safety) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-29 — Phase 5 execution started
 
 Progress: [█████░░░░░] 50%
@@ -101,6 +110,7 @@ Progress: [█████░░░░░] 50%
 | Phase 5 P1 | 15 min | 3 tasks | 10 files |
 | Phase 5 P2 | 17 min | 3 tasks | 6 files |
 | Phase 05 P03 | 11 min | 2 tasks | 5 files |
+| Phase 5 P04 | 4 min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -147,6 +157,7 @@ Recent decisions affecting current work:
 - [Phase 1]: 05-02: version stacks persist across full regens (D-14 promise — stacked versions stay restorable after the wholesale swap); badges reset to Gerado, disclosures close
 - [Phase 1]: 05-02: Zone 1 form CTA shares the D-14 full-regen confirm with the header button (same destructive mutation); regen success closes an editor open on that section (stale-draft overwrite hazard)
 - [Phase 1]: 05-03: comparison detection runs client-side as a mechanical port (fold/numeral vectors pinned by test_comparison_vectors.py) — suspicion marks recompute against displayed text with zero fetch; resumo checks numerals against whole-profile facts while the panel displays only the profile summary
+- [Phase 1]: [Phase 5]: 05-04 checkpoint resolved [deferred - run convention] — SC4 matrix, SC3 framing, SC2 edits-to-export, policy+refresh, backstop NOT browser-run; automation green stands (266 tests + build); /gsd-verify-work 5 re-surfaces all five as human_needed UAT (05-04-SUMMARY.md Deferred table)
 
 ### Pending Todos
 
@@ -168,6 +179,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T18:23:27.973Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-09-29T18:30:03.783Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None

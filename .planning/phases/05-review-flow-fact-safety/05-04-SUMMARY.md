@@ -31,7 +31,7 @@ status: complete
 actuals:
   tokens: 2600 # chars/4 over the realized diff (docs-only: this SUMMARY)
   tasks: 1
-  commits: 1 # MEASURED: git rev-list --count 5605a37..HEAD
+  commits: 2 # MEASURED: git rev-list --count 5605a37..HEAD (SUMMARY commit + final state/docs commit)
 plan_head_before: 5605a37dcfb723285cdde0e9953f617340821e35
 ---
 
