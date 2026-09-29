@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: LinkedIn Module + Bilingual Hardening
 status: executing
-stopped_at: Completed 06-03-PLAN.md (LinkedIn frontend product surface)
-last_updated: "2026-09-29T22:20:22.678Z"
+stopped_at: Completed 06-04-PLAN.md
+last_updated: "2026-09-29T22:38:07.120Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 6 execution started
-state_head: e0f9aa2f959533ae25e32777e3a5fb10f17c9ec3
+state_head: 6a85784f7ccb76507057fb0ff0103cfcc0316fb8
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 26
-  completed_plans: 23
+  completed_plans: 24
   percent: 67
 ---
 
@@ -57,7 +57,7 @@ per-check standing proofs in 05-04-SUMMARY.md, Deferred Human Verification table
 ## Current Position
 
 Phase: 6 (LinkedIn Module + Bilingual Hardening) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 6 execution started
 
@@ -115,6 +115,7 @@ Progress: [███████░░░] 67%
 | Phase 06 P01 | 16 min | 3 tasks | 16 files |
 | Phase 06 P02 | 20 min | 2 tasks | 12 files |
 | Phase 06 P03 | 17 min | 3 tasks | 6 files |
+| Phase 6 P4 | 11 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,8 @@ Recent decisions affecting current work:
 - [Phase 1]: Dica framing extracted as facts.append_dica_block shared by resume + LinkedIn regen composes (Rule 3: verbatim compose_regen_stage_input reuse mislabeled the LinkedIn base); LinkedinSecoes lives in app/linkedin/models.py
 - [Phase 1]: LinkedIn editing surface shipped as LinkedIn sibling components (LinkedinSectionEditor/LinkedinComparisonPanel/local version rows) — shipped Currículo components untouched (UI-SPEC scope fence; reuse via import only)
 - [Phase 1]: Experiência version stacks are per entry with ONE group-level Versões toggle counting them; headline/sobre comparison grounds suspects against the whole-profile facts blob while the facts column shows the summary (05-03 resumo precedent)
+- [Phase 1]: PT 06-04: EN_BLEED_TERMS curated conservatively — 'for' dropped (real PT-BR verb 'se for necessário'); multi-word + EN verbs + no-PT-collision short tokens only
+- [Phase 1]: PT 06-04: qa envelope contract — pt-BR ok always {glossario, bleed}, en ok always null; glossary mutates returned secoes (displayed text IS post-glossary), bleed runs on post-glossary text; regen recomputes over the full merged state
 
 ### Pending Todos
 
@@ -193,6 +196,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T22:20:10.165Z
-Stopped at: Completed 06-03-PLAN.md (LinkedIn frontend product surface)
+Last session: 2026-09-29T22:37:58.389Z
+Stopped at: Completed 06-04-PLAN.md
 Resume file: None
