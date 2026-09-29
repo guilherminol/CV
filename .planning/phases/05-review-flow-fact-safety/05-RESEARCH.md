@@ -483,21 +483,21 @@ Omitted — this is a feature phase (no rename/refactor/migration). Verified non
 | A6 | Node 22.16's `--experimental-strip-types` could smoke-test the TS pure functions without any package | Validation Architecture | Low — optional; skipped entirely if planner holds the no-JS-test-runner line strictly |
 | A7 | Importing `ExportarSecoes` from `app.routes.export` into `routes/resume.py` is acceptable coupling | Pattern 1 | Low — alternative is a tiny shared contracts module |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Highlight tokenizer host — locked enough?**
+1. **Highlight tokenizer host — locked enough?** — **RESOLVED: client-side TS port** (`frontend/src/lib/comparison.ts`), the recommendation adopted per the CONTEXT.md discretion area (highlight format/tokens); recorded in 05-03-PLAN.md Task 1 (pure module, recompute-against-displayed-text) and its must_haves.
    - What we know: UI-SPEC explicitly leaves client-TS vs backend to planner discretion; everything else (identical normalization primitives, suspicion framing) is pinned.
    - What's unclear: nothing material — recommendation is client TS (latency + read-only-toggle rule).
    - Recommendation: client TS port; treat A3/A4 as discuss-phase confirmables only if the planner disagrees.
 
-2. **Zero-dep TS smoke test vs house no-JS-test-runner rule.**
+2. **Zero-dep TS smoke test vs house no-JS-test-runner rule.** — **RESOLVED: no JS test runner** (house rule upheld); verification is pure function + `tsc -b` + phase UAT, with Python mirror vectors in `backend/tests/test_comparison_vectors.py`; recorded in 05-VALIDATION.md §Wave 0 Gaps ("RESOLVED by orchestrator") and adopted by 05-03-PLAN.md Task 1.
    - What we know: `node --experimental-strip-types` (Node 22.16, verified installed) can run plain assert scripts with zero packages — but STATE.md records "no JS test runner introduced" as a held contract.
    - Recommendation: default to tsc + UAT checklist; if the planner wants automated coverage of `lib/comparison.ts`, surface `checkpoint:human-verify` before adopting the node flag (A6).
 
-3. **Comparison left column when company fold-match fails.**
+3. **Comparison left column when company fold-match fails.** — **RESOLVED: fallback shows ALL profile experience entries + neutral note** (never an empty panel), adopted per the CONTEXT.md discretion area; recorded in 05-03-PLAN.md (Task 2 action + must_haves truths) and RESEARCH Pitfall 8.
    - Recommendation: show all profile experience entries in the left column (neutral, honest) rather than an empty panel — planner discretion (A-adjacent, UI-level).
 
-4. **`dica` max_length value.**
+4. **`dica` max_length value.** — **RESOLVED: 500 chars** (`dica: str | None = Field(default=None, max_length=500)`), adopted by 05-01-PLAN.md (Task 1 test contract, Task 2 RegenerarRequest) and pinned by the 422 strict-validation tests; CONTEXT.md discretion area (backend request shape).
    - Recommendation: 500 chars (personal scale; the JD bounds precedent is 80..20000 for a much larger payload). Any value is safe; tests pin it.
 
 ## Environment Availability
