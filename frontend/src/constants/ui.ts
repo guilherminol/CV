@@ -383,3 +383,25 @@ export function formatarSkillsContagem(n: number): string {
     ? LINKEDIN_SKILLS_CONTAGEM_SINGULAR
     : LINKEDIN_SKILLS_CONTAGEM_PLURAL.replace('{n}', String(n))
 }
+
+// D-12 inline editor over-limit save guard (WR-01 mirror — an oversized save
+// must never become a dead-end 422): Salvar alterações is disabled while the
+// draft exceeds the block limit, with the reduce-first hint. {excesso} slot.
+// The case that makes the guard real: backend output can legitimately arrive
+// OVER the limit (D-07 — flagged, never truncated), so the editor pre-fill
+// can start over-limit and must not be savable until reduced.
+export const LINKEDIN_EDIT_OVERLIMIT_HINT =
+  'O texto excede o limite em {excesso} caracteres — reduza antes de salvar.'
+
+// WR-01 client mirror of the backend regen dica bound (routes/linkedin.py
+// Field(max_length=500) on LinkedinRegenerarRequest.dica). Change BOTH
+// together — the hint input caps at the same bound.
+export const LINKEDIN_DICA_MAX_CHARS = 500
+
+// Comparison LinkedIn variants (UI-SPEC copy table): the right-column header
+// and the legend ending adapt to this phase's deliverable ("...antes de
+// copiar."); the zero-suspects line, the fallback note, the sr-only mark
+// suffix and the toggle labels reuse the Currículo constants verbatim.
+export const LINKEDIN_COMPARACAO_HEADER_TEXTO = 'Texto no LinkedIn'
+export const LINKEDIN_COMPARACAO_LEGENDA =
+  'Os destaques em âmbar são termos que não constam nos fatos do perfil. A comparação é mecânica — paráfrases legítimas podem ser destacadas. Confira você mesmo antes de copiar.'
