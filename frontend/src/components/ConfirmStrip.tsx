@@ -23,10 +23,15 @@ interface ConfirmStripProps {
  * the page flow. No browser dialogs, no toasts, no modal overlays — browser
  * dialogs are banned for the whole phase. Amber means "pay attention, you
  * decide" (suspicion/attention only — never an error verdict; red stays
- * failure-only). The strips are speed bumps, not danger guards: the
+ * failure-only). The strips are speed bumps, not danger guards, because the
  * "discarded" text is always stacked into Versões before anything proceeds
- * (D-14), so nothing is ever irrecoverable. All content renders as JSX text
- * children — no raw-HTML injection path (T-01-08 posture).
+ * (D-14/WR-02) — per strip: dirty-cancel edit → CurriculoHome.descartarEdicao
+ * stacks the draft as 'editado' (empty drafts are skipped: nothing of value);
+ * section regen over edits → confirmarRegenSobreEdicao stacks it; full regen
+ * with edits → gerar.onSuccess (gerarConfirmadoRef) stacks every section's
+ * current text. So nothing the strips discard is ever irrecoverable. All
+ * content renders as JSX text children — no raw-HTML injection path
+ * (T-01-08 posture).
  */
 export function ConfirmStrip({
   message,

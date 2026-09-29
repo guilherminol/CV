@@ -78,6 +78,10 @@ interface SectionEditorProps {
   /** Discard + close. Only reached directly when clean; when dirty the
    *  internal ConfirmStrip gates it (Continuar editando / Descartar). */
   onCancel: () => void
+  /** Dirty-discard + close — the ConfirmStrip's confirmed path ONLY. The
+   *  parent stacks the dirty draft into Versões BEFORE closing, so the
+   *  strip's stack-first contract holds on this path too (WR-02/D-08). */
+  onDescartar: () => void
 }
 
 /**
@@ -103,6 +107,7 @@ export function SectionEditor({
   onDraftChange,
   onSave,
   onCancel,
+  onDescartar,
 }: SectionEditorProps) {
   // Local-only: whether the dirty-cancel confirm strip is showing. The
   // component unmounts when the editor closes, so this resets naturally.
@@ -151,7 +156,7 @@ export function SectionEditor({
           cancelLabel={CONTINUAR_EDITANDO_CTA}
           confirmLabel={DESCARTAR_ALTERACOES_CTA}
           onCancel={() => setConfirmandoDescarte(false)}
-          onConfirm={onCancel}
+          onConfirm={onDescartar}
         />
       )}
     </div>

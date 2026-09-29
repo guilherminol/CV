@@ -520,6 +520,28 @@ export default function CurriculoHome() {
     setEditor(null)
   }
 
+  // Confirmed dirty-discard (WR-02): the strip's confirmed path stacks the
+  // dirty draft FIRST as an 'editado' version — same rule as
+  // confirmarRegenSobreEdicao (empty/whitespace drafts are skipped: nothing
+  // of value) — THEN closes, making ConfirmStrip's stack-first contract
+  // literally true for all three strips and strengthening D-08: an
+  // explicitly discarded draft stays recoverable in Versões.
+  function descartarEdicao() {
+    if (
+      editor &&
+      resultado &&
+      editor.draft !== editor.inicial &&
+      textoEditorValido(editor.secao, editor.draft)
+    ) {
+      empilharValor(
+        editor.secao,
+        valorDeRascunho(resultado.secoes, editor.secao, editor.entryIdx, editor.draft),
+        'editado',
+      )
+    }
+    fecharEditor()
+  }
+
   // Restore (D-08/SC4): stack the CURRENT displayed version FIRST, then mount
   // the chosen version (removed from the stack — not duplicated) and adopt
   // its origin badge; then the export-state reset triple. Coverage chips stay
@@ -751,6 +773,7 @@ export default function CurriculoHome() {
               onDraftChange={(valor) => setEditor((prev) => (prev ? { ...prev, draft: valor } : prev))}
               onSalvarEdicao={salvarEdicao}
               onCancelarEdicao={fecharEditor}
+              onDescartarEdicao={descartarEdicao}
             />
             <ExportZone
               onExportar={() =>

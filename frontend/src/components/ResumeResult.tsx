@@ -470,7 +470,10 @@ interface ResumeResultProps {
   onAbrirEditor: (secao: SecaoId, entryIdx?: number) => void
   onDraftChange: (valor: string) => void
   onSalvarEdicao: () => void
+  /** Clean cancel + close. The DIRTY-cancel strip's confirmed path goes to
+   *  onDescartarEdicao, which stacks the draft before closing (WR-02). */
   onCancelarEdicao: () => void
+  onDescartarEdicao: () => void
 }
 
 /**
@@ -526,6 +529,7 @@ export function ResumeResult({
   onDraftChange,
   onSalvarEdicao,
   onCancelarEdicao,
+  onDescartarEdicao,
 }: ResumeResultProps) {
   const headings = CURRICULO_GENERATED_SECTIONS[idioma]
   const contactLine = [
@@ -626,6 +630,7 @@ export function ResumeResult({
                 onDraftChange={onDraftChange}
                 onSave={onSalvarEdicao}
                 onCancel={onCancelarEdicao}
+                onDescartar={onDescartarEdicao}
               />
             ) : (
               <div
@@ -676,6 +681,7 @@ export function ResumeResult({
                 onDraftChange={onDraftChange}
                 onSave={onSalvarEdicao}
                 onCancel={onCancelarEdicao}
+                onDescartar={onDescartarEdicao}
               />
             ) : (
               secoes.experiencias.map((exp, i) => (
@@ -747,6 +753,7 @@ export function ResumeResult({
                 onDraftChange={onDraftChange}
                 onSave={onSalvarEdicao}
                 onCancel={onCancelarEdicao}
+                onDescartar={onDescartarEdicao}
               />
             ) : (
               <div
