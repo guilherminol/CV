@@ -271,3 +271,27 @@ export const VERSOES_TOGGLE = 'Versões'
 export const VERSOES_TOGGLE_COUNT = 'Versões ({count})'
 export const VERSOES_INTRO = 'Versões anteriores desta seção — mais recente primeiro.'
 export const RESTAURAR_VERSAO_CTA = 'Restaurar versão'
+
+// --- fact-vs-generated comparison (UI-SPEC Copywriting Contract, plan 05-03):
+// D-09 two-column panel, D-10 deterministic amber marks, D-11 "suspicion, not
+// verdict" framing. ---
+export const COMPARACAO_TOGGLE = 'Comparar com o perfil'
+export const COMPARACAO_TOGGLE_HIDE = 'Ocultar comparação'
+// Accessible name of the open panel (the UI-SPEC pins no visible panel title).
+export const COMPARACAO_PANEL_LABEL = 'Comparação com o perfil'
+export const COMPARACAO_HEADER_FATOS = 'Fatos do perfil'
+export const COMPARACAO_HEADER_TEXTO = 'Texto no currículo'
+// sr-only suffix per mark — status never conveyed by color alone (UI-SPEC).
+export const COMPARACAO_MARK_SR_ONLY = ' (não consta no perfil)'
+// D-11: the mandatory legend whenever ≥1 mark exists — mechanical suspicion,
+// user judgment; paraphrases can legitimately be flagged.
+export const COMPARACAO_LEGENDA =
+  'Os destaques em âmbar são termos que não constam nos fatos do perfil. A comparação é mecânica — paráfrases legítimas podem ser destacadas. Confira você mesmo antes de exportar.'
+// Loud zero line when the panel has zero marks — never a silently unmarked panel.
+export const COMPARACAO_ZERO_SUSPEITOS =
+  'Nenhum termo suspeito nesta seção — todo o texto casa com os fatos do perfil.'
+// Neutral fallback note (05-RESEARCH Pitfall 8): when no profile entry
+// fold-matches the generated company, the panel shows ALL profile entries —
+// never an empty facts column.
+export const COMPARACAO_FALLBACK_NOTA =
+  'Nenhuma entrada do perfil casa com o nome desta empresa — todos os registros do perfil são mostrados para comparação.'

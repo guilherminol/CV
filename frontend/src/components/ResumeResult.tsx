@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type {
   ExperienciaGeradaDTO,
   ImpactDTO,
@@ -13,6 +14,8 @@ import {
   BADGE_EDITADO_CLASSES,
   BADGE_GERADO,
   BADGE_GERADO_CLASSES,
+  COMPARACAO_TOGGLE,
+  COMPARACAO_TOGGLE_HIDE,
   COMPACT_SECONDARY_BUTTON_CLASSES,
   CURRICULO_EPHEMERAL_NOTICE,
   CURRICULO_GENERATED_SECTIONS,
@@ -47,6 +50,7 @@ import {
   VERSOES_TOGGLE_COUNT,
 } from '../constants/ui'
 import { SectionEditor, textoEditorValido, type SecaoEditorState } from './SectionEditor'
+import { ComparisonPanel } from './ComparisonPanel'
 import { ConfirmStrip } from './ConfirmStrip'
 import { SectionVersionsPanel, type OrigemBadge, type SectionVersion } from './SectionVersionsPanel'
 
@@ -115,23 +119,32 @@ function Section({
 }
 
 /**
- * A generated section with the Phase 5 action row (D-05 + plan 05-02 D-12):
- * "Editar seção" (quiet; hidden for Experiência — its per-entry
- * "Editar entrada" controls live on each entry article) + "Adicionar dica" +
- * "Regenerar seção" (05-01). Editing replaces the section's content with the
- * SectionEditor textarea (D-12 — no modal, no separate view); the
- * section-level text block also responds to click as a redundant pointer
- * affordance (the button is the accessible affordance). One editor at a time:
- * while ANY editor is open (or a long op is pending) the edit control
- * disables (locksEdicao). In-flight/error behavior unchanged from 05-01.
- * No comparison/version controls here yet — Task 2/3 of 05-02 and 05-03 own
- * those.
+ * A generated section with the Phase 5 action row (D-05 + plan 05-02 D-12 +
+ * plan 05-03 D-09): "Editar seção" (quiet; hidden for Experiência — its
+ * per-entry "Editar entrada" controls live on each entry article) +
+ * "Comparar com o perfil" (quiet, aria-expanded; swaps to "Ocultar
+ * comparação") + "Adicionar dica" + "Regenerar seção" (05-01). Editing
+ * replaces the section's content with the SectionEditor textarea (D-12 — no
+ * modal, no separate view); the section-level text block also responds to
+ * click as a redundant pointer affordance (the button is the accessible
+ * affordance). One editor at a time: while ANY editor is open (or a long op
+ * is pending) the edit control disables (locksEdicao). The comparison toggle
+ * is READ-ONLY (UI-SPEC locking matrix): usable even while a long op runs or
+ * an editor is open, and never disabled. The open ComparisonPanel
+ * (D-09/D-10/D-11) mounts under the section content and computes from the
+ * CURRENTLY displayed text — zero fetch; suspect marks render ONLY inside the
+ * panel, never in the card body (the card is the export-fidelity preview,
+ * SC2). In-flight/error behavior unchanged from 05-01.
  */
 function GeneratedSection({
   title,
   secao,
   children,
   badge,
+  perfil,
+  idioma,
+  panelTexto,
+  panelEntradas,
   editandoAqui,
   onEditarSecao,
   locksEdicao,
@@ -155,6 +168,13 @@ function GeneratedSection({
   secao: SecaoId
   children: React.ReactNode
   badge: OrigemBadge
+  perfil: PerfilDTO
+  idioma: ResumeLanguage
+  /** The section's CURRENTLY displayed text (post-edit) — the comparison
+   *  panel's right column (D-09/D-10). */
+  panelTexto: string
+  /** Experiência only: the displayed generated entries (per-entry alignment). */
+  panelEntradas: ExperienciaGeradaDTO[] | null
   editandoAqui: boolean
   /** Section-level edit control; null for Experiência (per-entry controls). */
   onEditarSecao: (() => void) | null
@@ -182,6 +202,9 @@ function GeneratedSection({
   const pending = secaoRegenerando === secao
   const erros = regenErros[secao]
   const inputId = `dica-input-${secao}`
+  // D-09 comparison disclosure — local, read-only session state (usable even
+  // while a long op is pending or an editor is open; UI-SPEC locking matrix).
+  const [comparacaoAberta, setComparacaoAberta] = useState(false)
   return (
     <Section title={title} badge={badge}>
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -195,6 +218,17 @@ function GeneratedSection({
             {EDITAR_SECAO_CTA}
           </button>
         )}
+        {/* Comparar toggle (D-09, plan 05-03): read-only disclosure — never
+            disabled (usable while long ops run / an editor is open, UI-SPEC
+            locking matrix); aria-expanded per the UI-SPEC. */}
+        <button
+          type="button"
+          onClick={() => setComparacaoAberta((aberta) => !aberta)}
+          aria-expanded={comparacaoAberta}
+          className={QUIET_BUTTON_CLASSES}
+        >
+          {comparacaoAberta ? COMPARACAO_TOGGLE_HIDE : COMPARACAO_TOGGLE}
+        </button>
         {/* Versoes toggle (D-08): read-only disclosure — usable even while a
             long op is pending; disabled with NO count suffix at zero versions
             (no ghost panel). */}
@@ -266,6 +300,18 @@ function GeneratedSection({
           confirmLabel={REGEN_MESMO_ASSIM_CTA}
           onCancel={onCancelarStripRegen}
           onConfirm={onConfirmarStripRegen}
+        />
+      )}
+      {/* D-09 comparison panel (plan 05-03): under the section content; marks
+          recompute against the CURRENTLY displayed text on every render —
+          zero fetch (D-10) — and render ONLY here, never in the card body. */}
+      {comparacaoAberta && (
+        <ComparisonPanel
+          secao={secao}
+          texto={panelTexto}
+          entradas={panelEntradas}
+          perfil={perfil}
+          idioma={idioma}
         />
       )}
       {versoesAberta && versoes.length > 0 && (
@@ -434,7 +480,9 @@ interface ResumeResultProps {
  * "Gerar novamente" re-runs with current inputs and replaces the ephemeral
  * result (Phase 3 contract; the D-14 edited-state confirm lands in Task 3).
  * Generated sections carry the Phase 5 action row: "Editar seção" (Experiência
- * gets per-entry "Editar entrada" instead), "Adicionar dica" + "Regenerar
+ * gets per-entry "Editar entrada" instead), "Comparar com o perfil" (05-03 —
+ * opens the read-only ComparisonPanel; suspect marks never render in this
+ * card body, SC2), "Adicionar dica" + "Regenerar
  * seção" (05-01). Editing (D-12) replaces the section's content with the
  * SectionEditor textarea; save flips that badge to "Editado" (state handled
  * in CurriculoHome). Passthrough sections get NO new controls (D-13). ALL
@@ -539,6 +587,10 @@ export function ResumeResult({
             title={headings.resumo}
             secao="resumo"
             badge={origens.resumo}
+            perfil={perfil}
+            idioma={idioma}
+            panelTexto={secoes.resumo}
+            panelEntradas={null}
             editandoAqui={editor?.secao === 'resumo'}
             onEditarSecao={() => onAbrirEditor('resumo')}
             locksEdicao={locksEdicao}
@@ -584,6 +636,10 @@ export function ResumeResult({
             title={headings.experiencias}
             secao="experiencias"
             badge={origens.experiencias}
+            perfil={perfil}
+            idioma={idioma}
+            panelTexto={secoes.experiencias.map((exp) => exp.bullets.join('\n')).join('\n\n')}
+            panelEntradas={secoes.experiencias}
             editandoAqui={editor?.secao === 'experiencias'}
             onEditarSecao={null}
             locksEdicao={locksEdicao}
@@ -650,6 +706,10 @@ export function ResumeResult({
             title={headings.habilidades}
             secao="habilidades"
             badge={origens.habilidades}
+            perfil={perfil}
+            idioma={idioma}
+            panelTexto={secoes.habilidades.join(', ')}
+            panelEntradas={null}
             editandoAqui={editor?.secao === 'habilidades'}
             onEditarSecao={() => onAbrirEditor('habilidades')}
             locksEdicao={locksEdicao}
