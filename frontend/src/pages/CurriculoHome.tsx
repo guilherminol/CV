@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 import {
@@ -173,6 +173,16 @@ export default function CurriculoHome() {
   // lives at page level so the D-14 regen-over-edit confirm can stack it
   // before the editor closes.
   const [editor, setEditor] = useState<SecaoEditorState | null>(null)
+  // Pending D-14 confirm strips (plan 05-02 Task 3): which section's
+  // regen-over-edit strip is showing + whether the full-regen-with-edits
+  // strip is showing. The amber strips ARE the confirmation UI — never a
+  // browser dialog.
+  const [stripRegen, setStripRegen] = useState<SecaoId | null>(null)
+  const [stripGerarCompleta, setStripGerarCompleta] = useState(false)
+  // Transient flag carried from the strip confirm to gerar's onSuccess: the
+  // confirmed full regen stacks EVERY section's current text before the
+  // wholesale swap. Reset on every terminal path (ok/erro/fetch-error).
+  const gerarConfirmadoRef = useRef(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedJd(jdText), DEBOUNCE_MS)
@@ -195,6 +205,16 @@ export default function CurriculoHome() {
     mutationFn: gerarCurriculo,
     onSuccess: (data) => {
       if (data.status === 'ok') {
+        // D-14 (confirmed full regen): stack EVERY section's current
+        // displayed text + badge origin FIRST — each version stays guardada
+        // em Versões across the wholesale swap (the stacks persist; the
+        // badges reset to Gerado below).
+        if (gerarConfirmadoRef.current) {
+          gerarConfirmadoRef.current = false
+          empilharVersaoAtual('resumo')
+          empilharVersaoAtual('experiencias')
+          empilharVersaoAtual('habilidades')
+        }
         // Regeneration reset (UI-SPEC): the prior exported PDF no longer matches
         // the displayed resume — clear the receipt + self-check panel + export
         // errors BEFORE mounting the new result. The export CTA stays available.
@@ -209,14 +229,23 @@ export default function CurriculoHome() {
         setDicaAberta({ resumo: false, experiencias: false, habilidades: false })
         setVersoesAbertas({ resumo: false, experiencias: false, habilidades: false })
         setRegenErros({})
+        // Badge lifecycle (UI-SPEC): full regen sets all three to Gerado.
+        setOrigens({ resumo: 'gerado', experiencias: 'gerado', habilidades: 'gerado' })
+        // No editor can be open (the action disables itself) and no strip
+        // survives a concluded full regen — clear defensively anyway.
+        setEditor(null)
+        setStripRegen(null)
+        setStripGerarCompleta(false)
       } else {
         // 200-envelope erro: backend PT-BR lines, rendered verbatim below.
+        gerarConfirmadoRef.current = false
         setGerarErros(data.erros)
       }
     },
     onError: () => {
       // Fetch-level failure (server down): fail-loud panel + retry, prior
       // result stays mounted. Raw detail is in the uvicorn terminal only.
+      gerarConfirmadoRef.current = false
       setGerarErros([])
     },
   })
@@ -228,6 +257,8 @@ export default function CurriculoHome() {
   const regenerar = useMutation({
     mutationFn: regenerarSecao,
     onSuccess: (data, variables) => {
+      // The pending D-14 confirm (if any) concluded with this attempt.
+      setStripRegen(null)
       if (data.status === 'ok') {
         // SC4 (plan 05-02, D-08): stack the pre-regen displayed version FIRST
         // — the swap below is destructive, and the prior text + its badge
@@ -297,6 +328,75 @@ export default function CurriculoHome() {
 
   function gerarAgora() {
     gerar.mutate({ jd_text: trimmed, language: idioma })
+  }
+
+  // D-14 gate for the FULL regen (header button + Zone 1 form CTA — both
+  // replace the mounted result): with any Editado section it asks ONCE via
+  // the amber strip under the card header; unchanged no-confirm behavior
+  // when nothing is Editado and no editor is open (Phase 3 contract). While
+  // any editor is open the action is disabled outright — it would replace
+  // sections under the open editor (the button is disabled; guard here too).
+  function tentarGerarCompleta() {
+    if (editor) return
+    const temEdicao =
+      origens.resumo === 'editado' ||
+      origens.experiencias === 'editado' ||
+      origens.habilidades === 'editado'
+    if (temEdicao) {
+      setStripGerarCompleta(true)
+      return
+    }
+    gerarAgora()
+  }
+
+  // Confirmed full regen: the flag rides to gerar.onSuccess, which stacks
+  // every section's current text before the swap (nothing silently lost).
+  function confirmarGerarCompleta() {
+    gerarConfirmadoRef.current = true
+    setStripGerarCompleta(false)
+    gerarAgora()
+  }
+
+  function cancelarGerarCompleta() {
+    setStripGerarCompleta(false)
+  }
+
+  // D-14 gate (plan 05-02 Task 3): Regenerar seção on a section whose badge
+  // is Editado, or whose open editor is DIRTY, renders the inline amber
+  // confirm strip first — never a browser dialog. A clean open editor or a
+  // Gerado badge regenerates directly.
+  function tentarRegenerarSecao(secao: SecaoId) {
+    if (!resultado) return
+    const suja = editor !== null && editor.secao === secao && editor.draft !== editor.inicial
+    if (origens[secao] === 'editado' || suja) {
+      setStripRegen(secao)
+      return
+    }
+    regenerarSecaoAgora(secao)
+  }
+
+  // Regenerar mesmo assim: a dirty open draft is stacked FIRST as an
+  // 'editado' version (it would otherwise be lost when the editor closes —
+  // empty drafts are skipped: nothing of value), then the editor closes and
+  // the request issues; the regen-success handler stacks the DISPLAYED text
+  // before its swap.
+  function confirmarRegenSobreEdicao(secao: SecaoId) {
+    if (!resultado) return
+    if (
+      editor &&
+      editor.secao === secao &&
+      editor.draft !== editor.inicial &&
+      textoEditorValido(editor.secao, editor.draft)
+    ) {
+      empilharValor(secao, valorDeRascunho(resultado.secoes, editor.secao, editor.entryIdx, editor.draft), 'editado')
+    }
+    setEditor(null)
+    setStripRegen(null)
+    regenerarSecaoAgora(secao)
+  }
+
+  function cancelarStripRegen() {
+    setStripRegen(null)
   }
 
   // Regenerate ONE section from the CURRENT displayed state + form inputs
@@ -427,10 +527,16 @@ export default function CurriculoHome() {
   // TS narrowing does not persist into closures over mutable query objects.
   const perfilOk = perfilQuery.data
 
-  // Derived lock booleans (UI-SPEC interaction rules — no ad-hoc scattered
-  // disabled logic; Task 3 extends with the D-14 confirm strips): any long
-  // op (full gerar, section regen, export) locks all mutation controls;
-  // an open editor additionally locks every edit affordance.
+  // Derived locking booleans (UI-SPEC interaction table — the single source;
+  // no ad-hoc scattered disabled logic):
+  //  - operacaoLongaPendente: ANY long op (full gerar, section regen, export)
+  //    disables Regenerar seção / Gerar novamente / Exportar PDF / edit
+  //    controls / Restaurar versão / dica toggle+input, while Comparar and
+  //    Versões toggles stay usable read-only.
+  //  - locksEdicao: additionally, an open editor disables every edit
+  //    affordance + Exportar PDF + Gerar novamente + every Restaurar versão,
+  //    while Regenerar seção stays enabled (own section routes through the
+  //    D-14 strip; sibling regens do not touch the open editor).
   const operacaoLongaPendente = gerar.isPending || exportar.isPending || regenerar.isPending
   const locksEdicao = editor !== null || operacaoLongaPendente
 
@@ -452,7 +558,7 @@ export default function CurriculoHome() {
         className={CARD_CLASSES}
         onSubmit={(event) => {
           event.preventDefault()
-          gerarAgora()
+          tentarGerarCompleta()
         }}
       >
         <div className="space-y-4">
@@ -496,9 +602,7 @@ export default function CurriculoHome() {
 
           <button
             type="submit"
-            disabled={
-              trimmed.length < JD_MIN_CHARS || gerar.isPending || exportar.isPending || regenerar.isPending
-            }
+            disabled={trimmed.length < JD_MIN_CHARS || locksEdicao}
             className={PRIMARY_BUTTON_CLASSES}
           >
             {gerar.isPending ? CURRICULO_CTA_INFLIGHT : CURRICULO_CTA}
@@ -572,9 +676,15 @@ export default function CurriculoHome() {
               perfil={perfilQuery.data.perfil}
               secoes={resultado.secoes}
               idioma={resultado.idioma}
-              onRegenerar={gerarAgora}
+              onRegenerar={tentarGerarCompleta}
               regenerando={operacaoLongaPendente}
-              onRegenerarSecao={regenerarSecaoAgora}
+              onRegenerarSecao={tentarRegenerarSecao}
+              stripRegen={stripRegen}
+              onConfirmarStripRegen={confirmarRegenSobreEdicao}
+              onCancelarStripRegen={cancelarStripRegen}
+              stripGerarCompleta={stripGerarCompleta}
+              onConfirmarGerarCompleta={confirmarGerarCompleta}
+              onCancelarGerarCompleta={cancelarGerarCompleta}
               secaoRegenerando={secaoRegenerando}
               regenErros={regenErros}
               dicas={dicas}
@@ -603,7 +713,7 @@ export default function CurriculoHome() {
                 })
               }
               exporting={exportar.isPending}
-              ctaDisabled={gerar.isPending || exportar.isPending || regenerar.isPending}
+              ctaDisabled={locksEdicao}
               receiptFilename={receiptFilename}
               erros={exportarErros}
             />

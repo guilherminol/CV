@@ -24,7 +24,11 @@ import {
   DICA_TOGGLE_HIDE,
   EDITAR_ENTRADA_CTA,
   EDITAR_SECAO_CTA,
+  GERAR_COM_EDICOES_MESSAGE,
+  GERAR_MESMO_ASSIM_CTA,
   HINT_INPUT_CLASSES,
+  MANTER_EDICAO_CTA,
+  MANTER_EDICOES_CTA,
   POLICY_EDICAO,
   PREVIEW_CONTACT_SEPARATOR,
   PREVIEW_PRESENT,
@@ -36,10 +40,14 @@ import {
   REGEN_SECTION_CTA,
   REGEN_SECTION_INFLIGHT,
   REGEN_SECAO_LABELS,
+  REGEN_SOBE_EDICAO_MESSAGE,
+  REGEN_SOBE_EDICAO_NOTE,
+  REGEN_MESMO_ASSIM_CTA,
   VERSOES_TOGGLE,
   VERSOES_TOGGLE_COUNT,
 } from '../constants/ui'
 import { SectionEditor, textoEditorValido, type SecaoEditorState } from './SectionEditor'
+import { ConfirmStrip } from './ConfirmStrip'
 import { SectionVersionsPanel, type OrigemBadge, type SectionVersion } from './SectionVersionsPanel'
 
 // Pinned UI-SPEC class strings (Component conventions, plan 03-04).
@@ -124,8 +132,12 @@ function GeneratedSection({
   secao,
   children,
   badge,
+  editandoAqui,
   onEditarSecao,
   locksEdicao,
+  stripPendente,
+  onConfirmarStripRegen,
+  onCancelarStripRegen,
   versoes,
   versoesAberta,
   onVersoesToggle,
@@ -143,10 +155,15 @@ function GeneratedSection({
   secao: SecaoId
   children: React.ReactNode
   badge: OrigemBadge
+  editandoAqui: boolean
   /** Section-level edit control; null for Experiência (per-entry controls). */
   onEditarSecao: (() => void) | null
   /** An editor is open (any section) OR a long op is pending. */
   locksEdicao: boolean
+  /** D-14 pending confirm for THIS section's regen (amber strip). */
+  stripPendente: boolean
+  onConfirmarStripRegen: () => void
+  onCancelarStripRegen: () => void
   /** Prior versions of this section (newest first) + their disclosure state. */
   versoes: SectionVersion[]
   versoesAberta: boolean
@@ -226,7 +243,31 @@ function GeneratedSection({
           />
         </div>
       )}
+      {/* D-14 amber strip (plan 05-02): directly under the action row —
+          under the editor when one is open on this section. The strips are
+          the phase's ONLY confirmations; the "discarded" text is always
+          stacked first, so these are speed bumps, not danger guards. */}
+      {stripPendente && !editandoAqui && (
+        <ConfirmStrip
+          message={REGEN_SOBE_EDICAO_MESSAGE}
+          note={REGEN_SOBE_EDICAO_NOTE}
+          cancelLabel={MANTER_EDICAO_CTA}
+          confirmLabel={REGEN_MESMO_ASSIM_CTA}
+          onCancel={onCancelarStripRegen}
+          onConfirm={onConfirmarStripRegen}
+        />
+      )}
       {children}
+      {stripPendente && editandoAqui && (
+        <ConfirmStrip
+          message={REGEN_SOBE_EDICAO_MESSAGE}
+          note={REGEN_SOBE_EDICAO_NOTE}
+          cancelLabel={MANTER_EDICAO_CTA}
+          confirmLabel={REGEN_MESMO_ASSIM_CTA}
+          onCancel={onCancelarStripRegen}
+          onConfirm={onConfirmarStripRegen}
+        />
+      )}
       {versoesAberta && versoes.length > 0 && (
         <SectionVersionsPanel
           secao={secao}
@@ -348,6 +389,15 @@ interface ResumeResultProps {
   onDicaChange: (secao: SecaoId, valor: string) => void
   dicaAberta: Record<SecaoId, boolean>
   onDicaToggle: (secao: SecaoId) => void
+  // --- D-14 confirm strips (plan 05-02 Task 3) ---
+  /** Section whose regen-over-edit strip is pending (null = none). */
+  stripRegen: SecaoId | null
+  onConfirmarStripRegen: (secao: SecaoId) => void
+  onCancelarStripRegen: () => void
+  /** Full-regen-with-edits strip under the card header. */
+  stripGerarCompleta: boolean
+  onConfirmarGerarCompleta: () => void
+  onCancelarGerarCompleta: () => void
   // --- per-section version stack (plan 05-02, D-08) ---
   /** Prior versions per section, newest first (session memory only). */
   versoes: Record<SecaoId, SectionVersion[]>
@@ -403,6 +453,12 @@ export function ResumeResult({
   regenErros,
   dicas,
   onDicaChange,
+  stripRegen,
+  onConfirmarStripRegen,
+  onCancelarStripRegen,
+  stripGerarCompleta,
+  onConfirmarGerarCompleta,
+  onCancelarGerarCompleta,
   dicaAberta,
   onDicaToggle,
   versoes,
@@ -445,7 +501,7 @@ export function ResumeResult({
             <button
               type="button"
               onClick={onRegenerar}
-              disabled={regenerando}
+              disabled={locksEdicao}
               className={SECONDARY_BUTTON_CLASSES}
             >
               {CURRICULO_REGENERAR}
@@ -464,14 +520,31 @@ export function ResumeResult({
         <p className="mt-2 text-xs text-gray-600">
           <span aria-hidden>⚠</span> {POLICY_EDICAO}
         </p>
+        {/* D-14 full-regen-with-edits strip (plan 05-02): the once-per-action
+            ask when any section carries edits — inline, never a dialog. */}
+        {stripGerarCompleta && (
+          <div className="mt-2">
+            <ConfirmStrip
+              message={GERAR_COM_EDICOES_MESSAGE}
+              cancelLabel={MANTER_EDICOES_CTA}
+              confirmLabel={GERAR_MESMO_ASSIM_CTA}
+              onCancel={onCancelarGerarCompleta}
+              onConfirm={onConfirmarGerarCompleta}
+            />
+          </div>
+        )}
 
         <div className="mt-4 space-y-5">
           <GeneratedSection
             title={headings.resumo}
             secao="resumo"
             badge={origens.resumo}
+            editandoAqui={editor?.secao === 'resumo'}
             onEditarSecao={() => onAbrirEditor('resumo')}
             locksEdicao={locksEdicao}
+            stripPendente={stripRegen === 'resumo'}
+            onConfirmarStripRegen={() => onConfirmarStripRegen('resumo')}
+            onCancelarStripRegen={onCancelarStripRegen}
             onRegenerarSecao={onRegenerarSecao}
             secaoRegenerando={secaoRegenerando}
             regenerando={regenerando}
@@ -511,8 +584,12 @@ export function ResumeResult({
             title={headings.experiencias}
             secao="experiencias"
             badge={origens.experiencias}
+            editandoAqui={editor?.secao === 'experiencias'}
             onEditarSecao={null}
             locksEdicao={locksEdicao}
+            stripPendente={stripRegen === 'experiencias'}
+            onConfirmarStripRegen={() => onConfirmarStripRegen('experiencias')}
+            onCancelarStripRegen={onCancelarStripRegen}
             onRegenerarSecao={onRegenerarSecao}
             secaoRegenerando={secaoRegenerando}
             regenerando={regenerando}
@@ -573,8 +650,12 @@ export function ResumeResult({
             title={headings.habilidades}
             secao="habilidades"
             badge={origens.habilidades}
+            editandoAqui={editor?.secao === 'habilidades'}
             onEditarSecao={() => onAbrirEditor('habilidades')}
             locksEdicao={locksEdicao}
+            stripPendente={stripRegen === 'habilidades'}
+            onConfirmarStripRegen={() => onConfirmarStripRegen('habilidades')}
+            onCancelarStripRegen={onCancelarStripRegen}
             onRegenerarSecao={onRegenerarSecao}
             secaoRegenerando={secaoRegenerando}
             regenerando={regenerando}
