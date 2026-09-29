@@ -19,6 +19,7 @@ import { CopiarButton } from '../components/CopiarButton'
 import { ConfirmStrip } from '../components/ConfirmStrip'
 import { ErrorPanel } from '../components/ErrorPanel'
 import { LinkedinComparisonPanel } from '../components/LinkedinComparisonPanel'
+import { LinkedinQaPanel } from '../components/LinkedinQaPanel'
 import {
   LinkedinSectionEditor,
   type LinkedinEditorState,
@@ -470,8 +471,11 @@ export default function LinkedInHome() {
             }
           }
         }
-        // Wholesale swap from the response — idioma/secoes/limites all come
-        // from the server (never a client-side merge).
+        // Wholesale swap from the response — idioma/secoes/limites/qa all
+        // come from the server (never a client-side merge). qa is the 06-04
+        // recomputed report over the FULL merged state — the panel below the
+        // card swaps ONLY here and in gerar's onSuccess (truthfulness rule:
+        // edits/restores never touch it, no useMemo recompute — Pitfall 4).
         setResultado((prev) =>
           prev
             ? {
@@ -479,6 +483,7 @@ export default function LinkedInHome() {
                 idioma: data.idioma,
                 secoes: data.secoes,
                 limites: data.limites,
+                qa: data.qa,
               }
             : prev,
         )
@@ -1493,6 +1498,14 @@ export default function LinkedInHome() {
               {/* Four blocks in FIXED display order (static array — LI-01). */}
               {BLOCOS_FIXOS.map((bloco) => renderBloco(bloco))}
             </section>
+            {/* QA panel "Verificação de idioma" (D-13/D-14): bare section
+                directly below the result card — it verifies the artifact
+                above it. Mounted ONLY while a result is mounted; reads
+                resultado.qa, which swaps WHOLESALE only in the two mutation
+                onSuccess paths (full gerar + section regen) and survives
+                edits/restores untouched (truthfulness rule). qa === null on
+                EN runs renders the neutral note — never silently absent. */}
+            <LinkedinQaPanel qa={resultado.qa} />
           </>
         )}
       </div>

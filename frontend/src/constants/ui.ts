@@ -405,3 +405,25 @@ export const LINKEDIN_DICA_MAX_CHARS = 500
 export const LINKEDIN_COMPARACAO_HEADER_TEXTO = 'Texto no LinkedIn'
 export const LINKEDIN_COMPARACAO_LEGENDA =
   'Os destaques em âmbar são termos que não constam nos fatos do perfil. A comparação é mecânica — paráfrases legítimas podem ser destacadas. Confira você mesmo antes de copiar.'
+
+// --- QA panel "Verificação de idioma" (UI-SPEC Copywriting Contract, plan
+// 06-05; backend payload from app/linkedin/qa.py via the 06-04 envelope).
+// The panel renders payload rows VERBATIM — no per-row frontend constants,
+// by design (same rule as backend avisos[]). The legend ALWAYS renders with
+// the non-blocking framing — the panel never gates Copiar (D-14). On EN runs
+// (qa === null) the neutral note replaces the two blocks — never silently
+// absent (D-14/SC4).
+export const QA_PANEL_TITLE = 'Verificação de idioma'
+export const QA_GLOSSARIO_LABEL = 'Glossário aplicado'
+export const QA_BLEED_LABEL = 'Inglês em texto em português'
+// Loud zero lines (UI-SPEC empty states) — QA blocks are never silently empty.
+export const QA_GLOSSARIO_ZERO =
+  'Nenhum termo do glossário foi aplicado — as seções já usavam os termos preferidos.'
+export const QA_BLEED_ZERO =
+  'Nenhum termo em inglês foi detectado nas seções em português.'
+// Legend (always rendered, mechanical + non-blocking framing).
+export const QA_LEGENDA =
+  'A verificação é mecânica e não bloqueia a cópia — termos técnicos consolidados em inglês podem ser sinalizados. Avalie você mesmo antes de copiar.'
+// EN-run neutral note (qa === null — the 06-04 language gate).
+export const QA_EN_NOTE =
+  'A verificação de idioma se aplica às saídas em PT-BR — esta execução gerou conteúdo em inglês.'

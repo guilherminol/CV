@@ -334,14 +334,45 @@ export interface LinkedinLimitesDTO {
   habilidades: { contagem: number; limite: number }
 }
 
-/** 06-01 envelope: ok carries {idioma, secoes, limites}; the erro branch
- *  carries ONLY erros (200-envelope house rule — no secoes key ever). */
+// --- LinkedIn QA payload (plan 06-04 backend / 06-05 frontend) — mirrors
+// app/linkedin/qa.py run_linkedin_qa. Change BOTH together; tsc -b is the
+// drift gate.
+
+/** One glossary substitution row (D-13): {origem} → {preferido}, rendered
+ *  verbatim by the QA panel. `ocorrencias` rides the payload for auditability
+ *  (the UI-SPEC row format shows de → para only). */
+export interface LinkedinQaGlossarioRow {
+  de: string
+  para: string
+  ocorrencias: number
+}
+
+/** One English-bleed finding row (D-14): `{termo} — {seção}` where seção is
+ *  "headline", "sobre", the experiência entry's company, or the skill string. */
+export interface LinkedinQaBleedRow {
+  termo: string
+  secao: string
+}
+
+/** The deterministic QA report (SC4): computed server-side over the FULL
+ *  PT-BR state on EVERY generation success (full run AND per-section regen).
+ *  pt-BR ok envelopes always carry the dict (loud-empty lists when clean);
+ *  en ok envelopes always carry null — the language gate (06-04 contract). */
+export interface LinkedinQaPayload {
+  glossario: LinkedinQaGlossarioRow[]
+  bleed: LinkedinQaBleedRow[]
+}
+
+/** 06-01 envelope: ok carries {idioma, secoes, limites, qa}; the erro branch
+ *  carries ONLY erros (200-envelope house rule — no secoes key ever). qa is
+ *  the 06-04 additive key: the 06-05 panel renders it verbatim. */
 export type LinkedinGerarResponse =
   | {
       status: 'ok'
       idioma: ResumeLanguage
       secoes: LinkedinSecoesDTO
       limites: LinkedinLimitesDTO
+      qa: LinkedinQaPayload | null
     }
   | { status: 'erro'; erros: string[] }
 
@@ -380,7 +411,9 @@ export interface LinkedinRegenerarRequest {
 }
 
 /** 06-02 envelope: ok carries the FULL merged secoes + recomputed limites
- *  with `status` included (the route returns the pipeline result directly) —
+ *  + recomputed qa over the whole merged state (06-04 truthfulness — the
+ *  report always describes the whole current artifact), with `status`
+ *  included (the route returns the pipeline result directly) —
  *  the client replaces its state wholesale, no client-side merge; the erro
  *  branch carries ONLY erros (200-envelope house rule). Same shape as gerar. */
 export type LinkedinRegenerarResponse = LinkedinGerarResponse
