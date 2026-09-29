@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Review Flow + Fact Safety
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-09-29T17:22:11.944Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-09-29T17:57:51.994Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 5 execution started
-state_head: 9965a0e38f8661c561e4b151e4789663091129c4
+state_head: 94659b957acbb3b6af5bf1a773ebed88ac2ed187
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
   percent: 50
 ---
 
@@ -48,7 +48,7 @@ frontend build green). /gsd-verify-work 4 re-surfaces all four as human_needed U
 ## Current Position
 
 Phase: 5 (Review Flow + Fact Safety) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 5 execution started
 
@@ -99,6 +99,7 @@ Progress: [█████░░░░░] 50%
 | Phase 04 P02 | 14min | 2 tasks | 6 files |
 | Phase 4 P04-03 | 23min | 3 tasks | 5 files |
 | Phase 5 P1 | 15 min | 3 tasks | 10 files |
+| Phase 5 P2 | 17 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -141,6 +142,9 @@ Recent decisions affecting current work:
 - [Phase 1]: 05-01: regen = ONE run_stage per section (SECTION_STAGE_BY_ID); response carries FULL merged secoes + recomputed coverage — frontend replaces state wholesale, siblings byte-identical (identity-asserted)
 - [Phase 1]: 05-01: dica normalization at compose boundary (compose_regen_stage_input) — blank/None yields base composition; gateway/prompt files/runs.jsonl untouched (D-05/D-06/D-15); frontend omits empty dica key (extra=forbid)
 - [Phase 1]: 05-01: ExportarSecoes reused as the regen secoes shape (import from routes.export) — the displayed-state contract is the same for export and regen; no new dependencies
+- [Phase 1]: 05-02: empilharVersaoAtual stacks on all four destructive paths (edit save, regen success, restore, confirmed full regen) — closure reads safe because long-op locks freeze the displayed state between mutate() and onSuccess
+- [Phase 1]: 05-02: version stacks persist across full regens (D-14 promise — stacked versions stay restorable after the wholesale swap); badges reset to Gerado, disclosures close
+- [Phase 1]: 05-02: Zone 1 form CTA shares the D-14 full-regen confirm with the header button (same destructive mutation); regen success closes an editor open on that section (stale-draft overwrite hazard)
 
 ### Pending Todos
 
@@ -162,6 +166,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T17:21:52.036Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-09-29T17:57:51.731Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
