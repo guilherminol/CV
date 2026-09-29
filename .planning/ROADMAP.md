@@ -199,12 +199,12 @@ Plans:
   3. All outputs are copy-paste text blocks the user can paste straight into LinkedIn.
   4. PT-BR outputs pass the language QA gate (terminology glossary applied, no English bleed), and the both-language fixture suite runs as definition-of-done for every prompt change.
 
-**Plans**: 6 plans
+**Plans**: 1/6 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — Tracer: linkedin-headline end-to-end (config constants, headline stage + prompt, pipeline, /api/linkedin/gerar, LinkedInHome skeleton with counter + Copiar) + Wave-0 seeds: all 4 wire schemas drift-locked, over-limit-safe (LI-01, LI-02)
+- [x] 06-01-PLAN.md — Tracer: linkedin-headline end-to-end (config constants, headline stage + prompt, pipeline, /api/linkedin/gerar, LinkedInHome skeleton with counter + Copiar) + Wave-0 seeds: all 4 wire schemas drift-locked, over-limit-safe (LI-01, LI-02)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -240,4 +240,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Resume Vertical Slice | 5/5 | Complete    | 2026-09-26 |
 | 4. PDF Export + ATS Self-Check | 3/3 | Complete    | 2026-09-27 |
 | 5. Review Flow + Fact Safety | 4/4 | Complete    | 2026-09-29 |
-| 6. LinkedIn Module + Bilingual Hardening | 0/6 | Not started | - |
+| 6. LinkedIn Module + Bilingual Hardening | 1/6 | In Progress|  |

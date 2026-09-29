@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 6
+open_count: 7
 waived_count: 0
 fixed_count: 2
-total_count: 8
-last_updated: 2026-09-29T18:31:24.665Z
+total_count: 9
+last_updated: 2026-09-29T21:20:27.871Z
 ---
 
 # Broken Windows Ledger
@@ -23,6 +23,7 @@ last_updated: 2026-09-29T18:31:24.665Z
 | 6 | 3 | unrun-verify | backend/tests/test_llm_harness.py | 116 | Task 3 human-check: Currículo browser walkthrough (SC1-SC5 zones/badges/chips/ephemeral notice, 30+ keyword backstop) + PT-BR prose quality read not executable by the subagent executor - routed to end-of-phase human verification (human_verify_mode=end-of-phase) | open |  | 2026-09-26T22:41:33.828Z |  |
 | 7 | 4 | unrun-verify | .planning/phases/04-pdf-export-ats-self-check/04-VALIDATION.md |  | 04-03 Task 3 human checkpoint deferred [auto - silence]: SC1 PDF-vs-screen fidelity, SC3 download UX feel, SC2/EN heading viewer inspection, backstop full-page readability not executable by the executor - routed to /gsd-verify-work 4 as human_needed UAT (automation green: 223 tests incl. real-render parse-back gate, build green) | open |  | 2026-09-27T22:06:40.390Z |  |
 | 8 | 5 | unrun-verify | .planning/phases/05-review-flow-fact-safety/05-VALIDATION.md |  | 05-04 human checkpoint deferred (run convention): SC4 locking matrix across the 4 destructive paths, SC3 comparison amber marks + legend + zero-suspects line + company fallback, SC2 edits-flow-to-export, policy line + refresh return, disclosures-open backstop were NOT executed in the browser (user unavailable). Routed to /gsd-verify-work 5 as human_needed UAT. Automation green stands: 266 passed/7 deselected + frontend build (standing proofs per check in 05-04-SUMMARY.md Deferred table) | open |  | 2026-09-29T18:31:24.665Z |  |
+| 9 | 06 | stub | frontend/src/pages/LinkedInHome.tsx |  | Tracer scope: result card renders only the Headline block (in-flight hint names four blocks) — 06-02 delivers the full quartet | open |  | 2026-09-29T21:20:27.871Z |  |
 
 ````json
 [
@@ -127,6 +128,19 @@ last_updated: 2026-09-29T18:31:24.665Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-29T18:31:24.665Z",
+    "resolved_at": null,
+    "milestone": null
+  },
+  {
+    "id": 9,
+    "kind": "stub",
+    "phase": "06",
+    "file": "frontend/src/pages/LinkedInHome.tsx",
+    "line": null,
+    "description": "Tracer scope: result card renders only the Headline block (in-flight hint names four blocks) — 06-02 delivers the full quartet",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-29T21:20:27.871Z",
     "resolved_at": null,
     "milestone": null
   }

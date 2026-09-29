@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: LinkedIn Module + Bilingual Hardening
-status: planning
-stopped_at: Phase 5 complete, ready to plan Phase 1
-last_updated: "2026-09-29T21:01:17.169Z"
+status: executing
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-09-29T21:21:16.462Z"
 last_activity: 2026-09-29
-last_activity_desc: Phase 5 complete, transitioned to Phase 1
-state_head: ab86f0169a2e9ef06eaca7e143982e80d7419b75
+last_activity_desc: Phase 6 execution started
+state_head: 9a83092a01d86a8a90cb3f8f21d1198ec395f347
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 26
-  completed_plans: 20
+  completed_plans: 21
   percent: 67
 ---
 
@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-25)
 
 **Core value:** Paste a job description (or state a career objective for LinkedIn) and get polished, ATS-optimized, keyword-targeted output in English or Portuguese that the user would actually send or post — without manual rewriting from scratch.
-**Current focus:** Phase 6 — LinkedIn Module + Bilingual Hardening (final phase; phase 1 UAT deferred)
+**Current focus:** Phase 6 — LinkedIn Module + Bilingual Hardening
 
 ## Deferred Verification
 
@@ -56,10 +56,10 @@ per-check standing proofs in 05-04-SUMMARY.md, Deferred Human Verification table
 
 ## Current Position
 
-Phase: 6 (LinkedIn Module + Bilingual Hardening) — READY TO EXECUTE
-Plan: Not started
-Status: Ready to discuss
-Last activity: 2026-09-29 — Phase 5 complete (verified passed), advancing to Phase 6
+Phase: 6 (LinkedIn Module + Bilingual Hardening) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-09-29 — Phase 6 execution started
 
 Progress: [███████░░░] 67%
 
@@ -112,6 +112,7 @@ Progress: [███████░░░] 67%
 | Phase 5 P2 | 17 min | 3 tasks | 6 files |
 | Phase 05 P03 | 11 min | 2 tasks | 5 files |
 | Phase 5 P04 | 4 min | 1 tasks | 1 files |
+| Phase 06 P01 | 16 min | 3 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -162,6 +163,8 @@ Recent decisions affecting current work:
 - [Phase 1]: 05-02: Zone 1 form CTA shares the D-14 full-regen confirm with the header button (same destructive mutation); regen success closes an editor open on that section (stale-draft overwrite hazard)
 - [Phase 1]: 05-03: comparison detection runs client-side as a mechanical port (fold/numeral vectors pinned by test_comparison_vectors.py) — suspicion marks recompute against displayed text with zero fetch; resumo checks numerals against whole-profile facts while the panel displays only the profile summary
 - [Phase 1]: [Phase 5]: 05-04 checkpoint resolved [deferred - run convention] — SC4 matrix, SC3 framing, SC2 edits-to-export, policy+refresh, backstop NOT browser-run; automation green stands (266 tests + build); /gsd-verify-work 5 re-surfaces all five as human_needed UAT (05-04-SUMMARY.md Deferred table)
+- [Phase 1]: LinkedIn tracer: only linkedin-headline registered in _STAGE_SCHEMAS (minimal surface); the other 3 wire schemas drift-locked but register with prompt files in 06-02
+- [Phase 1]: D-07 posture pinned: LinkedIn LLM-layer output models carry NO length bounds — oversize guards prove over-limit strings validate; limits live post-generation + client mirrors
 
 ### Pending Todos
 
@@ -183,6 +186,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T18:30:03.783Z
-Stopped at: Phase 5 complete, ready to plan Phase 1
+Last session: 2026-09-29T21:21:16.221Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None

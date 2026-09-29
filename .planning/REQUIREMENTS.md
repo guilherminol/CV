@@ -28,8 +28,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### LinkedIn
 
-- [ ] **LI-01**: User can state a career objective (target roles, seniority, key technologies) and choose the output language (PT-BR or EN) as the input driving all LinkedIn generation
-- [ ] **LI-02**: User gets a headline (≤220 chars) optimized with keywords for the stated objective
+- [x] **LI-01**: User can state a career objective (target roles, seniority, key technologies) and choose the output language (PT-BR or EN) as the input driving all LinkedIn generation
+- [x] **LI-02**: User gets a headline (≤220 chars) optimized with keywords for the stated objective
 - [ ] **LI-03**: User gets an About section (≤2600 chars) rewritten and optimized for the stated objective
 - [ ] **LI-04**: User gets rewritten descriptions for each experience entry (≤2000 chars each) with action verbs and objective-relevant keywords
 - [ ] **LI-05**: User gets a prioritized skills list to feature on the profile, with all outputs as copy-paste text blocks enforcing LinkedIn length limits
@@ -78,8 +78,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REVIEW-01 | Phase 5 | Complete |
 | REVIEW-02 | Phase 4 | Complete |
 | REVIEW-03 | Phase 4 | Complete |
-| LI-01 | Phase 6 | Pending |
-| LI-02 | Phase 6 | Pending |
+| LI-01 | Phase 6 | Complete |
+| LI-02 | Phase 6 | Complete |
 | LI-03 | Phase 6 | Pending |
 | LI-04 | Phase 6 | Pending |
 | LI-05 | Phase 6 | Pending |
