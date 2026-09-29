@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
 current_phase: 1
-current_phase_name: Review Flow + Fact Safety
-status: verifying
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-09-29T18:32:48.421Z"
+current_phase_name: Foundation — Scaffold + Master Profile
+status: planning
+stopped_at: Phase 5 complete, ready to plan Phase 1
+last_updated: "2026-09-29T19:40:46.123Z"
 last_activity: 2026-09-29
-last_activity_desc: Phase 5 execution started
-state_head: 1a2e8f19176cbed4989ee0ac3ee42941c2189cd6
+last_activity_desc: Phase 5 complete, transitioned to Phase 1
+state_head: 613e6980963c215de1707db41d9dae817e71df28
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 20
   completed_plans: 20
-  percent: 50
+  percent: 67
 ---
 
 # Project State
@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-25)
 
 **Core value:** Paste a job description (or state a career objective for LinkedIn) and get polished, ATS-optimized, keyword-targeted output in English or Portuguese that the user would actually send or post — without manual rewriting from scratch.
-**Current focus:** Phase 5 — Review Flow + Fact Safety
+**Current focus:** Phase 6 — LinkedIn Module + Bilingual Hardening (final phase; phase 1 UAT deferred)
 
 ## Deferred Verification
 
@@ -56,18 +56,18 @@ per-check standing proofs in 05-04-SUMMARY.md, Deferred Human Verification table
 
 ## Current Position
 
-Phase: 5 (Review Flow + Fact Safety) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-09-29 — Phase 5 execution started
+Phase: 6 — LinkedIn Module + Bilingual Hardening (autonomous run; phase 1 UAT deferred to /gsd-verify-work 1)
+Plan: Not started
+Status: Ready to discuss
+Last activity: 2026-09-29 — Phase 5 complete (verified passed), advancing to Phase 6
 
-Progress: [█████░░░░░] 50%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 13
+- Total plans completed: 17
 - Average duration: —
 - Total execution time: —
 
@@ -78,6 +78,7 @@ Progress: [█████░░░░░] 50%
 | 2 | 5 | - | - |
 | 3 | 5 | - | - |
 | 4 | 3 | - | - |
+| 5 | 4 | - | - |
 
 **Recent Trend:**
 
@@ -142,6 +143,9 @@ Recent decisions affecting current work:
 - [Phase 4]: expected headings derived from render.rendered_section_keys() (template = truth — CR-01 fix); mojibake sentinel is contextual (Ã followed by non-ASCII — CR-02 fix)
 - [Phase 4]: experience dates joined backend-side by company name with graceful skip (no invented dates); raw date strings for gate exactness
 - [Phase 4]: review-fix round: 8 findings fixed (2 critical), 3 skipped with reasons; full suite 232 passed; UAT executed by the autonomous agent (browser automation + extraction evidence)
+- [Phase 5]: regeneration = POST /api/resume/regenerar returns FULL merged secoes + recomputed coverage (sibling byte-identity is a response-level testable property); hint joins the user message as data (runs.jsonl untouched, D-15)
+- [Phase 5]: invention detector = TS port of coverage fold + grounding numeral regex in lib/comparison.ts (Python mirror vectors; no JS test runner); highlights are suspicion-not-verdict (D-11 legend)
+- [Phase 5]: CR-01 race fix (review): editor lock + save guard + sibling-drift stack — stack-before-mutate on every displayed-state mutation; client maxLength mirrors of backend ceilings (WR-01)
 - [Phase 4]: [Phase 4]: 04-01 D-02 empirical engine verdict — Playwright embeds: the parse-back gate was built first and real Chromium renders passed all four SC2 checks in BOTH languages; the engines were never both installed (WeasyPrint never installed — documented MSYS2/Pango fallback against the same gate)
 - [Phase 4]: [Phase 4]: 04-01 A2 resolved [auto — silence]: EN runs localize ALL 7 export headings (render.py HEADINGS pt/en = single source, gate asserts the same map); presentation-only divergence from the in-app PT-BR passthrough labels — pending user review
 - [Phase 4]: [Phase 4]: 04-01 playwright pinned 1.62.0 (DIVERGES from STACK.md 1.63.0 on purpose — bundles cached chromium-1234, zero download; WeasyPrint swap = one function, AST-pinned); dates join renders raw stored strings with graceful dateless skip (no invented dates)
@@ -180,5 +184,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-09-29T18:30:03.783Z
-Stopped at: Completed 05-04-PLAN.md
+Stopped at: Phase 5 complete, ready to plan Phase 1
 Resume file: None

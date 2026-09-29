@@ -18,13 +18,13 @@ Paste a job description (or state a career objective for LinkedIn) and get polis
 - ✓ Resume generation from pasted JD (PT/EN, grounded in profile facts, coverage checklist) — Phase 3
 - ✓ PDF export in Google single-column format with automated parse-back ATS gate + in-app ATS self-check — Phase 4
 - ✓ Keyword optimization: extraction with PT↔EN mapping, deterministic coverage matching — Phases 2–3
+- ✓ Review flow: per-section regeneration with hint, inline editing (ephemeral, explicit policy), version history, fact-vs-generated comparison with deterministic suspicion marks — Phase 5
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
 - [ ] LinkedIn module: generate headline, About, experience descriptions, and skills from a career objective (PT/EN)
-- [ ] Review flow: regenerate individual sections and edit text in-app before exporting the final PDF
 
 ### Out of Scope
 
@@ -66,6 +66,7 @@ Paste a job description (or state a career objective for LinkedIn) and get polis
 | Review-before-export flow (per-section regenerate + inline edit) | Quality control before sending real applications | — Pending |
 | PDF engine: Playwright pinned 1.62.0 (cached Chromium), empirical gate-first decision, WeasyPrint as uninstalled fallback | Zero-download setup on this machine; parse-back gate proves the text layer on every export | ✓ Phase 4 |
 | EN exports localize all 7 section headings (render.py HEADINGS single source, shared with gate + self-check) | The PDF is the sendable artifact; SC2 requires canonical headings in both languages | ✓ Phase 4 [auto — silence, user review pending] |
+| Edit policy: ephemeral session edits with permanent explicit notice; edits flow into export/self-check; version stack on every destructive path | User is the quality gate without mutating the master profile; SC4 "never silently destroys" | ✓ Phase 5 [auto — silence, user review pending] |
 | LinkedIn module driven by career objective, not vacancy | A LinkedIn profile targets a direction, not one specific posting | — Pending |
 | ATS-friendly Google-format PDF as the only resume output | ATS parsing reliability beats visual flair for job applications | — Pending |
 | Local web app with simple routes + meta-prompts | Matches the "meta prompts and simple routes" vision; personal use | — Pending |
@@ -88,4 +89,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-27 after Phase 4*
+*Last updated: 2026-09-29 after Phase 5*
