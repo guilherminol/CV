@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Review Flow + Fact Safety
-status: planning
-stopped_at: Phase 4 complete, ready to plan Phase 1
-last_updated: "2026-09-29T16:57:15.140Z"
-last_activity: 2026-09-27
-last_activity_desc: Phase 4 complete, transitioned to Phase 1
-state_head: fd5ff79329746a9c00ad1c59663e24069faae0f5
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-09-29T17:22:11.944Z"
+last_activity: 2026-09-29
+last_activity_desc: Phase 5 execution started
+state_head: 9965a0e38f8661c561e4b151e4789663091129c4
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 16
+  completed_plans: 17
   percent: 50
 ---
 
@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-25)
 
 **Core value:** Paste a job description (or state a career objective for LinkedIn) and get polished, ATS-optimized, keyword-targeted output in English or Portuguese that the user would actually send or post — without manual rewriting from scratch.
-**Current focus:** Phases 5–6 — Review Flow + Fact Safety, then LinkedIn Module (phase 1 UAT deferred)
+**Current focus:** Phase 5 — Review Flow + Fact Safety
 
 ## Deferred Verification
 
@@ -47,10 +47,10 @@ frontend build green). /gsd-verify-work 4 re-surfaces all four as human_needed U
 
 ## Current Position
 
-Phase: 5 (Review Flow + Fact Safety) — READY TO EXECUTE
-Plan: Not started
-Status: Ready to discuss
-Last activity: 2026-09-27 — Phase 4 complete (verified passed), advancing to Phase 5
+Phase: 5 (Review Flow + Fact Safety) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-09-29 — Phase 5 execution started
 
 Progress: [█████░░░░░] 50%
 
@@ -98,6 +98,7 @@ Progress: [█████░░░░░] 50%
 | Phase 4 P04-01 | 23 min | 3 tasks | 9 files |
 | Phase 04 P02 | 14min | 2 tasks | 6 files |
 | Phase 4 P04-03 | 23min | 3 tasks | 5 files |
+| Phase 5 P1 | 15 min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,9 @@ Recent decisions affecting current work:
 - [Phase 4]: 04-03: checkpoint resolved [deferred — silence] — SC1 fidelity, SC3 UX feel, SC2/EN viewer inspection, backstop readability NOT run; re-surface via /gsd-verify-work 4 as human_needed UAT (Phase 1 pattern); automation green stands (223 tests incl. real-render parse-back gate)
 - [Phase 4]: 04-03: SelfCheckPanel takes the run's keywords prop ([Rule 3]) — backend sobrevivencia carries canonical only; run-language chips need the displayed-state lookup (D-10 intact); main Gerar CTA added to the symmetric lock ([Rule 2])
 - [Phase 4]: REVIEW-03 checked by 04-03 — user story completes with the self-check panel; human UAT pending noted on the REQUIREMENTS.md line
+- [Phase 1]: 05-01: regen = ONE run_stage per section (SECTION_STAGE_BY_ID); response carries FULL merged secoes + recomputed coverage — frontend replaces state wholesale, siblings byte-identical (identity-asserted)
+- [Phase 1]: 05-01: dica normalization at compose boundary (compose_regen_stage_input) — blank/None yields base composition; gateway/prompt files/runs.jsonl untouched (D-05/D-06/D-15); frontend omits empty dica key (extra=forbid)
+- [Phase 1]: 05-01: ExportarSecoes reused as the regen secoes shape (import from routes.export) — the displayed-state contract is the same for export and regen; no new dependencies
 
 ### Pending Todos
 
@@ -158,6 +162,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T22:08:25.250Z
-Stopped at: Phase 4 complete, ready to plan Phase 1
+Last session: 2026-09-29T17:21:52.036Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
