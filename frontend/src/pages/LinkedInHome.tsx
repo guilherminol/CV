@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 import {
   fetchLinkedinLint,
   fetchProfile,
   gerarLinkedin,
+  regenerarSecaoLinkedin,
   type LinkedinGerarResponse,
   type LinkedinLimiteDTO,
   type LinkedinLintResponse,
@@ -15,6 +16,7 @@ import {
 } from '../api/client'
 import { CharacterCounter } from '../components/CharacterCounter'
 import { CopiarButton } from '../components/CopiarButton'
+import { ConfirmStrip } from '../components/ConfirmStrip'
 import { ErrorPanel } from '../components/ErrorPanel'
 import { LinkedinComparisonPanel } from '../components/LinkedinComparisonPanel'
 import {
@@ -30,6 +32,7 @@ import {
   BADGE_EDITADO_CLASSES,
   BADGE_GERADO,
   BADGE_GERADO_CLASSES,
+  COMPACT_SECONDARY_BUTTON_CLASSES,
   COMPARACAO_TOGGLE,
   COMPARACAO_TOGGLE_HIDE,
   CURRICULO_EPHEMERAL_NOTICE,
@@ -38,6 +41,7 @@ import {
   CURRICULO_IDIOMA_OPTIONS,
   CURRICULO_LINT_FETCH_ERRO,
   CURRICULO_LINT_HINT,
+  CURRICULO_REGENERAR,
   DICA_LABEL,
   DICA_PLACEHOLDER,
   DICA_TOGGLE_ADD,
@@ -46,6 +50,8 @@ import {
   EDITAR_SECAO_CTA,
   EDIT_SAVE_GUARD,
   formatarSkillsContagem,
+  GERAR_COM_EDICOES_MESSAGE,
+  GERAR_MESMO_ASSIM_CTA,
   HINT_INPUT_CLASSES,
   LINKEDIN_BLOCK_LABELS,
   LINKEDIN_CTA,
@@ -72,12 +78,22 @@ import {
   LINKEDIN_PAGE_TITLE,
   LINKEDIN_RESULT_TITLE,
   LINKEDIN_SOBRE_MAX_CHARS,
+  MANTER_EDICAO_CTA,
+  MANTER_EDICOES_CTA,
   PERFIL_ERROR_TITLE,
   PERFIL_LOADING,
   POLICY_EDICAO,
   PREVIEW_CONTACT_SEPARATOR,
   PRIMARY_BUTTON_CLASSES,
   QUIET_BUTTON_CLASSES,
+  REGEN_ERROR_HINT,
+  REGEN_ERROR_TITLE,
+  REGEN_INFLIGHT_LINE,
+  REGEN_MESMO_ASSIM_CTA,
+  REGEN_SECTION_CTA,
+  REGEN_SECTION_INFLIGHT,
+  REGEN_SOBE_EDICAO_MESSAGE,
+  REGEN_SOBE_EDICAO_NOTE,
   RESTAURAR_VERSAO_CTA,
   TEXTAREA_CLASSES,
   VERSOES_INTRO,
@@ -311,6 +327,20 @@ export default function LinkedInHome() {
     experiencias: false,
     habilidades: false,
   })
+  // Per-block last failed regen (session-only): backend PT-BR lines verbatim,
+  // or [] for a fetch-level failure (generic hint path). Key absent/undefined
+  // = no error. The panel renders INSIDE the owning block — prior text stays
+  // mounted (failure never blanks).
+  const [regenErros, setRegenErros] = useState<Partial<Record<LinkedinSecaoId, string[]>>>({})
+  // Pending D-14 confirm strips: which block's regen-over-edit strip is
+  // showing + whether the full-regen-with-editions strip is showing. The
+  // amber strips ARE the confirmation UI — never a browser dialog.
+  const [stripRegen, setStripRegen] = useState<LinkedinSecaoId | null>(null)
+  const [stripGerarCompleta, setStripGerarCompleta] = useState(false)
+  // Transient flag carried from the strip confirm to gerar's onSuccess: the
+  // confirmed full regen stacks EVERY block/entry's current text before the
+  // wholesale swap. Reset on every terminal path (ok/erro/fetch-error).
+  const gerarConfirmadoRef = useRef(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedObjetivo(objetivo), DEBOUNCE_MS)
@@ -338,6 +368,17 @@ export default function LinkedInHome() {
     mutationFn: gerarLinkedin,
     onSuccess: (data) => {
       if (data.status === 'ok') {
+        // D-14 (confirmed full regen): stack EVERY block/entry's current
+        // displayed value + badge origin FIRST — each version stays guardada
+        // em Versões across the wholesale swap (the stacks persist; the
+        // badges reset to Gerado below).
+        if (gerarConfirmadoRef.current) {
+          gerarConfirmadoRef.current = false
+          empilharBloco('headline')
+          empilharBloco('sobre')
+          empilharBloco('habilidades')
+          resultado?.secoes.experiencias.forEach((_, i) => empilharEntrada(i))
+        }
         // D-11 wholesale swap: the response replaces the displayed state in
         // ONE assignment — never a client-side merge (runs are independent;
         // identical objectives across runs never merge). The version stacks
@@ -367,33 +408,225 @@ export default function LinkedInHome() {
           experiencias: false,
           habilidades: false,
         })
+        setRegenErros({})
+        setStripRegen(null)
+        setStripGerarCompleta(false)
         setEditor(null)
       } else {
         // 200-envelope erro: backend PT-BR lines, rendered verbatim below.
+        // Prior result stays mounted (failure never blanks).
+        gerarConfirmadoRef.current = false
         setGerarErros(data.erros)
       }
     },
     onError: () => {
       // Fetch-level failure (server down): generic hint path (erros=[]).
       // Raw detail is in the uvicorn terminal only; prior result stays mounted.
+      gerarConfirmadoRef.current = false
       setGerarErros([])
+    },
+  })
+
+  // Per-block regeneration (Phase 5 semantics verbatim): the response's FULL
+  // merged secoes + recomputed limites replace the displayed state WHOLESALE
+  // — no client-side merge.
+  const regenerar = useMutation({
+    mutationFn: regenerarSecaoLinkedin,
+    onSuccess: (data, variables) => {
+      // Only THIS block's pending D-14 confirm concluded with this attempt
+      // (IN-01): an unrelated block's regen success must not dismiss a strip
+      // the user has not acted on — that pending intent stays mounted.
+      setStripRegen((prev) => (prev === variables.secao ? null : prev))
+      if (data.status === 'ok') {
+        const alvo = variables.secao
+        // SC4 (D-08): stack the pre-regen displayed version of the TARGET
+        // FIRST — the group is the regen unit, so experiências stacks EVERY
+        // entry (D-14 stack-before-mutate) before the wholesale swap.
+        if (alvo === 'experiencias') {
+          resultado?.secoes.experiencias.forEach((_, i) => empilharEntrada(i))
+        } else {
+          empilharBloco(alvo)
+        }
+        // CR-01 sibling-drift defense (stack-before-mutate on EVERY
+        // displayed-state mutation): the swap below replaces secoes
+        // WHOLESALE — siblings included, byte-identical to the SUBMITTED
+        // snapshot. If a sibling's CURRENT displayed value differs from that
+        // snapshot, the displayed state changed mid-flight; stack it FIRST so
+        // the swap cannot silently destroy it. (The editor lock + the
+        // salvarEdicao guard close the only known mid-flight path, but the
+        // stack must not depend on the lock staying closed.)
+        if (resultado) {
+          for (const irma of BLOCOS_FIXOS) {
+            if (irma === alvo) continue
+            if (
+              JSON.stringify(resultado.secoes[irma]) !==
+              JSON.stringify(variables.secoes[irma])
+            ) {
+              if (irma === 'experiencias') {
+                resultado.secoes.experiencias.forEach((_, i) => empilharEntrada(i))
+              } else {
+                empilharBloco(irma)
+              }
+            }
+          }
+        }
+        // Wholesale swap from the response — idioma/secoes/limites all come
+        // from the server (never a client-side merge).
+        setResultado((prev) =>
+          prev
+            ? {
+                ...prev,
+                idioma: data.idioma,
+                secoes: data.secoes,
+                limites: data.limites,
+              }
+            : prev,
+        )
+        // Badge lifecycle (UI-SPEC): regen success → target 'gerado' (every
+        // entry, for the group).
+        if (alvo === 'experiencias') {
+          setOrigens((prev) => ({
+            ...prev,
+            experiencias: data.secoes.experiencias.map(() => 'gerado'),
+          }))
+        } else {
+          setOrigens((prev) => ({ ...prev, [alvo]: 'gerado' }))
+        }
+        // The regen replaced the block under any editor open on it — close
+        // that editor rather than let it save a stale draft over the new
+        // text (a silent-overwrite hazard, Phase 5 lesson).
+        setEditor((prev) => (prev && prev.bloco === alvo ? null : prev))
+        setRegenErros((prev) => ({ ...prev, [alvo]: undefined }))
+      } else {
+        // 200-envelope erro: the PT-BR lines surface INSIDE the OWNING block
+        // (block-scoped red panel); prior text stays mounted.
+        setRegenErros((prev) => ({ ...prev, [variables.secao]: data.erros }))
+      }
+    },
+    onError: (_error, variables) => {
+      // Fetch-level failure (server down): same block-scoped panel with the
+      // generic erros=[] hint. Raw detail is in the uvicorn terminal only.
+      setRegenErros((prev) => ({ ...prev, [variables.secao]: [] }))
     },
   })
 
   // Derived locking booleans (UI-SPEC interaction table — the single source;
   // no ad-hoc scattered disabled logic):
-  //  - operacaoLongaPendente: ANY long op (full gerar; section regen joins in
-  //    the regen wave) disables edit controls / Restaurar versão / dica
-  //    toggles+inputs, while Comparar and Versões toggles and every Copiar
-  //    stay usable read-only/instant.
+  //  - operacaoLongaPendente: ANY long op (full gerar or any section regen)
+  //    disables the CTA, Gerar novamente, every Regenerar seção, all edit
+  //    controls, Restaurar versão, dica toggles/inputs — while Comparar and
+  //    Versões toggles and every Copiar stay usable (read-only/instant is
+  //    always safe).
   //  - locksEdicao: additionally, an open editor disables every edit
-  //    affordance + the CTA + Gerar novamente, while the editor's own
-  //    Salvar/Cancelar freeze during any flight via `locked`.
-  const operacaoLongaPendente = gerar.isPending
+  //    affordance + the CTA + Gerar novamente, while every Regenerar seção
+  //    stays enabled (own-section regen routes through the D-14 strip) and
+  //    the editor's own Salvar/Cancelar freeze during any flight via `locked`.
+  const operacaoLongaPendente = gerar.isPending || regenerar.isPending
   const locksEdicao = editor !== null || operacaoLongaPendente
+  // Which block's regen is in flight (null = none) — the mutation carries
+  // exactly one request at a time (UI-SPEC: one long op at a time).
+  const secaoRegenerando: LinkedinSecaoId | null =
+    regenerar.isPending && regenerar.variables ? regenerar.variables.secao : null
 
   function gerarAgora() {
     gerar.mutate({ objetivo: trimmed, language: idioma })
+  }
+
+  // D-14 gate for the FULL regen (header button + Zone 1 form CTA — both
+  // replace the mounted result): with any Editado block/entry it asks ONCE
+  // via the amber strip under the card header; unchanged no-confirm behavior
+  // when nothing is Editado and no editor is open. While any editor is open
+  // the action is disabled outright — it would replace blocks under the open
+  // editor (the button is disabled; guard here too).
+  function tentarGerarCompleta() {
+    if (editor) return
+    const temEdicao =
+      origens.headline === 'editado' ||
+      origens.sobre === 'editado' ||
+      origens.experiencias.some((o) => o === 'editado') ||
+      origens.habilidades === 'editado'
+    if (resultado && temEdicao) {
+      setStripGerarCompleta(true)
+      return
+    }
+    gerarAgora()
+  }
+
+  // Confirmed full regen: the flag rides to gerar.onSuccess, which stacks
+  // every block/entry's current text before the swap (nothing silently lost).
+  function confirmarGerarCompleta() {
+    gerarConfirmadoRef.current = true
+    setStripGerarCompleta(false)
+    gerarAgora()
+  }
+
+  function cancelarGerarCompleta() {
+    setStripGerarCompleta(false)
+  }
+
+  // D-14 gate: Regenerar seção on a block whose badge is Editado (any entry,
+  // for the group), or whose open editor is DIRTY, renders the inline amber
+  // confirm strip first — never a browser dialog. A clean open editor or a
+  // Gerado badge regenerates directly.
+  function tentarRegenerarSecao(secao: LinkedinSecaoId) {
+    if (!resultado) return
+    const suja = editor !== null && editor.bloco === secao && editor.draft !== editor.inicial
+    const editada =
+      secao === 'experiencias'
+        ? origens.experiencias.some((o) => o === 'editado')
+        : origens[secao] === 'editado'
+    if (editada || suja) {
+      setStripRegen(secao)
+      return
+    }
+    regenerarSecaoAgora(secao)
+  }
+
+  // Regenerar mesmo assim: a dirty open draft is stacked FIRST as an
+  // 'editado' version (it would otherwise be lost when the editor closes —
+  // unsavable drafts are skipped: nothing of value), then the editor closes
+  // and the request issues; the regen-success handler stacks the DISPLAYED
+  // text before its swap.
+  function confirmarRegenSobreEdicao(secao: LinkedinSecaoId) {
+    if (!resultado) return
+    if (
+      editor &&
+      editor.bloco === secao &&
+      editor.draft !== editor.inicial &&
+      estadoEditor(editor).canSave
+    ) {
+      const { bloco, entryIdx, draft } = editor
+      if (bloco === 'experiencias') {
+        empilharValor(`experiencias-${entryIdx ?? 0}`, draft, 'editado')
+      } else if (bloco === 'habilidades') {
+        empilharValor('habilidades', dividirLinhas(draft), 'editado')
+      } else {
+        empilharValor(bloco, draft, 'editado')
+      }
+    }
+    setEditor(null)
+    setStripRegen(null)
+    regenerarSecaoAgora(secao)
+  }
+
+  function cancelarStripRegen() {
+    setStripRegen(null)
+  }
+
+  // Regenerate ONE block (the experiência GROUP for 'experiencias') from the
+  // CURRENT displayed state + form inputs (objetivo/idioma) + that block's
+  // persisted dica (D-05). The response's merged secoes replace the state
+  // wholesale in onSuccess — nothing merges client-side. (An empty dica key
+  // is dropped inside regenerarSecaoLinkedin.)
+  function regenerarSecaoAgora(secao: LinkedinSecaoId) {
+    if (!resultado) return
+    regenerar.mutate({
+      objetivo: trimmed,
+      language: idioma,
+      secao,
+      secoes: resultado.secoes,
+      dica: dicas[secao],
+    })
   }
 
   // --- displayed-state write helpers (the single source: resultado.secoes) ---
@@ -710,6 +943,82 @@ export default function LinkedInHome() {
     )
   }
 
+  /** The trailing Regenerar seção button (compact secondary) for one block —
+   *  the experiência GROUP is one regen unit. In-flight label swap; disabled
+   *  only while a long op runs (an open editor does NOT disable it —
+   *  own-section regen routes through the D-14 strip). */
+  function renderRegenerarBotao(bloco: LinkedinSecaoId) {
+    const pending = secaoRegenerando === bloco
+    return (
+      <button
+        type="button"
+        onClick={() => tentarRegenerarSecao(bloco)}
+        disabled={operacaoLongaPendente}
+        className={COMPACT_SECONDARY_BUTTON_CLASSES}
+      >
+        {pending
+          ? REGEN_SECTION_INFLIGHT.replace('{secao}', LINKEDIN_BLOCK_LABELS[bloco])
+          : REGEN_SECTION_CTA}
+      </button>
+    )
+  }
+
+  /** D-14 regen-over-edit strip for one block: under the action row when NO
+   *  editor is open on this block, under the editor/content when there is
+   *  (ResumeResult placement precedent). */
+  function renderStripRegen(bloco: LinkedinSecaoId, posicao: 'antes' | 'depois') {
+    if (stripRegen !== bloco) return null
+    const editandoAqui = editor !== null && editor.bloco === bloco
+    if (posicao === 'antes' && editandoAqui) return null
+    if (posicao === 'depois' && !editandoAqui) return null
+    return (
+      <ConfirmStrip
+        message={REGEN_SOBE_EDICAO_MESSAGE}
+        note={REGEN_SOBE_EDICAO_NOTE}
+        cancelLabel={MANTER_EDICAO_CTA}
+        confirmLabel={REGEN_MESMO_ASSIM_CTA}
+        onCancel={cancelarStripRegen}
+        onConfirm={() => confirmarRegenSobreEdicao(bloco)}
+      />
+    )
+  }
+
+  /** The block-scoped regen state: the in-flight line + the red error panel
+   *  INSIDE the owning block — prior text stays mounted beside it (failure
+   *  never blanks). */
+  function renderRegenEstado(bloco: LinkedinSecaoId) {
+    const pending = secaoRegenerando === bloco
+    const erros = regenErros[bloco]
+    if (!pending && !erros) return null
+    return (
+      <>
+        {pending && (
+          <p className="text-sm text-gray-600">
+            {REGEN_INFLIGHT_LINE.replace('{secao}', LINKEDIN_BLOCK_LABELS[bloco])}
+          </p>
+        )}
+        {erros && (
+          <section
+            aria-labelledby={`linkedin-regen-error-${bloco}`}
+            className="rounded-md border border-red-300 bg-red-50 px-4 py-3"
+          >
+            <h5 id={`linkedin-regen-error-${bloco}`} className="font-semibold text-red-700">
+              {REGEN_ERROR_TITLE.replace('{secao}', LINKEDIN_BLOCK_LABELS[bloco])}
+            </h5>
+            {erros.length > 0 && (
+              <ul className="mt-2 list-disc pl-5 text-sm text-red-700 whitespace-pre-wrap">
+                {erros.map((linha, i) => (
+                  <li key={`${i}-${linha}`}>{linha}</li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-3 text-xs text-red-600">{REGEN_ERROR_HINT}</p>
+          </section>
+        )}
+      </>
+    )
+  }
+
   /** The inline editor for the block/entry currently being edited, or null. */
   function renderEditorAqui(
     bloco: LinkedinSecaoId,
@@ -786,7 +1095,9 @@ export default function LinkedInHome() {
           {renderCompararToggle(bloco)}
           {renderVersoesToggle(bloco, pilha.length)}
           {renderDicaToggle(bloco)}
+          {renderRegenerarBotao(bloco)}
         </div>
+        {renderStripRegen(bloco, 'antes')}
         {renderDica(bloco)}
         {editor && editor.bloco === bloco ? (
           renderEditorAqui(bloco, null)
@@ -804,6 +1115,8 @@ export default function LinkedInHome() {
           />
         )}
         {renderVersoesBloco(bloco)}
+        {renderRegenEstado(bloco)}
+        {renderStripRegen(bloco, 'depois')}
       </div>
     )
   }
@@ -841,7 +1154,9 @@ export default function LinkedInHome() {
           {renderCompararToggle('experiencias')}
           {renderVersoesToggle('experiencias', grupoVersoesCount)}
           {renderDicaToggle('experiencias')}
+          {renderRegenerarBotao('experiencias')}
         </div>
+        {renderStripRegen('experiencias', 'antes')}
         {renderDica('experiencias')}
         <div className="mt-2 space-y-4">
           {entradas.map((entrada, i) => {
@@ -916,6 +1231,8 @@ export default function LinkedInHome() {
             idioma={resultado.idioma}
           />
         )}
+        {renderRegenEstado('experiencias')}
+        {renderStripRegen('experiencias', 'depois')}
       </div>
     )
   }
@@ -947,7 +1264,9 @@ export default function LinkedInHome() {
           {renderCompararToggle('habilidades')}
           {renderVersoesToggle('habilidades', pilha.length)}
           {renderDicaToggle('habilidades')}
+          {renderRegenerarBotao('habilidades')}
         </div>
+        {renderStripRegen('habilidades', 'antes')}
         {renderDica('habilidades')}
         {editor && editor.bloco === 'habilidades' ? (
           renderEditorAqui('habilidades', null)
@@ -976,6 +1295,8 @@ export default function LinkedInHome() {
           />
         )}
         {renderVersoesBloco('habilidades')}
+        {renderRegenEstado('habilidades')}
+        {renderStripRegen('habilidades', 'depois')}
       </div>
     )
   }
@@ -1006,7 +1327,9 @@ export default function LinkedInHome() {
         className={CARD_CLASSES}
         onSubmit={(event) => {
           event.preventDefault()
-          gerarAgora()
+          // The CTA is a full-regen path too — same D-14 gate as the header
+          // button (with any Editado block/entry it asks once via the strip).
+          tentarGerarCompleta()
         }}
       >
         <div className="space-y-4">
@@ -1139,10 +1462,33 @@ export default function LinkedInHome() {
             <section className={CARD_CLASSES} aria-label={LINKEDIN_RESULT_TITLE}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h3 className="text-base font-semibold text-gray-900">{LINKEDIN_RESULT_TITLE}</h3>
-                <p className="text-xs text-gray-500">
-                  <span aria-hidden>⚠</span> {POLICY_EDICAO}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  {/* Full regen (D-04/D-14): disabled while an editor is open
+                      or a long op runs; with any Editado block/entry it routes
+                      through the amber strip below (messages verbatim — the
+                      "Versões" reference stays true here). */}
+                  <button
+                    type="button"
+                    onClick={tentarGerarCompleta}
+                    disabled={locksEdicao}
+                    className={COMPACT_SECONDARY_BUTTON_CLASSES}
+                  >
+                    {CURRICULO_REGENERAR}
+                  </button>
+                  <p className="text-xs text-gray-500">
+                    <span aria-hidden>⚠</span> {POLICY_EDICAO}
+                  </p>
+                </div>
               </div>
+              {stripGerarCompleta && (
+                <ConfirmStrip
+                  message={GERAR_COM_EDICOES_MESSAGE}
+                  cancelLabel={MANTER_EDICOES_CTA}
+                  confirmLabel={GERAR_MESMO_ASSIM_CTA}
+                  onCancel={cancelarGerarCompleta}
+                  onConfirm={confirmarGerarCompleta}
+                />
+              )}
 
               {/* Four blocks in FIXED display order (static array — LI-01). */}
               {BLOCOS_FIXOS.map((bloco) => renderBloco(bloco))}

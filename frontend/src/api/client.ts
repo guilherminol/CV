@@ -363,6 +363,50 @@ export async function gerarLinkedin(payload: {
   return (await resp.json()) as LinkedinGerarResponse
 }
 
+// --- LinkedIn per-section regeneration (plan 06-02 backend / 06-03 frontend)
+// — mirrors backend/app/routes/linkedin.py LinkedinRegenerarRequest +
+// run_linkedin_section_regen. Change BOTH together; tsc -b is the drift gate.
+
+/** Strict-body mirror of LinkedinRegenerarRequest: `secoes` is the displayed
+ *  state verbatim (server-side LinkedinSecoes, app/linkedin/models.py — sent
+ *  as DATA, treated as ephemeral display state, never persisted, T-06-07);
+ *  `dica` is optional (≤500 chars). */
+export interface LinkedinRegenerarRequest {
+  objetivo: string
+  language: ResumeLanguage
+  secao: LinkedinSecaoId
+  secoes: LinkedinSecoesDTO
+  dica?: string // optional steering hint — NEVER sent as an empty key
+}
+
+/** 06-02 envelope: ok carries the FULL merged secoes + recomputed limites
+ *  with `status` included (the route returns the pipeline result directly) —
+ *  the client replaces its state wholesale, no client-side merge; the erro
+ *  branch carries ONLY erros (200-envelope house rule). Same shape as gerar. */
+export type LinkedinRegenerarResponse = LinkedinGerarResponse
+
+/** One LinkedIn section's regen: exactly ONE gateway stage runs server-side
+ *  (SECTION_STAGE_BY_ID); the experiência GROUP is one unit (secao
+ *  'experiencias'). The dica key is OMITTED from the body when
+ *  empty/whitespace — the backend model is extra=forbid, and `dica: ""` would
+ *  be a useless key (blank normalizes to None backend-side; here it simply
+ *  never travels). */
+export async function regenerarSecaoLinkedin(
+  payload: LinkedinRegenerarRequest,
+): Promise<LinkedinRegenerarResponse> {
+  const { dica, ...rest } = payload
+  const body = dica && dica.trim() ? { ...rest, dica } : rest
+  const resp = await fetch('/api/linkedin/regenerar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!resp.ok) {
+    throw new Error(`POST /api/linkedin/regenerar falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as LinkedinRegenerarResponse
+}
+
 /** The LinkedIn lint envelope — the SAME shape as the resume lint because the
  *  keyword engine is input-agnostic and shared server-side (routes/linkedin.py
  *  reuses run_lint_only VERBATIM). Mirrored as its own type so the tsc -b
