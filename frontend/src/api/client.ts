@@ -285,28 +285,53 @@ export async function regenerarSecao(payload: RegenerarRequest): Promise<Regener
   return (await resp.json()) as RegenerarResponse
 }
 
-// --- LinkedIn endpoints (plan 06-01) — mirrors the envelope contract
-// implemented by backend/app/routes/linkedin.py (LinkedinGerarRequest +
-// run_linkedin_pipeline). Change BOTH together; tsc -b is the drift gate.
+// --- LinkedIn endpoints (plans 06-01/06-02, frontend 06-03) — mirrors the
+// envelope contract implemented by backend/app/routes/linkedin.py
+// (LinkedinGerarRequest + run_linkedin_pipeline / run_linkedin_section_regen)
+// and backend/app/linkedin/pipeline.py `_build_limites`. Change BOTH
+// together; tsc -b is the drift gate.
 
-/** The generated LinkedIn sections. Tracer scope (06-01): the headline block
- *  only — waves 2+ extend this shape ADDITIVELY (sobre/experiencias/
- *  habilidades), never renaming existing keys. */
+/** Section id — matches the backend regen Literal
+ *  ['headline','sobre','experiencias','habilidades'] (routes/linkedin.py). */
+export type LinkedinSecaoId = 'headline' | 'sobre' | 'experiencias' | 'habilidades'
+
+/** One generated experiência entry: prose `descricao` (NOT resume bullets).
+ *  The LLM company/title strings ride along as display anchors only — the UI
+ *  renders sub-block headers from PROFILE FACTS (06-02 alignment contract). */
+export interface LinkedinExperienciaEntryDTO {
+  company: string
+  title: string
+  descricao: string
+}
+
+/** The four generated LinkedIn sections (D-09 quartet). The habilidades
+ *  array order IS the priority order (LI-05) — no client re-sort anywhere. */
 export interface LinkedinSecoesDTO {
   headline: string
+  sobre: string
+  experiencias: LinkedinExperienciaEntryDTO[]
+  habilidades: string[]
 }
 
 /** Post-generation limit metadata (D-07): the code-unit count + the excess
  *  over the section's limit — over-limit output is FLAGGED, never truncated.
- *  The limite/tamanho/excesso triple mirrors limites.headline server-side. */
+ *  The limite/tamanho/excesso triple mirrors `_limite_entry` server-side
+ *  (Python len ↔ JS .length on the same string — code units both sides). */
 export interface LinkedinLimiteDTO {
   limite: number
   tamanho: number
   excesso: number
 }
 
+/** The full limites block: per-text triples for headline/sobre, an
+ *  INDEX-ALIGNED list for experiências (per-entry descricao counts), and the
+ *  habilidades sanity record {contagem, limite} — the UI count line uses
+ *  contagem only (no per-list character limit exists; D-05). */
 export interface LinkedinLimitesDTO {
   headline: LinkedinLimiteDTO
+  sobre: LinkedinLimiteDTO
+  experiencias: LinkedinLimiteDTO[]
+  habilidades: { contagem: number; limite: number }
 }
 
 /** 06-01 envelope: ok carries {idioma, secoes, limites}; the erro branch
@@ -336,6 +361,29 @@ export async function gerarLinkedin(payload: {
     throw new Error(`POST /api/linkedin/gerar falhou: ${resp.status}`)
   }
   return (await resp.json()) as LinkedinGerarResponse
+}
+
+/** The LinkedIn lint envelope — the SAME shape as the resume lint because the
+ *  keyword engine is input-agnostic and shared server-side (routes/linkedin.py
+ *  reuses run_lint_only VERBATIM). Mirrored as its own type so the tsc -b
+ *  drift gate stays per-endpoint. */
+export type LinkedinLintResponse =
+  | { status: 'ok'; keywords: KeywordDTO[]; avisos: string[] }
+  | { status: 'erro'; erros: string[] }
+
+/** Pre-generate objective lint (D-03, non-blocking): keyword extraction +
+ *  objective-tied profile gaps. Strict body: objetivo 80..2000 — the client
+ *  mirrors the bounds in constants/ui.ts (WR-01). */
+export async function fetchLinkedinLint(objetivo: string): Promise<LinkedinLintResponse> {
+  const resp = await fetch('/api/linkedin/lint', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ objetivo }),
+  })
+  if (!resp.ok) {
+    throw new Error(`POST /api/linkedin/lint falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as LinkedinLintResponse
 }
 
 /** D-11: the browser's native download UI. Bytes come from the same export

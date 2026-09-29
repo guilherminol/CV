@@ -303,13 +303,18 @@ export const COMPARACAO_FALLBACK_NOTA =
 
 // --- LinkedIn screen (UI-SPEC Copywriting Contract, plan 06-01) ---
 // WR-01 client mirrors of the backend config constants (backend/app/config.py
-// Phase 6 block): LINKEDIN_OBJETIVO_MIN_LENGTH / LINKEDIN_OBJETIVO_MAX_LENGTH
-// and LINKEDIN_HEADLINE_MAX_CHARS. Change BOTH together — the textarea caps
-// and the CTA gate mirror the server bounds so an oversized input is
-// prevented, never retried into a dead-end 422.
+// Phase 6 block): LINKEDIN_OBJETIVO_MIN_LENGTH / LINKEDIN_OBJETIVO_MAX_LENGTH,
+// LINKEDIN_HEADLINE_MAX_CHARS, LINKEDIN_SOBRE_MAX_CHARS,
+// LINKEDIN_EXPERIENCIA_MAX_CHARS. Change BOTH together — the textarea caps,
+// editor maxLengths and the CTA gate mirror the server bounds so an oversized
+// input is prevented, never retried into a dead-end 422. No client mirror for
+// the skills count: no per-list character limit exists (D-05 forbids
+// inventing one — the count line is honest, never "/Y").
 export const LINKEDIN_OBJETIVO_MIN_CHARS = 80
 export const LINKEDIN_OBJETIVO_MAX_CHARS = 2000
 export const LINKEDIN_HEADLINE_MAX_CHARS = 220
+export const LINKEDIN_SOBRE_MAX_CHARS = 2600
+export const LINKEDIN_EXPERIENCIA_MAX_CHARS = 2000
 
 export const LINKEDIN_PAGE_TITLE = 'LinkedIn'
 export const LINKEDIN_EMPTY_TITLE = 'Comece pelo objetivo'
@@ -349,3 +354,32 @@ export const LINKEDIN_COPIAR = 'Copiar'
 export const LINKEDIN_COPIADO = 'Copiado!'
 export const LINKEDIN_COPIAR_FALHA =
   'Não foi possível copiar automaticamente — selecione o texto da seção e copie manualmente.'
+
+// Zone 2 lint (D-03): title + clear line are LinkedIn-scoped (the objective
+// replaces the JD); backend avisos[] lines render VERBATIM — no per-line
+// frontend constants, by design. The hint + fetch-failure line reuse the
+// Currículo constants (UI-SPEC "reused" rows: CURRICULO_LINT_HINT /
+// CURRICULO_LINT_FETCH_ERRO).
+export const LINKEDIN_LINT_TITLE = 'Lacunas do perfil para este objetivo'
+export const LINKEDIN_LINT_CLEAR = 'Nenhum gap relevante encontrado para este objetivo.'
+
+// Experiência group zero line (probe edge LI-04/empty): loud muted — never a
+// silent empty block (also covers an empty generated list defensively).
+export const LINKEDIN_EXPERIENCIA_ZERO =
+  'Nenhuma experiência no perfil — nada para reescrever aqui.'
+
+// Skills count line (UI-SPEC skills-counter exception, honest-information
+// rule): LinkedIn imposes no total character limit on the skills list and
+// D-05 forbids inventing one, so the counter slot carries the pure ENTRY
+// count — singular/plural via a pure function (offline-testable per house
+// policy), never a fake "/Y".
+export const LINKEDIN_SKILLS_CONTAGEM_SINGULAR = '1 skill em ordem de prioridade.'
+export const LINKEDIN_SKILLS_CONTAGEM_PLURAL = '{n} skills em ordem de prioridade.'
+
+/** Pure singular/plural formatter for the skills count line (0 is a legitimate
+ *  skills-less-profile display state → plural). */
+export function formatarSkillsContagem(n: number): string {
+  return n === 1
+    ? LINKEDIN_SKILLS_CONTAGEM_SINGULAR
+    : LINKEDIN_SKILLS_CONTAGEM_PLURAL.replace('{n}', String(n))
+}
