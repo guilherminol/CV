@@ -473,6 +473,37 @@ def test_run_lint_only_returns_keywords_verbatim_and_avisos(
     assert result["avisos"] == []
 
 
+def test_run_lint_only_loads_profile_before_the_paid_call(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """IN-04 (review fix): load_profile() runs BEFORE the paid extraction
+    stage — a broken profile fails /lint without consuming an OpenRouter
+    call (the same load-first order run_resume_pipeline pins)."""
+    from app.profile.loader import ProfileError
+    from app.resume import pipeline
+
+    order: list[str] = []
+
+    def broken_profile() -> None:
+        order.append("load_profile")
+        raise ProfileError("perfil quebrado (IN-04)", "raw: perfil quebrado (IN-04)")
+
+    monkeypatch.setattr(pipeline, "load_profile", broken_profile)
+    client = FakeClient(KEYWORDS_CONTENT)
+
+    with pytest.raises(ProfileError):
+        pipeline.run_lint_only(
+            "Vaga de exemplo com Python e Docker",
+            runs_log=tmp_path / "runs.jsonl",
+            client=client,
+        )
+
+    # The loader failed FIRST and the extraction stage never ran — zero paid
+    # calls consumed (an empty client.calls proves run_stage never fired).
+    assert order == ["load_profile"]
+    assert client.calls == []
+
+
 def test_run_resume_pipeline_raises_llm_error_on_scripted_failure(
     tmp_path: Path, _profile_path: None
 ) -> None:

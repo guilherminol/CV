@@ -61,11 +61,15 @@ def run_lint_only(
     non-blocking avisos per D-03; failures raise (ProfileError from the
     loader, LLMError from the gateway) and belong to the route's envelope.
     """
+    # IN-04: the profile loads BEFORE the paid extraction call — a broken
+    # profile fails /lint without consuming an OpenRouter call (the same
+    # load-first order as run_resume_pipeline below; D-15 fresh, once).
+    profile = load_profile()
     extraction = run_stage(
         EXTRACTION_STAGE, jd_text, "pt-BR", runs_log=runs_log, client=client
     )
     keywords = extraction.keywords
-    avisos = lint_jd_tied(load_profile(), keywords)
+    avisos = lint_jd_tied(profile, keywords)
     return {
         "keywords": [keyword.model_dump() for keyword in keywords],
         "avisos": avisos,
