@@ -432,3 +432,13 @@ def test_package_reexports_the_qa_surface() -> None:
     assert linkedin_pkg.load_glossario is qa_module.load_glossario
     assert linkedin_pkg.apply_glossario is qa_module.apply_glossario
     assert linkedin_pkg.detect_english_bleed is qa_module.detect_english_bleed
+
+
+def test_qa_path_takes_no_llm_client_anywhere() -> None:
+    """D-14, provable by signatures: NO qa function accepts a client — the
+    QA path invokes no LLM judge, so it can never spend or drift (plan 06-04
+    acceptance criterion; the offline suite stays 100% offline by shape)."""
+    import inspect
+
+    for function in (load_glossario, apply_glossario, detect_english_bleed, run_linkedin_qa):
+        assert "client" not in inspect.signature(function).parameters, function.__name__

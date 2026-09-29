@@ -11,7 +11,11 @@ terminal-only via caplog — the house pattern, T-06-04); the erro envelope on
 a broken profile; 422 on a sub-80-char objetivo, unknown body keys
 (extra=forbid), an unknown language, an unknown secao value and an empty
 submitted headline; sync (non-coroutine) handlers; the linkedin router
-registered BEFORE the SPA mount (research Pitfall 8).
+registered BEFORE the SPA mount (research Pitfall 8); and the plan-06-04 QA
+envelope contract — pt-BR ok envelopes carry the qa dict (keys
+glossario/bleed), EN ok envelopes carry qa null, and a glossário load
+failure during gerar surfaces as the erro envelope (PromptError → PT-BR
+lines, raw detail terminal-only — the fail-fast ladder end-to-end).
 """
 
 import inspect
@@ -22,7 +26,7 @@ import pytest
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 
-from app.llm.errors import LLMError
+from app.llm.errors import LLMError, PromptError
 from app.llm.schemas import (
     LinkedinExperiencias,
     LinkedinHeadline,
@@ -135,7 +139,7 @@ def test_gerar_returns_ok_envelope_both_languages(
     assert resp.status_code == 200
     body = resp.json()
     # EVERY contract key — the interface of record for the plan's client.
-    assert set(body) == {"status", "idioma", "secoes", "limites"}
+    assert set(body) == {"status", "idioma", "secoes", "limites", "qa"}
     assert body["status"] == "ok"
     assert body["idioma"] == language
     assert body["secoes"]["headline"] == json.loads(HEADLINE_CONTENT)["headline"]
@@ -144,6 +148,13 @@ def test_gerar_returns_ok_envelope_both_languages(
     assert limites["limite"] == 220
     assert limites["tamanho"] == len(body["secoes"]["headline"])
     assert limites["excesso"] == 0
+    # The QA language contract (plan 06-04, D-14): pt-BR ok envelopes ALWAYS
+    # carry the report dict, EN ok envelopes ALWAYS carry null — never a
+    # silently absent verdict.
+    if language == "pt-BR":
+        assert set(body["qa"]) == {"glossario", "bleed"}
+    else:
+        assert body["qa"] is None
 
 
 def test_gerar_defaults_language_to_ptbr(_canned_pipeline: None) -> None:
@@ -197,6 +208,34 @@ def test_gerar_erro_envelope_on_empty_headline_llm_error(
     assert "secoes" not in body
     assert any("headline vazio" in line for line in body["erros"])
     assert "empty headline content" in " ".join(rec.getMessage() for rec in caplog.records)
+
+
+def test_gerar_erro_envelope_on_glossary_load_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    _profile_file: None,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """The fail-fast ladder end-to-end (plan 06-04, T-06-10): a malformed
+    user-edited glossário raises PromptError AFTER the four stages ran — the
+    route converts it to the erro envelope (never an HTTP 500, raw detail
+    terminal-only)."""
+    import app.linkedin.qa as qa_module
+
+    def broken_load_glossario(prompts_dir=None):
+        raise PromptError("Glossário inválido: par malformado", "RAW-GLOSSARIO-secreto")
+
+    monkeypatch.setattr(qa_module, "load_glossario", broken_load_glossario)
+    _stub_stages(monkeypatch)  # the four stages succeed; the QA read fails
+    with caplog.at_level(logging.ERROR, logger="app.routes.linkedin"):
+        resp = client.post("/api/linkedin/gerar", json={"objetivo": OBJETIVO_PT})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "erro"
+    assert "secoes" not in body and "limites" not in body  # all-or-nothing
+    assert body["erros"] == ["Glossário inválido: par malformado"]  # PT-BR lines
+    terminal_text = " ".join(rec.getMessage() for rec in caplog.records)
+    assert "RAW-GLOSSARIO-secreto" in terminal_text  # raw → terminal only
+    assert "RAW-GLOSSARIO-secreto" not in " ".join(body["erros"])
 
 
 def test_gerar_erro_envelope_on_broken_profile(
@@ -336,10 +375,12 @@ def test_regen_returns_full_merged_secoes_and_recomputed_limites(
     assert resp.status_code == 200
     body = resp.json()
     # The route returns the pipeline result directly — the full ok envelope.
-    assert set(body) == {"status", "idioma", "secoes", "limites"}
+    assert set(body) == {"status", "idioma", "secoes", "limites", "qa"}
     assert body["status"] == "ok"
     assert set(body["secoes"]) == {"headline", "sobre", "experiencias", "habilidades"}
     assert body["secoes"]["headline"] == json.loads(HEADLINE_CONTENT)["headline"]
+    # The regen recomputed QA over the FULL merged state (plan 06-04).
+    assert set(body["qa"]) == {"glossario", "bleed"}
     # Siblings pass through from the SUBMITTED state...
     assert body["secoes"]["sobre"] == _regen_body()["secoes"]["sobre"]
     assert body["secoes"]["habilidades"] == ["Habilidade antiga"]

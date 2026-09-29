@@ -21,7 +21,12 @@ retargeted PROFILE_PATH (D-15 seam):
   message equals the plain compose_linkedin_stage_input composition;
 - (f) limites recomputed over the FULL merged state (a submitted sibling's
   over-limit text still surfaces in the regen response);
-- (g) loud-empty contracts re-run on the regenerated block only.
+- (g) loud-empty contracts re-run on the regenerated block only;
+- (h) QA recomputed over the FULL merged state on every regen success (plan
+  06-04, Pitfall 4 truthfulness): the envelope carries "qa" — a regenerated
+  block's new EN term AND a submitted sibling's EN term both surface in
+  qa.bleed (the report describes the whole current artifact, not just the
+  regenerated block); an en regen carries qa None.
 """
 
 import json
@@ -222,8 +227,11 @@ def test_run_linkedin_section_regen_runs_exactly_one_stage(
     assert call_wire["strict"] is True
     assert envelope["status"] == "ok"
     assert envelope["idioma"] == "pt-BR"
-    assert set(envelope) == {"status", "idioma", "secoes", "limites"}
+    assert set(envelope) == {"status", "idioma", "secoes", "limites", "qa"}
     assert set(envelope["secoes"]) == {"headline", "sobre", "experiencias", "habilidades"}
+    # The pt-BR regen recomputes QA (real shipped glossário; the canned texts
+    # trip nothing — the loud-empty payload shape).
+    assert envelope["qa"] == {"glossario": [], "bleed": []}
 
 
 # ---------------------------------------------------------------------------
@@ -522,6 +530,87 @@ def test_regen_habilidades_empty_fails_loud_on_skills_profile(
             client=client,
         )
     assert "lista de habilidades vazia" in excinfo.value.message_ptbr
+
+
+# ---------------------------------------------------------------------------
+# (h) QA recomputed over the FULL merged state on every regen success
+# ---------------------------------------------------------------------------
+
+
+def _write_glossario(tmp_path: Path, pares: list[dict]) -> Path:
+    prompts_dir = tmp_path / "prompts-qa"
+    prompts_dir.mkdir(parents=True, exist_ok=True)
+    text = (
+        "---\n"
+        + yaml.safe_dump({"id": "glossario", "pares": pares}, allow_unicode=True, sort_keys=False)
+        + "---\n\nDocumentação.\n"
+    )
+    (prompts_dir / "glossario.md").write_text(text, encoding="utf-8")
+    return prompts_dir
+
+
+def test_regen_qa_recomputed_over_the_full_merged_state(
+    tmp_path: Path, _profile_path: None
+) -> None:
+    """Pitfall 4 truthfulness: the regen response's QA describes the WHOLE
+    current artifact — the regenerated headline's new EN term AND the
+    submitted sibling sobre's EN term both surface in qa.bleed."""
+    from app.linkedin.pipeline import run_linkedin_section_regen
+
+    prompts_dir = _write_glossario(tmp_path, [])  # empty glossário: bleed-only run
+    submitted = LinkedinSecoes(
+        headline="Headline em exibição — Python e dados",
+        sobre="Sobre em exibição com track record comprovado.",
+        experiencias=[
+            ExperienciaLinkedin(
+                company="Exemplo IA",
+                title="Engenheira de Software Sênior",
+                descricao=SUBMITTED_EXPERIENCIA_DESCRICAO,
+            )
+        ],
+        habilidades=list(SUBMITTED_HABILIDADES),
+    )
+    new_headline = json.dumps(
+        {"headline": "Novo headline and pipeline gerado"}, ensure_ascii=False
+    )
+    client = ScriptedClient([new_headline])
+    envelope = run_linkedin_section_regen(
+        OBJETIVO_REGEN,
+        "pt-BR",
+        "headline",
+        submitted,
+        runs_log=tmp_path / "runs.jsonl",
+        client=client,
+        prompts_dir=prompts_dir,
+    )
+
+    qa = envelope["qa"]
+    assert qa is not None
+    # The regenerated block's term is flagged, labeled by its surface...
+    assert {"termo": "and", "secao": "headline"} in qa["bleed"]
+    # ...and so is the SUBMITTED sibling's — the report covers the merged
+    # state, not just the regenerated block.
+    assert {"termo": "track record", "secao": "sobre"} in qa["bleed"]
+    # Sibling byte-identity held while the report recomputed.
+    assert envelope["secoes"]["sobre"] is submitted.sobre
+
+
+def test_regen_en_carries_qa_null(tmp_path: Path, _profile_path: None) -> None:
+    """The language contract holds on the regen path too: en regen → qa None."""
+    from app.linkedin.pipeline import run_linkedin_section_regen
+
+    client = ScriptedClient([NEW_HEADLINE_CONTENT])
+    envelope = run_linkedin_section_regen(
+        OBJETIVO_REGEN,
+        "en",
+        "headline",
+        _submitted(),
+        runs_log=tmp_path / "runs.jsonl",
+        client=client,
+        prompts_dir=tmp_path,  # no glossário here — the gate must not read it
+    )
+    assert envelope["qa"] is None
+    assert envelope["status"] == "ok"
 
 
 # ---------------------------------------------------------------------------

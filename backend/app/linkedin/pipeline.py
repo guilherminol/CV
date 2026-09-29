@@ -42,6 +42,19 @@ Post-generation contracts (D-07, probe edges LI-03/LI-04/LI-05):
   and the UI flags it in place. `habilidades` carries {"contagem", "limite"}
   as a sanity record — no per-list character limit exists (D-05 forbids
   inventing one; the UI count line uses contagem only).
+- QA (SC4, D-12..D-14, plan 06-04): EVERY generation success recomputes the
+  deterministic QA over the FULL PT-BR state via run_linkedin_qa — glossary
+  applied FIRST (MUTATING the returned secoes: the displayed text IS the
+  post-glossary text the user copies — D-13 + research constraint #4), then
+  bleed detection over that post-glossary text; the envelope carries the
+  non-blocking report as "qa": {"glossario": [...], "bleed": [...]} for
+  pt-BR runs and "qa": None for en runs (the language gate — findings are
+  avisos, never a gate; hard failures stay reserved for schema/network
+  errors). `limites` is computed AFTER the substitution, so the counters
+  describe the final text. Both pipeline functions thread the
+  `prompts_dir` seam down to load_glossario (the same offline-test seam as
+  `client`/`runs_log`; production resolves the repo-root prompts/ fresh on
+  every execution — D-12).
 """
 
 from pathlib import Path
@@ -55,6 +68,7 @@ from app.config import (
 from app.llm.errors import LLMError
 from app.llm.gateway import run_stage
 from app.linkedin.models import LinkedinSecoes
+from app.linkedin.qa import run_linkedin_qa
 from app.profile.loader import load_profile
 from app.resume.coverage import _fold
 from app.resume.facts import append_dica_block, serialize_profile_facts
@@ -228,17 +242,21 @@ def run_linkedin_pipeline(
     language: str,
     runs_log: Path | None = None,
     client: object | None = None,
+    prompts_dir: Path | None = None,
 ) -> dict:
     """Generate the LinkedIn sections for one career objective (LI-01/D-04).
 
     All four stages run sequentially in D-09 order with the SAME composed
-    input. Returns the ok envelope of the plan-06-01 contract: {"idioma",
-    "secoes", "limites"} with `secoes` = {"headline": str, "sobre": str,
-    "experiencias": [entries in PROFILE order], "habilidades": [str]}. Raises
-    on any stage failure (ProfileError from the loader, PromptError from a
-    prompt file, LLMError from the gateway or a loud-empty guard); the route
-    converts to the erro envelope (all-or-nothing — a partial section set is
-    unreachable).
+    input. On success the deterministic QA runs over the FULL PT-BR state
+    (glossary applied to the returned secoes — the displayed text IS the
+    post-glossary text — then bleed detection; D-13/D-14), and the envelope
+    is {"idioma", "secoes", "limites", "qa"} with `secoes` = {"headline":
+    str, "sobre": str, "experiencias": [entries in PROFILE order],
+    "habilidades": [str]} and `qa` = {"glossario": [...], "bleed": [...]}
+    for pt-BR / None for en. Raises on any stage failure (ProfileError from
+    the loader, PromptError from a prompt file or the glossário, LLMError
+    from the gateway or a loud-empty guard); the route converts to the erro
+    envelope (all-or-nothing — a partial section set is unreachable).
     """
     profile = load_profile()  # fresh, once per invocation (D-15)
     facts = serialize_profile_facts(profile, language)
@@ -274,7 +292,17 @@ def run_linkedin_pipeline(
         "experiencias": experiencias,
         "habilidades": habilidades,
     }
-    return {"idioma": language, "secoes": secoes, "limites": _build_limites(secoes)}
+    # Post-gen QA (SC4/D-13/D-14): glossary FIRST — MUTATING secoes so the
+    # returned text IS the post-glossary text the user copies — then bleed
+    # over that post-glossary text. None for en runs. limites afterwards, so
+    # the counters describe the FINAL text.
+    qa = run_linkedin_qa(secoes, language, prompts_dir=prompts_dir)
+    return {
+        "idioma": language,
+        "secoes": secoes,
+        "limites": _build_limites(secoes),
+        "qa": qa,
+    }
 
 
 # --- Per-section regeneration (plan 06-02 Task 2, D-04: the Phase 5
@@ -289,6 +317,7 @@ def run_linkedin_section_regen(
     dica: str | None = None,
     runs_log: Path | None = None,
     client: object | None = None,
+    prompts_dir: Path | None = None,
 ) -> dict:
     """Regenerate ONE LinkedIn section: exactly ONE gateway stage → server-side
     merge over the SUBMITTED displayed state (D-04, Phase 5 semantics).
@@ -302,9 +331,12 @@ def run_linkedin_section_regen(
     whole entries list — the group is the regen unit); siblings pass through
     BY REFERENCE, never re-rendered (byte-identity is a response-level
     testable property). `limites` is recomputed over the FULL merged state;
-    the loud-empty contracts re-run on the regenerated block only. Returns
-    the full ok envelope — the route returns it directly (no re-wrap, Phase 5
-    pattern). Raises on any failure; the route converts to the erro envelope
+    the loud-empty contracts re-run on the regenerated block only. QA is
+    recomputed over the FULL merged PT-BR state on every regen success
+    (plan 06-04 truthfulness — the report always describes the whole current
+    artifact the frontend swaps in; "qa": None for en). Returns the full ok
+    envelope — the route returns it directly (no re-wrap, Phase 5 pattern).
+    Raises on any failure; the route converts to the erro envelope
     (all-or-nothing).
     """
     profile = load_profile()  # fresh, once per invocation (D-15)
@@ -340,11 +372,16 @@ def run_linkedin_section_regen(
     else:
         merged["habilidades"] = _process_habilidades(list(output.habilidades), profile)
 
+    # Post-gen QA recomputed over the FULL merged state on EVERY regen
+    # success (Pitfall 4 truthfulness) — glossary first (mutating `merged`),
+    # then bleed on the post-glossary text; None for en runs.
+    qa = run_linkedin_qa(merged, language, prompts_dir=prompts_dir)
     return {
         "status": "ok",
         "idioma": language,
         "secoes": merged,
         "limites": _build_limites(merged),
+        "qa": qa,
     }
 
 

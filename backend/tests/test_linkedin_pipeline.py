@@ -31,7 +31,12 @@ retargeted PROFILE_PATH (D-15 seam):
   habilidades {contagem, limite} — code-unit counting, over-limit text never
   truncated;
 - (g) loader band: linkedin-experiencias.md frontmatter max_tokens stays
-  within the research-mandated 4000-8000 band (Pitfall 6).
+  within the research-mandated 4000-8000 band (Pitfall 6);
+- (h) QA wiring (plan 06-04, SC4/D-13/D-14): the ok envelope carries "qa" —
+  {"glossario", "bleed"} for pt-BR (clean canned text → the loud-empty
+  payload; a glossary `de` term in the sobre leaves MUTATED post-glossary
+  text with the reported row and a bleed vector in qa.bleed), None for en
+  with ZERO substitutions (the language gate held; text/report agreement).
 """
 
 import json
@@ -130,6 +135,23 @@ OVERLIMIT_SOBRE = "Sobre sênior de dados com Python e SQL " + "x" * 2700
 OVERLIMIT_SOBRE_CONTENT = json.dumps({"sobre": OVERLIMIT_SOBRE}, ensure_ascii=False)
 
 
+# QA wiring vectors (plan 06-04): a hermetic glossário via the prompts_dir
+# seam — the pair would apply if the language gate ever leaked into EN runs.
+ML_PAIR = {"de": "machine learning", "para": "aprendizado de máquina"}
+
+
+def _write_glossario(tmp_path: Path, pares: list[dict]) -> Path:
+    prompts_dir = tmp_path / "prompts-qa"
+    prompts_dir.mkdir(parents=True, exist_ok=True)
+    text = (
+        "---\n"
+        + yaml.safe_dump({"id": "glossario", "pares": pares}, allow_unicode=True, sort_keys=False)
+        + "---\n\nDocumentação.\n"
+    )
+    (prompts_dir / "glossario.md").write_text(text, encoding="utf-8")
+    return prompts_dir
+
+
 @pytest.fixture
 def _profile_path(monkeypatch: pytest.MonkeyPatch, valid_profile_path: Path) -> None:
     """Loader seam: load_profile() re-resolves PROFILE_PATH at call time (D-15)."""
@@ -206,9 +228,14 @@ def test_run_linkedin_pipeline_happy_path_envelope(
         assert "OBJETIVO DE CARREIRA:" in user
         assert OBJETIVO in user
 
-    # The normative envelope: exactly these keys, nothing more.
-    assert set(envelope) == {"idioma", "secoes", "limites"}
+    # The normative envelope: exactly these keys, nothing more — `qa` joined
+    # the contract in 06-04 (SC4).
+    assert set(envelope) == {"idioma", "secoes", "limites", "qa"}
     assert envelope["idioma"] == "pt-BR"
+    # The clean canned text trips no glossary pair and no bleed term through
+    # the REAL shipped glossário (the default prompts_dir) — the loud-empty
+    # payload, never a missing key.
+    assert envelope["qa"] == {"glossario": [], "bleed": []}
     assert set(envelope["secoes"]) == {"headline", "sobre", "experiencias", "habilidades"}
     assert envelope["secoes"]["headline"] == HEADLINE
     assert envelope["secoes"]["sobre"] == SOBRE
@@ -268,6 +295,74 @@ def test_run_linkedin_pipeline_language_en_passes_through(
     assert envelope["idioma"] == "en"
     for call in client.calls:
         assert "Idioma preferido de saída: en" in call["messages"][1]["content"]
+
+
+# ---------------------------------------------------------------------------
+# (h) QA wiring — qa envelope key per the language contract (plan 06-04)
+# ---------------------------------------------------------------------------
+
+
+def test_ptbr_run_applies_glossary_and_reports_text_and_report_agree(
+    tmp_path: Path, _profile_path: None
+) -> None:
+    """Text/report agreement (D-13 + research constraint #4): the sobre that
+    comes back IS the post-glossary text, and qa.glossario describes exactly
+    that substitution while the surviving EN term surfaces in qa.bleed."""
+    from app.linkedin.pipeline import run_linkedin_pipeline
+
+    prompts_dir = _write_glossario(tmp_path, [ML_PAIR])
+    sobre = "Sobre com machine learning e track record comprovado."
+    client = ScriptedClient(
+        [HEADLINE_CONTENT, json.dumps({"sobre": sobre}, ensure_ascii=False), EXPERIENCIAS_CONTENT, SKILLS_CONTENT]
+    )
+    envelope = run_linkedin_pipeline(
+        OBJETIVO,
+        "pt-BR",
+        runs_log=tmp_path / "runs.jsonl",
+        client=client,
+        prompts_dir=prompts_dir,
+    )
+
+    # The displayed text carries the substitution — the user copies THIS.
+    assert envelope["secoes"]["sobre"] == (
+        "Sobre com aprendizado de máquina e track record comprovado."
+    )
+    qa = envelope["qa"]
+    assert {"de": ML_PAIR["de"], "para": ML_PAIR["para"], "ocorrencias": 1} in qa["glossario"]
+    # The term the glossary does NOT own survives and is flagged, labeled by
+    # its surface — the report describes the post-glossary text.
+    assert {"termo": "track record", "secao": "sobre"} in qa["bleed"]
+
+
+def test_en_run_carries_qa_null_with_zero_substitutions(
+    tmp_path: Path, _profile_path: None
+) -> None:
+    """The language gate: an EN ok envelope carries qa None and the glossary
+    never touches the text — even when the pair matches and a glossário file
+    IS reachable via the seam."""
+    from app.linkedin.pipeline import run_linkedin_pipeline
+
+    prompts_dir = _write_glossario(tmp_path, [ML_PAIR])
+    sobre_en = "Senior data engineer focused on machine learning platforms."
+    client = ScriptedClient(
+        [
+            json.dumps({"headline": "Senior Data Engineer — Python, SQL and cloud"}, ensure_ascii=False),
+            json.dumps({"sobre": sobre_en}, ensure_ascii=False),
+            EXPERIENCIAS_CONTENT,
+            SKILLS_CONTENT,
+        ]
+    )
+    envelope = run_linkedin_pipeline(
+        OBJETIVO,
+        "en",
+        runs_log=tmp_path / "runs.jsonl",
+        client=client,
+        prompts_dir=prompts_dir,
+    )
+
+    assert envelope["qa"] is None
+    assert envelope["secoes"]["sobre"] == sobre_en  # zero substitutions
+    assert "aprendizado de máquina" not in envelope["secoes"]["sobre"]
 
 
 # ---------------------------------------------------------------------------
