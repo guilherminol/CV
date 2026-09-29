@@ -285,6 +285,59 @@ export async function regenerarSecao(payload: RegenerarRequest): Promise<Regener
   return (await resp.json()) as RegenerarResponse
 }
 
+// --- LinkedIn endpoints (plan 06-01) — mirrors the envelope contract
+// implemented by backend/app/routes/linkedin.py (LinkedinGerarRequest +
+// run_linkedin_pipeline). Change BOTH together; tsc -b is the drift gate.
+
+/** The generated LinkedIn sections. Tracer scope (06-01): the headline block
+ *  only — waves 2+ extend this shape ADDITIVELY (sobre/experiencias/
+ *  habilidades), never renaming existing keys. */
+export interface LinkedinSecoesDTO {
+  headline: string
+}
+
+/** Post-generation limit metadata (D-07): the code-unit count + the excess
+ *  over the section's limit — over-limit output is FLAGGED, never truncated.
+ *  The limite/tamanho/excesso triple mirrors limites.headline server-side. */
+export interface LinkedinLimiteDTO {
+  limite: number
+  tamanho: number
+  excesso: number
+}
+
+export interface LinkedinLimitesDTO {
+  headline: LinkedinLimiteDTO
+}
+
+/** 06-01 envelope: ok carries {idioma, secoes, limites}; the erro branch
+ *  carries ONLY erros (200-envelope house rule — no secoes key ever). */
+export type LinkedinGerarResponse =
+  | {
+      status: 'ok'
+      idioma: ResumeLanguage
+      secoes: LinkedinSecoesDTO
+      limites: LinkedinLimitesDTO
+    }
+  | { status: 'erro'; erros: string[] }
+
+/** One-shot LinkedIn generate for a career objective (LI-01). The objetivo
+ *  must satisfy the strict request bounds (80..2000 chars) — the client
+ *  mirrors them in constants/ui.ts to avoid dead-end 422s. */
+export async function gerarLinkedin(payload: {
+  objetivo: string
+  language: ResumeLanguage
+}): Promise<LinkedinGerarResponse> {
+  const resp = await fetch('/api/linkedin/gerar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!resp.ok) {
+    throw new Error(`POST /api/linkedin/gerar falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as LinkedinGerarResponse
+}
+
 /** D-11: the browser's native download UI. Bytes come from the same export
  *  response (atob → Uint8Array → Blob); the filename is the backend-generated
  *  `curriculo-{idioma}-{data}.pdf` — NEVER recomposed client-side. No new deps

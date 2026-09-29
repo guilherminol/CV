@@ -5,7 +5,7 @@ export const APP_TITLE = 'Career Tailor'
 export const NAV_ITEMS = [
   { id: 'curriculo', label: 'Currículo', enabled: true },
   { id: 'perfil', label: 'Perfil', enabled: true },
-  { id: 'linkedin', label: 'LinkedIn', enabled: false },
+  { id: 'linkedin', label: 'LinkedIn', enabled: true },
 ] as const
 
 export const PERFIL_SECTION_TITLE = 'Perfil'
@@ -300,3 +300,52 @@ export const COMPARACAO_ZERO_SUSPEITOS =
 // never an empty facts column.
 export const COMPARACAO_FALLBACK_NOTA =
   'Nenhuma entrada do perfil casa com o nome desta empresa — todos os registros do perfil são mostrados para comparação.'
+
+// --- LinkedIn screen (UI-SPEC Copywriting Contract, plan 06-01) ---
+// WR-01 client mirrors of the backend config constants (backend/app/config.py
+// Phase 6 block): LINKEDIN_OBJETIVO_MIN_LENGTH / LINKEDIN_OBJETIVO_MAX_LENGTH
+// and LINKEDIN_HEADLINE_MAX_CHARS. Change BOTH together — the textarea caps
+// and the CTA gate mirror the server bounds so an oversized input is
+// prevented, never retried into a dead-end 422.
+export const LINKEDIN_OBJETIVO_MIN_CHARS = 80
+export const LINKEDIN_OBJETIVO_MAX_CHARS = 2000
+export const LINKEDIN_HEADLINE_MAX_CHARS = 220
+
+export const LINKEDIN_PAGE_TITLE = 'LinkedIn'
+export const LINKEDIN_EMPTY_TITLE = 'Comece pelo objetivo'
+export const LINKEDIN_EMPTY_BODY =
+  'Descreva seu objetivo de carreira e escolha o idioma — as seções do LinkedIn são geradas a partir do seu perfil.'
+export const LINKEDIN_OBJETIVO_LABEL = 'Objetivo de carreira'
+export const LINKEDIN_OBJETIVO_PLACEHOLDER =
+  'Ex.: crescer como engenheiro de dados sênior, com foco em Python, SQL e plataformas de dados em nuvem…'
+// {min} / {max} interpolation slots — plain template replace (house pattern).
+export const LINKEDIN_OBJETIVO_TOO_SHORT_HINT =
+  'Descreva seu objetivo (mínimo {min} caracteres) para habilitar a geração.'
+export const LINKEDIN_OBJETIVO_TOO_LONG_HINT =
+  'Limite de {max} caracteres atingido — o texto excedente não faz parte do objetivo.'
+export const LINKEDIN_IDIOMA_LABEL = 'Idioma das seções'
+export const LINKEDIN_CTA = 'Gerar seções LinkedIn'
+export const LINKEDIN_CTA_INFLIGHT = 'Gerando seções LinkedIn…'
+export const LINKEDIN_INFLIGHT_HINT =
+  'Quatro blocos são gerados em sequência — headline, sobre, experiências e habilidades. Pode levar até um minuto.'
+export const LINKEDIN_ERROR_TITLE = 'Não foi possível gerar as seções LinkedIn'
+// Gerar error hint + retry reuse the Currículo copy verbatim (UI-SPEC).
+export const LINKEDIN_RESULT_TITLE = 'Seções LinkedIn geradas'
+// Block labels are PT-BR UI labels EVEN ON EN RUNS (house convention).
+export const LINKEDIN_BLOCK_LABELS = {
+  headline: 'Headline',
+  sobre: 'Sobre',
+  experiencias: 'Experiência',
+  habilidades: 'Habilidades',
+} as const
+// {count}/{limite} interpolation slot — the CharacterCounter formats it.
+export const LINKEDIN_COUNTER = '{count}/{limite} caracteres'
+// D-07 over-limit flag: nothing is ever truncated — the flag + per-section
+// regen are the fix path; Copiar stays enabled (the flag warns, the user decides).
+export const LINKEDIN_OVERLIMIT_FLAG =
+  'Passou do limite em {excesso} caracteres — regenere a seção ou edite o texto para caber.'
+// D-08 copy pair: the displayed text IS what goes to the clipboard.
+export const LINKEDIN_COPIAR = 'Copiar'
+export const LINKEDIN_COPIADO = 'Copiado!'
+export const LINKEDIN_COPIAR_FALHA =
+  'Não foi possível copiar automaticamente — selecione o texto da seção e copie manualmente.'

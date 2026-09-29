@@ -8,6 +8,7 @@ import { PlaceholderBanner } from './components/PlaceholderBanner'
 import { ProfilePreview } from './components/ProfilePreview'
 import { StatusLine } from './components/StatusLine'
 import CurriculoHome from './pages/CurriculoHome'
+import LinkedInHome from './pages/LinkedInHome'
 import {
   APP_TITLE,
   NAV_ITEMS,
@@ -61,7 +62,8 @@ function PerfilHome() {
 export default function App() {
   // Plan 03-04: minimal view switch — no router dependency (STACK.md lean stack).
   // Currículo is the default landing view (the phase's core flow; planner decision).
-  const [view, setView] = useState<'curriculo' | 'perfil'>('curriculo')
+  // Phase 6 (D-01): the LinkedIn placeholder becomes the third view.
+  const [view, setView] = useState<'curriculo' | 'perfil' | 'linkedin'>('curriculo')
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -98,7 +100,7 @@ export default function App() {
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 py-6">
-        {view === 'perfil' ? <PerfilHome /> : <CurriculoHome />}
+        {view === 'perfil' ? <PerfilHome /> : view === 'linkedin' ? <LinkedInHome /> : <CurriculoHome />}
       </main>
     </div>
   )
