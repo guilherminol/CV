@@ -64,7 +64,7 @@ Plans:
   3. A malformed structured response is caught by validation, retried with the validation error appended, and surfaces a clear failure — malformed content never reaches downstream stages.
   4. Keyword extraction run on a pasted JD or a career objective returns keywords mapped across {en, pt} with covered/adjacent/absent classification hooks for later coverage checks.
 
-**Plans**: 5/5 plans executed (4 executed; 02-05 gap closure pending)
+**Plans**: 5/5 plans executed (incl. 02-05 gap closure — SC3 containment; verification passed 13/13)
 
 Plans:
 **Wave 1**
