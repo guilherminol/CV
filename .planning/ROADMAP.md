@@ -199,7 +199,7 @@ Plans:
   3. All outputs are copy-paste text blocks the user can paste straight into LinkedIn.
   4. PT-BR outputs pass the language QA gate (terminology glossary applied, no English bleed), and the both-language fixture suite runs as definition-of-done for every prompt change.
 
-**Plans**: 4/6 plans executed
+**Plans**: 5/6 plans executed
 
 Plans:
 **Wave 1**
@@ -220,7 +220,7 @@ Plans:
 
 **Wave 5** *(blocked on Waves 3-4)*
 
-- [ ] 06-05-PLAN.md — "Verificação de idioma" QA panel + DoD harness: bilingual real-API LinkedIn fixtures over OBJECTIVE_PT/EN (pytest -m llm green = SC4 definition-of-done) (SC4)
+- [x] 06-05-PLAN.md — "Verificação de idioma" QA panel + DoD harness: bilingual real-API LinkedIn fixtures over OBJECTIVE_PT/EN (pytest -m llm green = SC4 definition-of-done) (SC4)
 
 **Wave 6** *(blocked on Wave 5; end-of-phase gate — autonomous:false, resolved-as-deferred per run convention)*
 
@@ -240,4 +240,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Resume Vertical Slice | 5/5 | Complete    | 2026-09-26 |
 | 4. PDF Export + ATS Self-Check | 3/3 | Complete    | 2026-09-27 |
 | 5. Review Flow + Fact Safety | 4/4 | Complete    | 2026-09-29 |
-| 6. LinkedIn Module + Bilingual Hardening | 4/6 | In Progress|  |
+| 6. LinkedIn Module + Bilingual Hardening | 5/6 | In Progress|  |

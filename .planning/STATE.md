@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: LinkedIn Module + Bilingual Hardening
 status: executing
-stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-09-29T22:38:07.120Z"
+stopped_at: Completed 06-05-PLAN.md
+last_updated: "2026-09-29T22:59:22.501Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 6 execution started
-state_head: 6a85784f7ccb76507057fb0ff0103cfcc0316fb8
+state_head: ba5076cfcdecbeb9ab9f3de9c3ef4e900dbdb643
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
   percent: 67
 ---
 
@@ -57,7 +57,7 @@ per-check standing proofs in 05-04-SUMMARY.md, Deferred Human Verification table
 ## Current Position
 
 Phase: 6 (LinkedIn Module + Bilingual Hardening) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 6 execution started
 
@@ -116,6 +116,7 @@ Progress: [███████░░░] 67%
 | Phase 06 P02 | 20 min | 2 tasks | 12 files |
 | Phase 06 P03 | 17 min | 3 tasks | 6 files |
 | Phase 6 P4 | 11 min | 2 tasks | 8 files |
+| Phase 06 P05 | 21 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -175,6 +176,8 @@ Recent decisions affecting current work:
 - [Phase 1]: Experiência version stacks are per entry with ONE group-level Versões toggle counting them; headline/sobre comparison grounds suspects against the whole-profile facts blob while the facts column shows the summary (05-03 resumo precedent)
 - [Phase 1]: PT 06-04: EN_BLEED_TERMS curated conservatively — 'for' dropped (real PT-BR verb 'se for necessário'); multi-word + EN verbs + no-PT-collision short tokens only
 - [Phase 1]: PT 06-04: qa envelope contract — pt-BR ok always {glossario, bleed}, en ok always null; glossary mutates returned secoes (displayed text IS post-glossary), bleed runs on post-glossary text; regen recomputes over the full merged state
+- [Phase 1]: 06-05: QA panel renders the 06-04 payload verbatim below the result card; qa swaps wholesale in exactly the two mutation onSuccess paths, edits/restores never touch it
+- [Phase 1]: 06-05: DoD harness asserts the direct-pipeline envelope shape (no status key on run_linkedin_pipeline — the route adds it); optional duplicate glossary real-API test deliberately skipped (spend discipline)
 
 ### Pending Todos
 
@@ -185,6 +188,7 @@ None yet.
 - Phase 4: RESOLVED by 04-01 (D-02, empirical) — the parse-back gate was built first and real Chromium renders passed all four checks in both languages; Playwright embeds, WeasyPrint stays the documented uninstalled fallback
 - Phase 2: no OpenRouter model pinned yet — validate strict json_schema compliance and PT-BR quality via the fixture harness; model slugs stay in config
 - Phase 6: LinkedIn character limits (220/2,600/2,000) rest on MEDIUM-confidence sources — verify at planning
+- OpenRouter credits exhausted (402 Payment Required) during the 06-05 full-file -m llm run — top up at openrouter.ai/settings/credits and re-run: cd backend && uv run pytest tests/test_llm_harness.py -m llm -q (the dedicated linkedin run passed both labels green before exhaustion)
 
 ## Deferred Items
 
@@ -196,6 +200,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T22:37:58.389Z
-Stopped at: Completed 06-04-PLAN.md
+Last session: 2026-09-29T22:59:22.244Z
+Stopped at: Completed 06-05-PLAN.md
 Resume file: None
