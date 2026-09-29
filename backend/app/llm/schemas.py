@@ -88,6 +88,37 @@ class LinkedinHeadline(_Strict):
     headline: str
 
 
+class LinkedinSobre(_Strict):
+    """linkedin-sobre stage — one run-language About text (≤2600 guidance,
+    post-gen check owns the bound, D-07)."""
+
+    sobre: str
+
+
+class ExperienciaLinkedin(_Strict):
+    """One generated LinkedIn experience entry — prose paragraphs in
+    `descricao` (NOT bullets); company/title are the profile-fact anchors
+    (the prompt hard-rules them verbatim from FATOS DO PERFIL)."""
+
+    company: str
+    title: str
+    descricao: str
+
+
+class LinkedinExperiencias(_Strict):
+    """linkedin-experiencias stage — ONE call returning the per-company
+    entries (D-09: localized retry per block, map aligned server-side)."""
+
+    experiencias: list[ExperienciaLinkedin]
+
+
+class LinkedinSkills(_Strict):
+    """linkedin-skills stage — flat list; array order IS the priority order
+    (LI-05)."""
+
+    habilidades: list[str]
+
+
 # Hand-maintained STRICT JSON Schema for KeywordExtraction — sent as
 # response_format json_schema to the provider (RESEARCH Pattern 2; PATTERNS
 # §schemas.py: never send model_json_schema() raw — Pitfall 1). OpenAI strict
@@ -174,17 +205,61 @@ RESUME_SKILLS_STRICT_SCHEMA: dict = {
 }
 
 
-# Hand-maintained STRICT wire schema for the linkedin-headline stage (plan
+# Hand-maintained STRICT wire schemas for the four LinkedIn stages (plan
 # 06-01) — same rules as the resume schemas above (sent as response_format
 # json_schema with strict: true, never derived from model_json_schema() at
-# runtime; every property in `required`, additionalProperties: false). The
-# drift-lock harness (tests/test_linkedin_schema.py) fails CI if this dict and
-# LinkedinHeadline diverge (threat T-02-08/T-06-02) — edit BOTH together.
+# runtime; every property in `required`, additionalProperties: false at EVERY
+# object level). The drift-lock harness (tests/test_linkedin_schema.py) fails
+# CI if any dict and its model diverge (threat T-02-08/T-06-02) — edit BOTH
+# together. NOTE (plan 06-01 Task 2): only linkedin-headline is REGISTERED in
+# the gateway's _STAGE_SCHEMAS for now — the other three stages land with
+# their prompt files in 06-02 (registration without a prompt file would make
+# any accidental call fail at the loader; keep the registration surface
+# minimal until then).
 LINKEDIN_HEADLINE_STRICT_SCHEMA: dict = {
     "type": "object",
     "properties": {
         "headline": {"type": "string"},
     },
     "required": ["headline"],
+    "additionalProperties": False,
+}
+
+LINKEDIN_SOBRE_STRICT_SCHEMA: dict = {
+    "type": "object",
+    "properties": {
+        "sobre": {"type": "string"},
+    },
+    "required": ["sobre"],
+    "additionalProperties": False,
+}
+
+LINKEDIN_EXPERIENCIAS_STRICT_SCHEMA: dict = {
+    "type": "object",
+    "properties": {
+        "experiencias": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "company": {"type": "string"},
+                    "title": {"type": "string"},
+                    "descricao": {"type": "string"},
+                },
+                "required": ["company", "title", "descricao"],
+                "additionalProperties": False,
+            },
+        }
+    },
+    "required": ["experiencias"],
+    "additionalProperties": False,
+}
+
+LINKEDIN_SKILLS_STRICT_SCHEMA: dict = {
+    "type": "object",
+    "properties": {
+        "habilidades": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["habilidades"],
     "additionalProperties": False,
 }
