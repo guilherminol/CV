@@ -1,0 +1,1 @@
+No external API integration: the phase reuses the shipped OpenRouter gateway (run_stage) for all LLM calls, adds no new packages, and LinkedIn API/auto-posting is Out of Scope (REQUIREMENTS.md — ToS); the only new surface is the app's own /api/linkedin/* routes.

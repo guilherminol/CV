@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: LLM Generation Core** - One logged, schema-validated, bilingual OpenRouter gateway with meta-prompts as editable git files and an input-agnostic {en, pt} keyword engine (completed 2026-09-26)
 - [x] **Phase 3: Resume Vertical Slice** - Paste JD → grounded, keyword-targeted resume sections with visible keyword extraction, coverage checklist, and completeness lint (completed 2026-09-26)
 - [x] **Phase 4: PDF Export + ATS Self-Check** - Sendable single-column Google-format PDF whose text layer is proven by an automated parse-back gate, in both languages (completed 2026-09-27)
-- [ ] **Phase 5: Review Flow + Fact Safety** - Per-section regenerate, inline editing, and source-vs-generated fact diff before export
+- [x] **Phase 5: Review Flow + Fact Safety** - Per-section regenerate, inline editing, and source-vs-generated fact diff before export (completed 2026-09-29)
 - [ ] **Phase 6: LinkedIn Module + Bilingual Hardening** - Career objective → headline/About/experience/skills, length-enforced and copy-paste ready in PT-BR or EN
 
 ## Phase Details
@@ -199,7 +199,33 @@ Plans:
   3. All outputs are copy-paste text blocks the user can paste straight into LinkedIn.
   4. PT-BR outputs pass the language QA gate (terminology glossary applied, no English bleed), and the both-language fixture suite runs as definition-of-done for every prompt change.
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Tracer: linkedin-headline end-to-end (config constants, headline stage + prompt, pipeline, /api/linkedin/gerar, LinkedInHome skeleton with counter + Copiar) + Wave-0 seeds: all 4 wire schemas drift-locked, over-limit-safe (LI-01, LI-02)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 06-02-PLAN.md — Backend expansion: 3 remaining stages + prompts (experiências max_tokens 4000-8000), full 4-block pipeline with limites/alignment/dedupe, /api/linkedin/lint (run_lint_only reuse) + /api/linkedin/regenerar (Phase 5 semantics) (LI-03, LI-04, LI-05)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 06-03-PLAN.md — Frontend expansion: lint zone, four-block result card (experiência group + skills ordered list), Copiar everywhere, over-limit flags + editor save guard, versions + comparison, regen wiring + locking matrix (LI-02..LI-05)
+
+**Wave 4** *(blocked on Wave 2)*
+
+- [ ] 06-04-PLAN.md — QA gate backend: prompts/glossario.md + app/linkedin/qa.py (strict loader, deterministic case-preserving apply, mechanical bleed detection), PT-BR-only wiring glossary-before-bleed, qa envelope key, vector suite (SC4)
+
+**Wave 5** *(blocked on Waves 3-4)*
+
+- [ ] 06-05-PLAN.md — "Verificação de idioma" QA panel + DoD harness: bilingual real-API LinkedIn fixtures over OBJECTIVE_PT/EN (pytest -m llm green = SC4 definition-of-done) (SC4)
+
+**Wave 6** *(blocked on Wave 5; end-of-phase gate — autonomous:false, resolved-as-deferred per run convention)*
+
+- [ ] 06-06-PLAN.md — Checkpoint: copy-paste UX + counters + QA panel framing + max-volume backstop UAT (LI-01..LI-05)
+
 **UI hint**: yes
 
 ## Progress
@@ -213,5 +239,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. LLM Generation Core | 5/5 | Complete    | 2026-09-26 |
 | 3. Resume Vertical Slice | 5/5 | Complete    | 2026-09-26 |
 | 4. PDF Export + ATS Self-Check | 3/3 | Complete    | 2026-09-27 |
-| 5. Review Flow + Fact Safety | 4/4 | In Progress|  |
-| 6. LinkedIn Module + Bilingual Hardening | 0/TBD | Not started | - |
+| 5. Review Flow + Fact Safety | 4/4 | Complete    | 2026-09-29 |
+| 6. LinkedIn Module + Bilingual Hardening | 0/6 | Not started | - |
