@@ -9,7 +9,10 @@ import type {
 } from '../api/client'
 import {
   BADGE_DO_PERFIL,
+  BADGE_EDITADO,
+  BADGE_EDITADO_CLASSES,
   BADGE_GERADO,
+  BADGE_GERADO_CLASSES,
   COMPACT_SECONDARY_BUTTON_CLASSES,
   CURRICULO_EPHEMERAL_NOTICE,
   CURRICULO_GENERATED_SECTIONS,
@@ -19,7 +22,10 @@ import {
   DICA_PLACEHOLDER,
   DICA_TOGGLE_ADD,
   DICA_TOGGLE_HIDE,
+  EDITAR_ENTRADA_CTA,
+  EDITAR_SECAO_CTA,
   HINT_INPUT_CLASSES,
+  POLICY_EDICAO,
   PREVIEW_CONTACT_SEPARATOR,
   PREVIEW_PRESENT,
   PREVIEW_SECTIONS,
@@ -31,6 +37,7 @@ import {
   REGEN_SECTION_INFLIGHT,
   REGEN_SECAO_LABELS,
 } from '../constants/ui'
+import { SectionEditor, textoEditorValido, type SecaoEditorState } from './SectionEditor'
 
 // Pinned UI-SPEC class strings (Component conventions, plan 03-04).
 const CARD_CLASSES = 'rounded-md border border-gray-200 bg-white px-6 py-5 shadow-sm'
@@ -56,24 +63,30 @@ function dateRange(start: string, end: string | null | undefined): string {
   return end ? `${start} – ${end}` : `${start} – ${PREVIEW_PRESENT}`
 }
 
-type BadgeKind = 'gerado' | 'perfil'
+type BadgeKind = 'gerado' | 'perfil' | 'editado'
 
-/** D-05 badges: Gerado (accent — this phase's product) vs Do perfil (muted). */
+/** Badge origin for GENERATED sections (D-04): 'editado' after an inline
+ *  save or the restore of an edited version; 'gerado' at mount/regen. */
+export type OrigemBadge = 'gerado' | 'editado'
+
+/**
+ * D-04 tri-state badges: Gerado (soft blue — LLM product), Do perfil (muted
+ * passthrough), Editado (solid blue-600/white — provenance readable at a
+ * glance without a new hue). Class strings live in constants/ui.ts (IN-04)
+ * so SectionVersionsPanel's origin rows reuse the exact same states.
+ */
 function Badge({ kind }: { kind: BadgeKind }) {
-  return (
-    <span
-      className={
-        kind === 'gerado'
-          ? 'normal-case rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700'
-          : 'normal-case rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-500'
-      }
-    >
-      {kind === 'gerado' ? BADGE_GERADO : BADGE_DO_PERFIL}
-    </span>
-  )
+  const classes =
+    kind === 'gerado'
+      ? BADGE_GERADO_CLASSES
+      : kind === 'editado'
+        ? BADGE_EDITADO_CLASSES
+        : 'normal-case rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-500'
+  const label = kind === 'gerado' ? BADGE_GERADO : kind === 'editado' ? BADGE_EDITADO : BADGE_DO_PERFIL
+  return <span className={classes}>{label}</span>
 }
 
-/** ProfilePreview Section pattern (bordered uppercase heading) + a D-05 badge. */
+/** ProfilePreview Section pattern (bordered uppercase heading) + a badge. */
 function Section({
   title,
   badge,
@@ -95,23 +108,25 @@ function Section({
 }
 
 /**
- * A generated section with the Phase 5 action row (plan 05-01, D-05/D-07):
- * "Adicionar dica" — the ALWAYS-visible quiet toggle that reveals the labeled
- * one-line hint input on demand — plus "Regenerar seção" (compact secondary;
- * one stage per call). In flight: this section's controls disable, the button
- * label swaps to "Regenerando {seção}…", and the sibling-reassurance line
- * renders (the card sits inside CurriculoHome's shared aria-live region) —
- * the displayed text stays fully mounted, never blanked. A failed regen
- * renders the section-scoped red panel (ErrorPanel structure + classes
- * verbatim) with the backend erros[] lines VERBATIM plus the retry hint;
- * shown only for this section's last failed attempt (cleared on its next
- * success) — prior text stays mounted. No editor/comparison/version controls
- * here — 05-02 and 05-03 own those.
+ * A generated section with the Phase 5 action row (D-05 + plan 05-02 D-12):
+ * "Editar seção" (quiet; hidden for Experiência — its per-entry
+ * "Editar entrada" controls live on each entry article) + "Adicionar dica" +
+ * "Regenerar seção" (05-01). Editing replaces the section's content with the
+ * SectionEditor textarea (D-12 — no modal, no separate view); the
+ * section-level text block also responds to click as a redundant pointer
+ * affordance (the button is the accessible affordance). One editor at a time:
+ * while ANY editor is open (or a long op is pending) the edit control
+ * disables (locksEdicao). In-flight/error behavior unchanged from 05-01.
+ * No comparison/version controls here yet — Task 2/3 of 05-02 and 05-03 own
+ * those.
  */
 function GeneratedSection({
   title,
   secao,
   children,
+  badge,
+  onEditarSecao,
+  locksEdicao,
   onRegenerarSecao,
   secaoRegenerando,
   regenerando,
@@ -124,6 +139,11 @@ function GeneratedSection({
   title: string
   secao: SecaoId
   children: React.ReactNode
+  badge: OrigemBadge
+  /** Section-level edit control; null for Experiência (per-entry controls). */
+  onEditarSecao: (() => void) | null
+  /** An editor is open (any section) OR a long op is pending. */
+  locksEdicao: boolean
   onRegenerarSecao: (secao: SecaoId) => void
   secaoRegenerando: SecaoId | null
   regenerando: boolean
@@ -138,8 +158,18 @@ function GeneratedSection({
   const erros = regenErros[secao]
   const inputId = `dica-input-${secao}`
   return (
-    <Section title={title} badge="gerado">
+    <Section title={title} badge={badge}>
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+        {onEditarSecao && (
+          <button
+            type="button"
+            onClick={onEditarSecao}
+            disabled={locksEdicao}
+            className={QUIET_BUTTON_CLASSES}
+          >
+            {EDITAR_SECAO_CTA}
+          </button>
+        )}
         <button
           type="button"
           onClick={() => onDicaToggle(secao)}
@@ -218,10 +248,28 @@ function ImpactBullets({ impacts, idioma }: { impacts: ImpactDTO[]; idioma: Resu
   )
 }
 
-/** Generated experience entry (ExperienceEntry visual pattern; plain strings from the backend). */
-function ExperienciaGeradaEntry({ exp }: { exp: ExperienciaGeradaDTO }) {
+/**
+ * Generated experience entry (ExperienceEntry visual pattern; plain strings
+ * from the backend) + the per-entry "Editar entrada" quiet control (D-12
+ * Experiência granularity: bullets one per line — company/title stay fixed).
+ * The entry text block also opens the editor on click (redundant pointer
+ * affordance; the button is the accessible path).
+ */
+function ExperienciaGeradaEntry({
+  exp,
+  onEditar,
+  desabilitado,
+}: {
+  exp: ExperienciaGeradaDTO
+  onEditar?: () => void
+  desabilitado?: boolean
+}) {
+  const clicavel = Boolean(onEditar) && !desabilitado
   return (
-    <article className="break-inside-avoid">
+    <article
+      className={clicavel ? 'break-inside-avoid cursor-pointer rounded hover:bg-gray-50' : 'break-inside-avoid'}
+      onClick={clicavel ? onEditar : undefined}
+    >
       <h5 className="text-sm font-semibold text-gray-900">
         {exp.company}
         {PREVIEW_CONTACT_SEPARATOR}
@@ -232,6 +280,19 @@ function ExperienciaGeradaEntry({ exp }: { exp: ExperienciaGeradaDTO }) {
           <li key={i}>{bullet}</li>
         ))}
       </ul>
+      {onEditar && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            if (!desabilitado) onEditar()
+          }}
+          disabled={desabilitado}
+          className={`mt-1 ${QUIET_BUTTON_CLASSES}`}
+        >
+          {EDITAR_ENTRADA_CTA}
+        </button>
+      )}
     </article>
   )
 }
@@ -257,23 +318,39 @@ interface ResumeResultProps {
   onDicaChange: (secao: SecaoId, valor: string) => void
   dicaAberta: Record<SecaoId, boolean>
   onDicaToggle: (secao: SecaoId) => void
+  // --- inline editing (plan 05-02, D-02/D-04/D-12) ---
+  /** Badge origin per generated section: 'gerado' at mount/regen, 'editado'
+   *  after a save or an editado-origem restore. */
+  origens: Record<SecaoId, OrigemBadge>
+  /** The ONE open editor (null = none) — replaces that section's content. */
+  editor: SecaoEditorState | null
+  /** Derived lock: an editor is open (any section) OR a long op is pending —
+   *  disables every edit affordance (one editor at a time, UI-SPEC). */
+  locksEdicao: boolean
+  onAbrirEditor: (secao: SecaoId, entryIdx?: number) => void
+  onDraftChange: (valor: string) => void
+  onSalvarEdicao: () => void
+  onCancelarEdicao: () => void
 }
 
 /**
  * Zone 4 — the assembled resume card (D-05): the 3 generated sections badged
  * "Gerado" (resumo, experiências, habilidades — always rendered; the backend
- * envelope is all-or-nothing) + passthrough perfil sections badged "Do perfil"
- * in ProfilePreview section order, with the name/contact header. Zero-entry
- * passthrough sections stay hidden (ProfilePreview convention). The neutral
- * ephemeral notice (D-06) renders directly ABOVE the card with role="status".
+ * envelope is all-or-nothing) + passthrough perfil sections badged "Do
+ * perfil" in ProfilePreview section order, with the name/contact header. The
+ * permanent D-02 edit-policy line renders directly under the card header
+ * (text-xs text-gray-600, ⚠ aria-hidden) whenever a result is mounted — the
+ * ephemeral edit contract is explicit in the UI at all times (SC4). The
+ * neutral ephemeral notice (D-06) stays directly ABOVE the card.
+ *
  * "Gerar novamente" re-runs with current inputs and replaces the ephemeral
- * result without confirmation (copy contract: no destructive confirmations).
- * Generated sections carry the Phase 5 action row — "Adicionar dica" (always
- * visible on-demand hint toggle, D-05) + "Regenerar seção" (one stage per
- * call; in-flight label swap + sibling reassurance line; a failure renders a
- * section-scoped red panel with backend lines verbatim and the prior text
- * still mounted — failure never blanks). Passthrough sections get NO new
- * controls. ALL content (LLM output included) renders exclusively as JSX text
+ * result (Phase 3 contract; the D-14 edited-state confirm lands in Task 3).
+ * Generated sections carry the Phase 5 action row: "Editar seção" (Experiência
+ * gets per-entry "Editar entrada" instead), "Adicionar dica" + "Regenerar
+ * seção" (05-01). Editing (D-12) replaces the section's content with the
+ * SectionEditor textarea; save flips that badge to "Editado" (state handled
+ * in CurriculoHome). Passthrough sections get NO new controls (D-13). ALL
+ * content (LLM output, edited text included) renders exclusively as JSX text
  * children — no raw-HTML injection path (T-01-08 posture inherited from
  * ProfilePreview).
  */
@@ -290,6 +367,13 @@ export function ResumeResult({
   onDicaChange,
   dicaAberta,
   onDicaToggle,
+  origens,
+  editor,
+  locksEdicao,
+  onAbrirEditor,
+  onDraftChange,
+  onSalvarEdicao,
+  onCancelarEdicao,
 }: ResumeResultProps) {
   const headings = CURRICULO_GENERATED_SECTIONS[idioma]
   const contactLine = [
@@ -332,10 +416,20 @@ export function ResumeResult({
           {contactLine && <p className="mt-1 text-sm text-gray-600">{contactLine}</p>}
         </header>
 
+        {/* D-02 permanent edit-policy line — always visible while a result is
+            mounted; the only permanent notice (it is NOT a second gray bordered
+            block competing with the ephemeral notice above the card). */}
+        <p className="mt-2 text-xs text-gray-600">
+          <span aria-hidden>⚠</span> {POLICY_EDICAO}
+        </p>
+
         <div className="mt-4 space-y-5">
           <GeneratedSection
             title={headings.resumo}
             secao="resumo"
+            badge={origens.resumo}
+            onEditarSecao={() => onAbrirEditor('resumo')}
+            locksEdicao={locksEdicao}
             onRegenerarSecao={onRegenerarSecao}
             secaoRegenerando={secaoRegenerando}
             regenerando={regenerando}
@@ -345,12 +439,34 @@ export function ResumeResult({
             dicaAberta={dicaAberta.resumo}
             onDicaToggle={onDicaToggle}
           >
-            <p className="text-sm text-gray-700">{secoes.resumo}</p>
+            {editor?.secao === 'resumo' ? (
+              <SectionEditor
+                secao="resumo"
+                draft={editor.draft}
+                dirty={editor.draft !== editor.inicial}
+                canSave={textoEditorValido('resumo', editor.draft)}
+                onDraftChange={onDraftChange}
+                onSave={onSalvarEdicao}
+                onCancel={onCancelarEdicao}
+              />
+            ) : (
+              <div
+                className="cursor-pointer rounded hover:bg-gray-50"
+                onClick={() => {
+                  if (!locksEdicao) onAbrirEditor('resumo')
+                }}
+              >
+                <p className="text-sm text-gray-700">{secoes.resumo}</p>
+              </div>
+            )}
           </GeneratedSection>
 
           <GeneratedSection
             title={headings.experiencias}
             secao="experiencias"
+            badge={origens.experiencias}
+            onEditarSecao={null}
+            locksEdicao={locksEdicao}
             onRegenerarSecao={onRegenerarSecao}
             secaoRegenerando={secaoRegenerando}
             regenerando={regenerando}
@@ -360,9 +476,26 @@ export function ResumeResult({
             dicaAberta={dicaAberta.experiencias}
             onDicaToggle={onDicaToggle}
           >
-            {secoes.experiencias.map((exp, i) => (
-              <ExperienciaGeradaEntry key={`${i}-${exp.company}`} exp={exp} />
-            ))}
+            {editor?.secao === 'experiencias' ? (
+              <SectionEditor
+                secao="experiencias"
+                draft={editor.draft}
+                dirty={editor.draft !== editor.inicial}
+                canSave={textoEditorValido('experiencias', editor.draft)}
+                onDraftChange={onDraftChange}
+                onSave={onSalvarEdicao}
+                onCancel={onCancelarEdicao}
+              />
+            ) : (
+              secoes.experiencias.map((exp, i) => (
+                <ExperienciaGeradaEntry
+                  key={`${i}-${exp.company}`}
+                  exp={exp}
+                  desabilitado={locksEdicao}
+                  onEditar={() => onAbrirEditor('experiencias', i)}
+                />
+              ))
+            )}
           </GeneratedSection>
 
           {perfil.education.length > 0 && (
@@ -389,6 +522,9 @@ export function ResumeResult({
           <GeneratedSection
             title={headings.habilidades}
             secao="habilidades"
+            badge={origens.habilidades}
+            onEditarSecao={() => onAbrirEditor('habilidades')}
+            locksEdicao={locksEdicao}
             onRegenerarSecao={onRegenerarSecao}
             secaoRegenerando={secaoRegenerando}
             regenerando={regenerando}
@@ -398,7 +534,26 @@ export function ResumeResult({
             dicaAberta={dicaAberta.habilidades}
             onDicaToggle={onDicaToggle}
           >
-            <p className="text-sm text-gray-700">{secoes.habilidades.join(', ')}</p>
+            {editor?.secao === 'habilidades' ? (
+              <SectionEditor
+                secao="habilidades"
+                draft={editor.draft}
+                dirty={editor.draft !== editor.inicial}
+                canSave={textoEditorValido('habilidades', editor.draft)}
+                onDraftChange={onDraftChange}
+                onSave={onSalvarEdicao}
+                onCancel={onCancelarEdicao}
+              />
+            ) : (
+              <div
+                className="cursor-pointer rounded hover:bg-gray-50"
+                onClick={() => {
+                  if (!locksEdicao) onAbrirEditor('habilidades')
+                }}
+              >
+                <p className="text-sm text-gray-700">{secoes.habilidades.join(', ')}</p>
+              </div>
+            )}
           </GeneratedSection>
 
           {perfil.certifications.length > 0 && (

@@ -80,6 +80,19 @@ export const COMPACT_SECONDARY_BUTTON_CLASSES =
   'inline-flex min-h-9 items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
 export const HINT_INPUT_CLASSES =
   'w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:border-blue-600 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600'
+// Promoted from CurriculoHome in plan 05-02 (UI-SPEC IN-04): the JD form
+// textarea AND the SectionEditor textarea share this ONE definition so the
+// editor can never drift from the form's visual base.
+export const TEXTAREA_CLASSES =
+  'min-h-40 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus-visible:border-blue-600 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600'
+// Badge class strings (D-04 tri-state): the solid-blue Editado state is the
+// phase's only new accent; Gerado's soft-blue classes were previously inline
+// in ResumeResult and are promoted here so SectionVersionsPanel's origin
+// badges reuse the exact same strings (IN-04).
+export const BADGE_GERADO_CLASSES =
+  'normal-case rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700'
+export const BADGE_EDITADO_CLASSES =
+  'normal-case rounded-full border border-blue-600 bg-blue-600 px-2 py-1 text-xs font-semibold text-white'
 
 // --- currículo screen (UI-SPEC Copywriting Contract, plan 03-04) ---
 export const CURRICULO_PAGE_TITLE = 'Currículo'
@@ -115,6 +128,7 @@ export const CURRICULO_LINT_FETCH_ERRO =
 export const CURRICULO_RESULT_TITLE = 'Currículo gerado'
 export const BADGE_GERADO = 'Gerado'
 export const BADGE_DO_PERFIL = 'Do perfil'
+export const BADGE_EDITADO = 'Editado'
 export const CURRICULO_EPHEMERAL_NOTICE =
   'Este resultado existe apenas nesta página — atualizar ou fechar o navegador perde o conteúdo. Copie o que quiser guardar.'
 export const CURRICULO_REGENERAR = 'Gerar novamente'
@@ -223,3 +237,37 @@ export const DICA_PLACEHOLDER = 'Ex.: destacar experiência com métricas de imp
 export const REGEN_ERROR_TITLE = 'Não foi possível regenerar {secao}'
 export const REGEN_ERROR_HINT =
   'Tente regenerar novamente. O detalhe técnico completo aparece no terminal onde o servidor está rodando.'
+
+// --- inline editing + version stack + confirm strips (UI-SPEC Copywriting
+// Contract, plan 05-02): D-02 policy line, D-04 badge, D-12 editor, D-08
+// versions, D-14 amber confirm strips. {secao} = PT-BR section label even on
+// EN runs (UI language convention). ---
+// D-02 permanent edit-policy line (card header + editor footer).
+export const POLICY_EDICAO =
+  'Edições valem apenas para esta execução — atualizar a página descarta.'
+// D-12 section/entry edit controls.
+export const EDITAR_SECAO_CTA = 'Editar seção'
+export const EDITAR_ENTRADA_CTA = 'Editar entrada'
+export const EDITAR_ARIA_LABEL = 'Editar {secao}'
+export const SALVAR_ALTERACOES_CTA = 'Salvar alterações'
+export const CANCELAR_EDICAO_CTA = 'Cancelar edição'
+export const EDIT_SAVE_GUARD = 'Guarde pelo menos um item — a seção não pode ficar vazia.'
+// Dirty-cancel confirm strip (inline amber — never a browser dialog).
+export const CANCELAR_SUJA_MESSAGE = 'Descartar as alterações desta edição?'
+export const CONTINUAR_EDITANDO_CTA = 'Continuar editando'
+export const DESCARTAR_ALTERACOES_CTA = 'Descartar alterações'
+// D-14 confirm strip: section regen over an edited/dirty section.
+export const REGEN_SOBE_EDICAO_MESSAGE = 'Isso vai descartar sua edição — continuar?'
+export const REGEN_SOBE_EDICAO_NOTE = 'A edição atual fica guardada em Versões.'
+export const MANTER_EDICAO_CTA = 'Manter edição'
+export const REGEN_MESMO_ASSIM_CTA = 'Regenerar mesmo assim'
+// D-14 confirm strip: full regeneration with edited sections.
+export const GERAR_COM_EDICOES_MESSAGE =
+  'Isso vai substituir suas edições — cada versão atual fica guardada em Versões. Continuar?'
+export const MANTER_EDICOES_CTA = 'Manter edições'
+export const GERAR_MESMO_ASSIM_CTA = 'Gerar mesmo assim'
+// D-08 per-section version stack (plan 05-02, Task 2).
+export const VERSOES_TOGGLE = 'Versões'
+export const VERSOES_TOGGLE_COUNT = 'Versões ({count})'
+export const VERSOES_INTRO = 'Versões anteriores desta seção — mais recente primeiro.'
+export const RESTAURAR_VERSAO_CTA = 'Restaurar versão'

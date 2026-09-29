@@ -8,9 +8,11 @@ import {
   fetchResumeLint,
   gerarCurriculo,
   regenerarSecao,
+  type ExperienciaGeradaDTO,
   type GerarResponse,
   type ResumeLanguage,
   type SecaoId,
+  type SecoesDTO,
   type SelfCheckDTO,
 } from '../api/client'
 import { ErrorPanel } from '../components/ErrorPanel'
@@ -18,9 +20,10 @@ import { ExportZone } from '../components/ExportZone'
 import { KeywordsPanel } from '../components/KeywordsPanel'
 import { LintPanel, type LintOk } from '../components/LintPanel'
 import { PlaceholderBanner } from '../components/PlaceholderBanner'
-import { ResumeResult } from '../components/ResumeResult'
+import { ResumeResult, type OrigemBadge } from '../components/ResumeResult'
 import { SelfCheckPanel } from '../components/SelfCheckPanel'
 import { StatusLine } from '../components/StatusLine'
+import { dividirLinhas, textoEditorValido, type SecaoEditorState } from '../components/SectionEditor'
 import {
   CURRICULO_CTA,
   CURRICULO_CTA_INFLIGHT,
@@ -41,25 +44,66 @@ import {
   PERFIL_ERROR_TITLE,
   PERFIL_LOADING,
   PRIMARY_BUTTON_CLASSES,
+  TEXTAREA_CLASSES,
 } from '../constants/ui'
 
 type GerarOk = Extract<GerarResponse, { status: 'ok' }>
+
+// --- inline editing / version stack (plan 05-02, D-01/D-04/D-08/D-12) ---
+// Session React state ONLY — no persistence layer, no shadow copy of
+// resultado.secoes (D-01); a refresh returns to the last generated result.
+/** A stored prior version of one section: the displayed text (in the
+ *  section's own value shape) + the badge origin it carried. */
+interface SectionVersion {
+  secao: SecaoId
+  origem: OrigemBadge
+  valor: SecoesDTO[SecaoId]
+}
 
 const JD_MIN_CHARS = 80 // boundary: exactly 80 trimmed chars enable CTA + lint query
 const DEBOUNCE_MS = 800 // one lint call per settled typing state (T-03-10 bound)
 
 // Pinned class strings from the UI-SPEC Component conventions (plan 03-04).
-// PRIMARY_BUTTON_CLASSES now lives in constants/ui.ts — single definition
-// shared with ExportZone (IN-04).
+// PRIMARY_BUTTON_CLASSES + TEXTAREA_CLASSES live in constants/ui.ts — single
+// definitions shared with ExportZone / SectionEditor (IN-04).
 const CARD_CLASSES = 'rounded-md border border-gray-200 bg-white shadow-sm p-4'
 const SECONDARY_BUTTON_CLASSES =
   'min-h-10 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
-const TEXTAREA_CLASSES =
-  'min-h-40 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus-visible:border-blue-600 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600'
 const IDIOMA_SELECTED_CLASSES =
   'cursor-pointer rounded bg-white px-3 py-1 text-sm font-semibold text-blue-600 shadow-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600'
 const IDIOMA_UNSELECTED_CLASSES =
   'cursor-pointer rounded px-3 py-1 text-sm text-gray-600 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-600'
+
+type SectionValor = SecoesDTO[SecaoId]
+
+/**
+ * Editor draft → the section's stored value shape (UI-SPEC D-12 granularity):
+ * Resumo replaces the string whole; Experiência replaces ONLY entry
+ * `entryIdx`'s bullets (company/title stay fixed — they are the profile-fact
+ * anchor of the comparison); Habilidades is one skill per line. Lines are
+ * split, trimmed, and emptied-out to match the export envelope's
+ * min_length=1 contract. The draft never touches profile files (D-01).
+ */
+function valorDeRascunho(
+  secoes: SecoesDTO,
+  secao: SecaoId,
+  entryIdx: number | null,
+  draft: string,
+): SectionValor {
+  if (secao === 'resumo') return draft
+  if (secao === 'habilidades') return dividirLinhas(draft)
+  const alvo = entryIdx ?? 0
+  return secoes.experiencias.map((exp, i) =>
+    i === alvo ? { ...exp, bullets: dividirLinhas(draft) } : exp,
+  )
+}
+
+/** Write a stored value back into the displayed secoes (typed per section). */
+function secoesComValor(secoes: SecoesDTO, secao: SecaoId, valor: SectionValor): SecoesDTO {
+  if (secao === 'resumo') return { ...secoes, resumo: valor as string }
+  if (secao === 'habilidades') return { ...secoes, habilidades: valor as string[] }
+  return { ...secoes, experiencias: valor as ExperienciaGeradaDTO[] }
+}
 
 /**
  * The Currículo screen (plans 03-04 + 04-03): paste JD → choose language →
@@ -106,6 +150,30 @@ export default function CurriculoHome() {
   // Per-section last failed regen: backend PT-BR lines verbatim, or [] for a
   // fetch-level failure (generic hint path). Key absent/undefined = no error.
   const [regenErros, setRegenErros] = useState<Partial<Record<SecaoId, string[]>>>({})
+  // Per-section version stacks (D-08, session-only like D-01/D-06): EVERY
+  // destructive path — edit save, section regen success, restore, confirmed
+  // full regen — pushes the current displayed text + badge origin here FIRST
+  // via empilharVersaoAtual. Newest first; never capped (single-user
+  // localhost session), never silently dropped.
+  // (`_versoes` reads nothing until Task 2's SectionVersionsPanel consumes
+  // the stacks — the underscore keeps tsc's noUnusedLocals quiet meanwhile.)
+  const [_versoes, setVersoes] = useState<Record<SecaoId, SectionVersion[]>>({
+    resumo: [],
+    experiencias: [],
+    habilidades: [],
+  })
+  // Badge origin per generated section (D-04 tri-state): 'gerado' at
+  // mount/regen, 'editado' after a save or the restore of an edited version.
+  const [origens, setOrigens] = useState<Record<SecaoId, OrigemBadge>>({
+    resumo: 'gerado',
+    experiencias: 'gerado',
+    habilidades: 'gerado',
+  })
+  // The ONE open inline editor (D-12): which section/entry + the textarea
+  // draft. Dirty is DERIVED (draft !== inicial) — never stored. The draft
+  // lives at page level so the D-14 regen-over-edit confirm can stack it
+  // before the editor closes.
+  const [editor, setEditor] = useState<SecaoEditorState | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedJd(jdText), DEBOUNCE_MS)
@@ -161,6 +229,10 @@ export default function CurriculoHome() {
     mutationFn: regenerarSecao,
     onSuccess: (data, variables) => {
       if (data.status === 'ok') {
+        // SC4 (plan 05-02, D-08): stack the pre-regen displayed version FIRST
+        // — the swap below is destructive, and the prior text + its badge
+        // origin must already be on the version stack when it happens.
+        empilharVersaoAtual(variables.secao)
         // Export-state reset FIRST (UI-SPEC, mirrors the gerar pattern): the
         // prior exported PDF no longer matches the displayed resume — clear
         // the receipt + self-check panel + export errors BEFORE mounting the
@@ -178,6 +250,12 @@ export default function CurriculoHome() {
               }
             : prev,
         )
+        // Badge lifecycle (UI-SPEC): regen success → 'gerado'.
+        setOrigens((prev) => ({ ...prev, [variables.secao]: 'gerado' }))
+        // The regen replaced the section under any editor open on it — close
+        // that editor rather than let it save a stale draft over the new
+        // text (a silent-overwrite hazard).
+        setEditor((prev) => (prev && prev.secao === variables.secao ? null : prev))
         setRegenErros((prev) => ({ ...prev, [variables.secao]: undefined }))
       } else {
         // 200-envelope erro: the PT-BR lines surface inside the OWNING
@@ -242,6 +320,64 @@ export default function CurriculoHome() {
   const secaoRegenerando: SecaoId | null =
     regenerar.isPending && regenerar.variables ? regenerar.variables.secao : null
 
+  // --- inline editing + SC4 version stack (plan 05-02) ---
+
+  // SC4/D-08 stack-before-mutate invariant: ONE helper at the TOP of every
+  // destructive path (edit save below, section regen success in the regenerar
+  // mutation, restore, confirmed full regen) — pushes the section's CURRENT
+  // displayed text + badge origin onto its version stack before any write,
+  // so nothing is ever silently destroyed. Long-op locks guarantee the
+  // displayed state cannot change between mutate() and onSuccess, so the
+  // closure reads below are always the texts being replaced.
+  function empilharValor(secao: SecaoId, valor: SectionValor, origem: OrigemBadge) {
+    setVersoes((prev) => ({ ...prev, [secao]: [{ secao, origem, valor }, ...prev[secao]] }))
+  }
+
+  function empilharVersaoAtual(secao: SecaoId) {
+    if (!resultado) return
+    empilharValor(secao, resultado.secoes[secao], origens[secao])
+  }
+
+  // Open the inline editor (D-12) pre-filled from the DISPLAYED text, at the
+  // UI-SPEC granularity: Resumo whole string; Experiência per entry (bullets
+  // one per line); Habilidades one skill per line. One editor at a time.
+  function abrirEditor(secao: SecaoId, entryIdx: number | null = null) {
+    if (!resultado || editor) return
+    let inicial: string
+    if (secao === 'resumo') inicial = resultado.secoes.resumo
+    else if (secao === 'habilidades') inicial = resultado.secoes.habilidades.join('\n')
+    else inicial = resultado.secoes.experiencias[entryIdx ?? 0]?.bullets.join('\n') ?? ''
+    setEditor({ secao, entryIdx, draft: inicial, inicial })
+  }
+
+  // Edit save (D-12/D-04): stack the pre-edit version FIRST (SC4), run the
+  // export-state reset triple (the prior PDF no longer matches), write the
+  // edited text into resultado.secoes (the single displayed-state source —
+  // export and self-check consume it with zero extra steps, D-03), flip the
+  // badge to Editado, close the editor. Cobertura chips stay untouched
+  // (gerar-time snapshot rule — only regen success swaps them).
+  function salvarEdicao() {
+    if (!editor || !resultado) return
+    if (!textoEditorValido(editor.secao, editor.draft)) return // guard paranoia (button already disabled)
+    const { secao, entryIdx, draft } = editor
+    empilharVersaoAtual(secao)
+    setReceiptFilename(null)
+    setSelfcheck(null)
+    setExportarErros(null)
+    const valor = valorDeRascunho(resultado.secoes, secao, entryIdx, draft)
+    setResultado((prev) =>
+      prev ? { ...prev, secoes: secoesComValor(prev.secoes, secao, valor) } : prev,
+    )
+    setOrigens((prev) => ({ ...prev, [secao]: 'editado' }))
+    setEditor(null)
+  }
+
+  // Cancel/discard: the SectionEditor gates a DIRTY cancel behind its inline
+  // ConfirmStrip; by the time this runs the user confirmed (or was clean).
+  function fecharEditor() {
+    setEditor(null)
+  }
+
   if (perfilQuery.isPending) {
     return <p className="text-gray-500">{PERFIL_LOADING}</p>
   }
@@ -268,6 +404,13 @@ export default function CurriculoHome() {
   // const so the Zone 6 export callback closes over a stable, typed value —
   // TS narrowing does not persist into closures over mutable query objects.
   const perfilOk = perfilQuery.data
+
+  // Derived lock booleans (UI-SPEC interaction rules — no ad-hoc scattered
+  // disabled logic; Task 3 extends with the D-14 confirm strips): any long
+  // op (full gerar, section regen, export) locks all mutation controls;
+  // an open editor additionally locks every edit affordance.
+  const operacaoLongaPendente = gerar.isPending || exportar.isPending || regenerar.isPending
+  const locksEdicao = editor !== null || operacaoLongaPendente
 
   return (
     <div className="space-y-6">
@@ -408,7 +551,7 @@ export default function CurriculoHome() {
               secoes={resultado.secoes}
               idioma={resultado.idioma}
               onRegenerar={gerarAgora}
-              regenerando={gerar.isPending || exportar.isPending || regenerar.isPending}
+              regenerando={operacaoLongaPendente}
               onRegenerarSecao={regenerarSecaoAgora}
               secaoRegenerando={secaoRegenerando}
               regenErros={regenErros}
@@ -416,6 +559,13 @@ export default function CurriculoHome() {
               onDicaChange={(secao, valor) => setDicas((prev) => ({ ...prev, [secao]: valor }))}
               dicaAberta={dicaAberta}
               onDicaToggle={(secao) => setDicaAberta((prev) => ({ ...prev, [secao]: !prev[secao] }))}
+              origens={origens}
+              editor={editor}
+              locksEdicao={locksEdicao}
+              onAbrirEditor={(secao, entryIdx) => abrirEditor(secao, entryIdx ?? null)}
+              onDraftChange={(valor) => setEditor((prev) => (prev ? { ...prev, draft: valor } : prev))}
+              onSalvarEdicao={salvarEdicao}
+              onCancelarEdicao={fecharEditor}
             />
             <ExportZone
               onExportar={() =>
