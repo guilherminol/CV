@@ -266,8 +266,10 @@ export default function CurriculoHome() {
   const regenerar = useMutation({
     mutationFn: regenerarSecao,
     onSuccess: (data, variables) => {
-      // The pending D-14 confirm (if any) concluded with this attempt.
-      setStripRegen(null)
+      // Only THIS section's pending D-14 confirm concluded with this attempt
+      // (IN-01): an unrelated section's regen success must not dismiss a
+      // strip the user has not acted on — that pending intent stays mounted.
+      setStripRegen((prev) => (prev === variables.secao ? null : prev))
       if (data.status === 'ok') {
         // SC4 (plan 05-02, D-08): stack the pre-regen displayed version FIRST
         // — the swap below is destructive, and the prior text + its badge
