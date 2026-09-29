@@ -236,6 +236,55 @@ export async function exportarCurriculo(payload: ExportarRequest): Promise<Expor
   return (await resp.json()) as ExportarResponse
 }
 
+// --- per-section regeneration (plan 05-01) — mirrors the NORMATIVE envelope
+// contract implemented by backend/app/routes/resume.py (RegenerarRequest +
+// run_section_regen). Change BOTH together; tsc -b is the drift gate.
+
+/** Section id — matches the backend's Literal['resumo','experiencias','habilidades']. */
+export type SecaoId = 'resumo' | 'experiencias' | 'habilidades'
+
+/** Strict-body mirror of RegenerarRequest. `secoes` is the displayed state
+ *  verbatim (the ExportarSecoes shape the export endpoint already posts). */
+export interface RegenerarRequest {
+  jd_text: string
+  language: ResumeLanguage
+  secao: SecaoId
+  secoes: SecoesDTO
+  keywords: KeywordDTO[] // may be [] — zero-keyword runs are legitimate
+  dica?: string // optional steering hint — NEVER sent as an empty key
+}
+
+/** 05-01 envelope: ok carries the FULL merged secoes + recomputed coverage
+ *  (the client replaces its state wholesale — no client-side merge); the
+ *  erro branch carries ONLY erros (200-envelope house rule). */
+export type RegenerarResponse =
+  | {
+      status: 'ok'
+      idioma: ResumeLanguage
+      secoes: SecoesDTO
+      cobertura: CoberturaItemDTO[]
+      cobertura_resumo: { cobertos: number; total: number }
+    }
+  | { status: 'erro'; erros: string[] }
+
+/** One section's regen: exactly ONE gateway stage runs server-side. The dica
+ *  key is OMITTED from the body when empty/whitespace — the backend model is
+ *  extra=forbid, and `dica: ""` would be a useless key (blank normalizes to
+ *  None backend-side; here it simply never travels). */
+export async function regenerarSecao(payload: RegenerarRequest): Promise<RegenerarResponse> {
+  const { dica, ...rest } = payload
+  const body = dica && dica.trim() ? { ...rest, dica } : rest
+  const resp = await fetch('/api/resume/regenerar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!resp.ok) {
+    throw new Error(`POST /api/resume/regenerar falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as RegenerarResponse
+}
+
 /** D-11: the browser's native download UI. Bytes come from the same export
  *  response (atob → Uint8Array → Blob); the filename is the backend-generated
  *  `curriculo-{idioma}-{data}.pdf` — NEVER recomposed client-side. No new deps

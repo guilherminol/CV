@@ -5,17 +5,31 @@ import type {
   PerfilDTO,
   ResumeLanguage,
   SecoesDTO,
+  SecaoId,
 } from '../api/client'
 import {
   BADGE_DO_PERFIL,
   BADGE_GERADO,
+  COMPACT_SECONDARY_BUTTON_CLASSES,
   CURRICULO_EPHEMERAL_NOTICE,
   CURRICULO_GENERATED_SECTIONS,
   CURRICULO_REGENERAR,
   CURRICULO_RESULT_TITLE,
+  DICA_LABEL,
+  DICA_PLACEHOLDER,
+  DICA_TOGGLE_ADD,
+  DICA_TOGGLE_HIDE,
+  HINT_INPUT_CLASSES,
   PREVIEW_CONTACT_SEPARATOR,
   PREVIEW_PRESENT,
   PREVIEW_SECTIONS,
+  QUIET_BUTTON_CLASSES,
+  REGEN_ERROR_HINT,
+  REGEN_ERROR_TITLE,
+  REGEN_INFLIGHT_LINE,
+  REGEN_SECTION_CTA,
+  REGEN_SECTION_INFLIGHT,
+  REGEN_SECAO_LABELS,
 } from '../constants/ui'
 
 // Pinned UI-SPEC class strings (Component conventions, plan 03-04).
@@ -80,6 +94,112 @@ function Section({
   )
 }
 
+/**
+ * A generated section with the Phase 5 action row (plan 05-01, D-05/D-07):
+ * "Adicionar dica" — the ALWAYS-visible quiet toggle that reveals the labeled
+ * one-line hint input on demand — plus "Regenerar seção" (compact secondary;
+ * one stage per call). In flight: this section's controls disable, the button
+ * label swaps to "Regenerando {seção}…", and the sibling-reassurance line
+ * renders (the card sits inside CurriculoHome's shared aria-live region) —
+ * the displayed text stays fully mounted, never blanked. A failed regen
+ * renders the section-scoped red panel (ErrorPanel structure + classes
+ * verbatim) with the backend erros[] lines VERBATIM plus the retry hint;
+ * shown only for this section's last failed attempt (cleared on its next
+ * success) — prior text stays mounted. No editor/comparison/version controls
+ * here — 05-02 and 05-03 own those.
+ */
+function GeneratedSection({
+  title,
+  secao,
+  children,
+  onRegenerarSecao,
+  secaoRegenerando,
+  regenerando,
+  regenErros,
+  dica,
+  onDicaChange,
+  dicaAberta,
+  onDicaToggle,
+}: {
+  title: string
+  secao: SecaoId
+  children: React.ReactNode
+  onRegenerarSecao: (secao: SecaoId) => void
+  secaoRegenerando: SecaoId | null
+  regenerando: boolean
+  regenErros: Partial<Record<SecaoId, string[]>>
+  dica: string
+  onDicaChange: (secao: SecaoId, valor: string) => void
+  dicaAberta: boolean
+  onDicaToggle: (secao: SecaoId) => void
+}) {
+  const label = REGEN_SECAO_LABELS[secao]
+  const pending = secaoRegenerando === secao
+  const erros = regenErros[secao]
+  const inputId = `dica-input-${secao}`
+  return (
+    <Section title={title} badge="gerado">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <button
+          type="button"
+          onClick={() => onDicaToggle(secao)}
+          aria-expanded={dicaAberta}
+          disabled={regenerando}
+          className={QUIET_BUTTON_CLASSES}
+        >
+          {dicaAberta ? DICA_TOGGLE_HIDE : DICA_TOGGLE_ADD}
+        </button>
+        <button
+          type="button"
+          onClick={() => onRegenerarSecao(secao)}
+          disabled={regenerando}
+          className={COMPACT_SECONDARY_BUTTON_CLASSES}
+        >
+          {pending ? REGEN_SECTION_INFLIGHT.replace('{secao}', label) : REGEN_SECTION_CTA}
+        </button>
+      </div>
+      {dicaAberta && (
+        <div className="space-y-1">
+          <label htmlFor={inputId} className="block text-xs font-semibold text-gray-900">
+            {DICA_LABEL}
+          </label>
+          <input
+            id={inputId}
+            type="text"
+            value={dica}
+            onChange={(event) => onDicaChange(secao, event.target.value)}
+            placeholder={DICA_PLACEHOLDER}
+            disabled={regenerando}
+            className={HINT_INPUT_CLASSES}
+          />
+        </div>
+      )}
+      {children}
+      {pending && (
+        <p className="text-sm text-gray-600">{REGEN_INFLIGHT_LINE.replace('{secao}', label)}</p>
+      )}
+      {erros && (
+        <section
+          aria-labelledby={`regen-error-title-${secao}`}
+          className="rounded-md border border-red-300 bg-red-50 px-4 py-3"
+        >
+          <h5 id={`regen-error-title-${secao}`} className="font-semibold text-red-700">
+            {REGEN_ERROR_TITLE.replace('{secao}', label)}
+          </h5>
+          {erros.length > 0 && (
+            <ul className="mt-2 list-disc pl-5 text-sm text-red-700 whitespace-pre-wrap">
+              {erros.map((linha, i) => (
+                <li key={`${i}-${linha}`}>{linha}</li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-xs text-red-600">{REGEN_ERROR_HINT}</p>
+        </section>
+      )}
+    </Section>
+  )
+}
+
 function ImpactBullets({ impacts, idioma }: { impacts: ImpactDTO[]; idioma: ResumeLanguage }) {
   if (impacts.length === 0) return null
   return (
@@ -121,7 +241,22 @@ interface ResumeResultProps {
   secoes: SecoesDTO
   idioma: ResumeLanguage
   onRegenerar: () => void
+  /** ANY long op pending (full gerar, section regen, export) — the shared lock. */
   regenerando: boolean
+  // --- per-section regeneration (plan 05-01, SC1/D-05) ---
+  onRegenerarSecao: (secao: SecaoId) => void
+  /** The section whose regen is in flight (null = none) — drives the in-flight
+   *  line + that button's label swap; displayed text stays fully mounted. */
+  secaoRegenerando: SecaoId | null
+  /** Per-section last failed regen: backend PT-BR erros[] verbatim, or [] for
+   *  a fetch-level failure (generic hint path). Cleared on that section's
+   *  next success; never blanks the prior text. */
+  regenErros: Partial<Record<SecaoId, string[]>>
+  // --- per-section dica UI state (D-05: on-demand steering hint) ---
+  dicas: Record<SecaoId, string>
+  onDicaChange: (secao: SecaoId, valor: string) => void
+  dicaAberta: Record<SecaoId, boolean>
+  onDicaToggle: (secao: SecaoId) => void
 }
 
 /**
@@ -133,10 +268,29 @@ interface ResumeResultProps {
  * ephemeral notice (D-06) renders directly ABOVE the card with role="status".
  * "Gerar novamente" re-runs with current inputs and replaces the ephemeral
  * result without confirmation (copy contract: no destructive confirmations).
- * ALL content (LLM output included) renders exclusively as JSX text children —
- * no raw-HTML injection path (T-01-08 posture inherited from ProfilePreview).
+ * Generated sections carry the Phase 5 action row — "Adicionar dica" (always
+ * visible on-demand hint toggle, D-05) + "Regenerar seção" (one stage per
+ * call; in-flight label swap + sibling reassurance line; a failure renders a
+ * section-scoped red panel with backend lines verbatim and the prior text
+ * still mounted — failure never blanks). Passthrough sections get NO new
+ * controls. ALL content (LLM output included) renders exclusively as JSX text
+ * children — no raw-HTML injection path (T-01-08 posture inherited from
+ * ProfilePreview).
  */
-export function ResumeResult({ perfil, secoes, idioma, onRegenerar, regenerando }: ResumeResultProps) {
+export function ResumeResult({
+  perfil,
+  secoes,
+  idioma,
+  onRegenerar,
+  regenerando,
+  onRegenerarSecao,
+  secaoRegenerando,
+  regenErros,
+  dicas,
+  onDicaChange,
+  dicaAberta,
+  onDicaToggle,
+}: ResumeResultProps) {
   const headings = CURRICULO_GENERATED_SECTIONS[idioma]
   const contactLine = [
     perfil.contact.email,
@@ -179,15 +333,37 @@ export function ResumeResult({ perfil, secoes, idioma, onRegenerar, regenerando 
         </header>
 
         <div className="mt-4 space-y-5">
-          <Section title={headings.resumo} badge="gerado">
+          <GeneratedSection
+            title={headings.resumo}
+            secao="resumo"
+            onRegenerarSecao={onRegenerarSecao}
+            secaoRegenerando={secaoRegenerando}
+            regenerando={regenerando}
+            regenErros={regenErros}
+            dica={dicas.resumo}
+            onDicaChange={onDicaChange}
+            dicaAberta={dicaAberta.resumo}
+            onDicaToggle={onDicaToggle}
+          >
             <p className="text-sm text-gray-700">{secoes.resumo}</p>
-          </Section>
+          </GeneratedSection>
 
-          <Section title={headings.experiencias} badge="gerado">
+          <GeneratedSection
+            title={headings.experiencias}
+            secao="experiencias"
+            onRegenerarSecao={onRegenerarSecao}
+            secaoRegenerando={secaoRegenerando}
+            regenerando={regenerando}
+            regenErros={regenErros}
+            dica={dicas.experiencias}
+            onDicaChange={onDicaChange}
+            dicaAberta={dicaAberta.experiencias}
+            onDicaToggle={onDicaToggle}
+          >
             {secoes.experiencias.map((exp, i) => (
               <ExperienciaGeradaEntry key={`${i}-${exp.company}`} exp={exp} />
             ))}
-          </Section>
+          </GeneratedSection>
 
           {perfil.education.length > 0 && (
             <Section title={PREVIEW_SECTIONS.formacao} badge="perfil">
@@ -210,9 +386,20 @@ export function ResumeResult({ perfil, secoes, idioma, onRegenerar, regenerando 
             </Section>
           )}
 
-          <Section title={headings.habilidades} badge="gerado">
+          <GeneratedSection
+            title={headings.habilidades}
+            secao="habilidades"
+            onRegenerarSecao={onRegenerarSecao}
+            secaoRegenerando={secaoRegenerando}
+            regenerando={regenerando}
+            regenErros={regenErros}
+            dica={dicas.habilidades}
+            onDicaChange={onDicaChange}
+            dicaAberta={dicaAberta.habilidades}
+            onDicaToggle={onDicaToggle}
+          >
             <p className="text-sm text-gray-700">{secoes.habilidades.join(', ')}</p>
-          </Section>
+          </GeneratedSection>
 
           {perfil.certifications.length > 0 && (
             <Section title={PREVIEW_SECTIONS.certificacoes} badge="perfil">

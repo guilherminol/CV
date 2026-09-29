@@ -72,6 +72,14 @@ export const PREVIEW_CONTACT_SEPARATOR = ' · '
 // module-local copies that could silently drift).
 export const PRIMARY_BUTTON_CLASSES =
   'min-h-10 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
+// Phase 5 section-action-row controls (UI-SPEC Component conventions, plan 05-01)
+// — promoted to constants for the same IN-04 single-definition rule.
+export const QUIET_BUTTON_CLASSES =
+  'rounded text-xs font-semibold text-gray-600 underline-offset-2 hover:text-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
+export const COMPACT_SECONDARY_BUTTON_CLASSES =
+  'inline-flex min-h-9 items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
+export const HINT_INPUT_CLASSES =
+  'w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:border-blue-600 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600'
 
 // --- currículo screen (UI-SPEC Copywriting Contract, plan 03-04) ---
 export const CURRICULO_PAGE_TITLE = 'Currículo'
@@ -194,3 +202,24 @@ export const SELFCHECK_KEYWORDS_ZERO =
   'Nenhuma keyword foi extraída nesta execução — nada para verificar no PDF.'
 export const SELFCHECK_GATE_FOOTER =
   'Antes do download, o gate automático também provou empresa, cargo e datas juntos em cada experiência e acentos intactos na camada de texto.'
+
+// --- per-section regeneration (UI-SPEC Copywriting Contract, plan 05-01) ---
+// {secao} interpolation slots — plain template replace, never a formatter
+// library. The section name is the PT-BR label EVEN ON EN RUNS (UI language
+// convention); backend erros[] lines render verbatim — no per-line constants.
+export const REGEN_SECAO_LABELS = {
+  resumo: 'Resumo',
+  experiencias: 'Experiência',
+  habilidades: 'Habilidades',
+} as const
+export const REGEN_SECTION_CTA = 'Regenerar seção'
+export const REGEN_SECTION_INFLIGHT = 'Regenerando {secao}…'
+export const REGEN_INFLIGHT_LINE =
+  'Regenerando {secao}… as outras seções permanecem inalteradas.'
+export const DICA_TOGGLE_ADD = 'Adicionar dica'
+export const DICA_TOGGLE_HIDE = 'Ocultar dica'
+export const DICA_LABEL = 'Dica para esta seção (opcional)'
+export const DICA_PLACEHOLDER = 'Ex.: destacar experiência com métricas de impacto'
+export const REGEN_ERROR_TITLE = 'Não foi possível regenerar {secao}'
+export const REGEN_ERROR_HINT =
+  'Tente regenerar novamente. O detalhe técnico completo aparece no terminal onde o servidor está rodando.'

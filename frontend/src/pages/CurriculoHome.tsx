@@ -7,8 +7,10 @@ import {
   fetchProfile,
   fetchResumeLint,
   gerarCurriculo,
+  regenerarSecao,
   type GerarResponse,
   type ResumeLanguage,
+  type SecaoId,
   type SelfCheckDTO,
 } from '../api/client'
 import { ErrorPanel } from '../components/ErrorPanel'
@@ -88,6 +90,22 @@ export default function CurriculoHome() {
   const [selfcheck, setSelfcheck] = useState<SelfCheckDTO | null>(null)
   // Export failure (backend PT-BR lines, or [] for a thrown fetch failure).
   const [exportarErros, setExportarErros] = useState<string[] | null>(null)
+  // Zone 4 per-section regen state (plan 05-01, session-only like D-06):
+  // the steering hint (D-05) + its on-demand toggle live per section and
+  // persist across that section's regens until the result is replaced.
+  const [dicas, setDicas] = useState<Record<SecaoId, string>>({
+    resumo: '',
+    experiencias: '',
+    habilidades: '',
+  })
+  const [dicaAberta, setDicaAberta] = useState<Record<SecaoId, boolean>>({
+    resumo: false,
+    experiencias: false,
+    habilidades: false,
+  })
+  // Per-section last failed regen: backend PT-BR lines verbatim, or [] for a
+  // fetch-level failure (generic hint path). Key absent/undefined = no error.
+  const [regenErros, setRegenErros] = useState<Partial<Record<SecaoId, string[]>>>({})
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedJd(jdText), DEBOUNCE_MS)
@@ -118,6 +136,11 @@ export default function CurriculoHome() {
         setExportarErros(null)
         setResultado(data)
         setGerarErros(null)
+        // A replaced result invalidates the per-section regen state (UI-SPEC
+        // hint lifecycle: the dica persists until cleared or replaced).
+        setDicas({ resumo: '', experiencias: '', habilidades: '' })
+        setDicaAberta({ resumo: false, experiencias: false, habilidades: false })
+        setRegenErros({})
       } else {
         // 200-envelope erro: backend PT-BR lines, rendered verbatim below.
         setGerarErros(data.erros)
@@ -127,6 +150,45 @@ export default function CurriculoHome() {
       // Fetch-level failure (server down): fail-loud panel + retry, prior
       // result stays mounted. Raw detail is in the uvicorn terminal only.
       setGerarErros([])
+    },
+  })
+
+  // Per-section regeneration (plan 05-01, SC1/D-06/D-07): the response's FULL
+  // merged secoes replaces the displayed state WHOLESALE — no client-side
+  // merge — and the recomputed cobertura/cobertura_resumo swap into Zone 5
+  // from the same response (chips never silently stale after a regen).
+  const regenerar = useMutation({
+    mutationFn: regenerarSecao,
+    onSuccess: (data, variables) => {
+      if (data.status === 'ok') {
+        // Export-state reset FIRST (UI-SPEC, mirrors the gerar pattern): the
+        // prior exported PDF no longer matches the displayed resume — clear
+        // the receipt + self-check panel + export errors BEFORE mounting the
+        // new displayed state.
+        setReceiptFilename(null)
+        setSelfcheck(null)
+        setExportarErros(null)
+        setResultado((prev) =>
+          prev
+            ? {
+                ...prev,
+                secoes: data.secoes,
+                cobertura: data.cobertura,
+                cobertura_resumo: data.cobertura_resumo,
+              }
+            : prev,
+        )
+        setRegenErros((prev) => ({ ...prev, [variables.secao]: undefined }))
+      } else {
+        // 200-envelope erro: the PT-BR lines surface inside the OWNING
+        // section (section-scoped red panel); prior text stays mounted.
+        setRegenErros((prev) => ({ ...prev, [variables.secao]: data.erros }))
+      }
+    },
+    onError: (_error, variables) => {
+      // Fetch-level failure (server down): same section-scoped panel with the
+      // generic erros=[] hint. Raw detail is in the uvicorn terminal only.
+      setRegenErros((prev) => ({ ...prev, [variables.secao]: [] }))
     },
   })
 
@@ -158,6 +220,27 @@ export default function CurriculoHome() {
   function gerarAgora() {
     gerar.mutate({ jd_text: trimmed, language: idioma })
   }
+
+  // Regenerate ONE section from the CURRENT displayed state + form inputs
+  // (jd_text/language) + that section's persisted dica (D-05). The response's
+  // merged secoes replaces the state wholesale in onSuccess — nothing merges
+  // client-side. (An empty dica key is dropped inside regenerarSecao.)
+  function regenerarSecaoAgora(secao: SecaoId) {
+    if (!resultado) return
+    regenerar.mutate({
+      jd_text: trimmed,
+      language: idioma,
+      secao,
+      secoes: resultado.secoes,
+      keywords: resultado.keywords,
+      dica: dicas[secao],
+    })
+  }
+
+  // Which section's regen is in flight (null = none) — the mutation carries
+  // exactly one request at a time (UI-SPEC: one long operation at a time).
+  const secaoRegenerando: SecaoId | null =
+    regenerar.isPending && regenerar.variables ? regenerar.variables.secao : null
 
   if (perfilQuery.isPending) {
     return <p className="text-gray-500">{PERFIL_LOADING}</p>
@@ -248,7 +331,9 @@ export default function CurriculoHome() {
 
           <button
             type="submit"
-            disabled={trimmed.length < JD_MIN_CHARS || gerar.isPending || exportar.isPending}
+            disabled={
+              trimmed.length < JD_MIN_CHARS || gerar.isPending || exportar.isPending || regenerar.isPending
+            }
             className={PRIMARY_BUTTON_CLASSES}
           >
             {gerar.isPending ? CURRICULO_CTA_INFLIGHT : CURRICULO_CTA}
@@ -323,7 +408,14 @@ export default function CurriculoHome() {
               secoes={resultado.secoes}
               idioma={resultado.idioma}
               onRegenerar={gerarAgora}
-              regenerando={gerar.isPending || exportar.isPending}
+              regenerando={gerar.isPending || exportar.isPending || regenerar.isPending}
+              onRegenerarSecao={regenerarSecaoAgora}
+              secaoRegenerando={secaoRegenerando}
+              regenErros={regenErros}
+              dicas={dicas}
+              onDicaChange={(secao, valor) => setDicas((prev) => ({ ...prev, [secao]: valor }))}
+              dicaAberta={dicaAberta}
+              onDicaToggle={(secao) => setDicaAberta((prev) => ({ ...prev, [secao]: !prev[secao] }))}
             />
             <ExportZone
               onExportar={() =>
@@ -335,7 +427,7 @@ export default function CurriculoHome() {
                 })
               }
               exporting={exportar.isPending}
-              ctaDisabled={gerar.isPending || exportar.isPending}
+              ctaDisabled={gerar.isPending || exportar.isPending || regenerar.isPending}
               receiptFilename={receiptFilename}
               erros={exportarErros}
             />
