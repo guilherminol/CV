@@ -292,9 +292,7 @@ def test_siblings_byte_identical_only_target_replaced(
         assert secoes["resumo"] is submitted.resumo
 
     if secao == "experiencias":
-        assert secoes["experiencias"] == [
-            entry.model_dump() for entry in json.loads(NEW_EXPERIENCIAS_CONTENT)["experiencias"]
-        ]
+        assert secoes["experiencias"] == json.loads(NEW_EXPERIENCIAS_CONTENT)["experiencias"]
     else:
         assert secoes["experiencias"] == [entry.model_dump() for entry in submitted.experiencias]
         assert secoes["experiencias"][0]["company"] == submitted.experiencias[0].company
