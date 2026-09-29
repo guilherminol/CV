@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Foundation — Scaffold + Master Profile** - App runs locally with a PT-BR interface; git-versioned master profile schema with example data, validated loudly on load
 - [x] **Phase 2: LLM Generation Core** - One logged, schema-validated, bilingual OpenRouter gateway with meta-prompts as editable git files and an input-agnostic {en, pt} keyword engine (completed 2026-09-26)
 - [x] **Phase 3: Resume Vertical Slice** - Paste JD → grounded, keyword-targeted resume sections with visible keyword extraction, coverage checklist, and completeness lint (completed 2026-09-26)
-- [ ] **Phase 4: PDF Export + ATS Self-Check** - Sendable single-column Google-format PDF whose text layer is proven by an automated parse-back gate, in both languages
+- [x] **Phase 4: PDF Export + ATS Self-Check** - Sendable single-column Google-format PDF whose text layer is proven by an automated parse-back gate, in both languages (completed 2026-09-27)
 - [ ] **Phase 5: Review Flow + Fact Safety** - Per-section regenerate, inline editing, and source-vs-generated fact diff before export
 - [ ] **Phase 6: LinkedIn Module + Bilingual Hardening** - Career objective → headline/About/experience/skills, length-enforced and copy-paste ready in PT-BR or EN
 
@@ -167,8 +167,24 @@ Plans:
   3. User sees a side-by-side comparison of profile source facts vs generated text, making any invention immediately visible.
   4. Regenerating a section never silently destroys user edits — prior versions of each section remain accessible, and the edit policy (ephemeral vs written back to profile files) is explicit in the UI.
 
-**Plans**: TBD
+**Plans**: 4 plans
 **UI hint**: yes
+
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Tracer: per-section regeneration end-to-end — POST /api/resume/regenerar (one run_stage, full merged secoes, byte-identical siblings, recomputed coverage), hint-as-data compose, offline regen test family, "Regenerar seção" + "Adicionar dica" wiring on the result screen (REVIEW-01 SC1)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 05-02-PLAN.md — Inline editor + Editado badge + version stack + SC4 locking matrix (D-01/D-02/D-04/D-08/D-12/D-14 confirm strips)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 05-03-PLAN.md — Comparison panel: lib/comparison.ts port of the fold/numeral mechanics + facts-vs-generated two-column panel with deterministic invention highlights as suspicion (REVIEW-01 SC3)
+
+**Wave 4** *(blocked on Waves 1-3; end-of-phase gate)*
+
+- [ ] 05-04-PLAN.md — Checkpoint: SC4 locking matrix + comparison + edits→export UAT (autonomous:false; resolved-as-deferred per run convention)
 
 ### Phase 6: LinkedIn Module + Bilingual Hardening
 
@@ -196,6 +212,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation — Scaffold + Master Profile | 3/3 | In Progress|  |
 | 2. LLM Generation Core | 5/5 | Complete    | 2026-09-26 |
 | 3. Resume Vertical Slice | 5/5 | Complete    | 2026-09-26 |
-| 4. PDF Export + ATS Self-Check | 3/3 | In Progress|  |
-| 5. Review Flow + Fact Safety | 0/TBD | Not started | - |
+| 4. PDF Export + ATS Self-Check | 3/3 | Complete    | 2026-09-27 |
+| 5. Review Flow + Fact Safety | 0/4 | Not started | - |
 | 6. LinkedIn Module + Bilingual Hardening | 0/TBD | Not started | - |
