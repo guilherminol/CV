@@ -20,7 +20,13 @@ import json
 
 import pytest
 
-from app.config import LLM_MODEL, OPENROUTER_API_KEY
+from app.config import (
+    LLM_MODEL,
+    LINKEDIN_EXPERIENCIA_MAX_CHARS,
+    LINKEDIN_HEADLINE_MAX_CHARS,
+    LINKEDIN_SOBRE_MAX_CHARS,
+    OPENROUTER_API_KEY,
+)
 from app.llm.errors import LLMError
 from app.llm.gateway import run_stage
 from llm_fixtures import JD_EN, JD_PT, OBJECTIVE_EN, OBJECTIVE_PT
@@ -289,3 +295,147 @@ def test_real_run_resume_pipeline_bilingual(
         assert any(
             ch in secoes["resumo"] for ch in "áéíóúãõçêâô"
         ), f"{label}: resumo PT-BR sem caracteres acentuados (probe de UTF-8)"
+
+
+# ---------------------------------------------------------------------------
+# Real-API bilingual LinkedIn-PIPELINE harness (plan 06-05) — the SC4 DoD
+# (D-15): a prompts/*.md edit (glossario.md included) is NOT done until this
+# suite is green. Mirrors the bilingual resume-pipeline test above exactly;
+# the fixtures are the EXISTING llm_fixtures OBJECTIVE_PT / OBJECTIVE_EN.
+# ---------------------------------------------------------------------------
+
+# The EXACT four stages a LinkedIn run must audit in runs.jsonl (D-10/D-13):
+# NO keyword-extraction stage — the LinkedIn pipeline has no JD extraction
+# (the career objective replaces it, D-09).
+LINKEDIN_PIPELINE_STAGES = {
+    "linkedin-headline",
+    "linkedin-sobre",
+    "linkedin-experiencias",
+    "linkedin-skills",
+}
+
+
+@_llm_guard
+@pytest.mark.llm
+@pytest.mark.parametrize(
+    ("objetivo", "language", "label"),
+    [
+        (OBJECTIVE_EN, "en", "linkedin-EN"),
+        (OBJECTIVE_PT, "pt-BR", "linkedin-PT"),
+    ],
+)
+def test_real_run_linkedin_pipeline_bilingual(
+    objetivo: str, language: str, label: str, tmp_path, monkeypatch, shipped_profile_path
+) -> None:
+    """Full bilingual LinkedIn pipeline live (SC4 DoD, D-15): all FOUR
+    sequential LinkedIn stages over the shipped example profile through the
+    ONE real call path (run_linkedin_pipeline with client=None).
+
+    Asserts the ok envelope (idioma/secoes/limites/qa), the D-07
+    limit-or-flag contract for all three character-limited surfaces
+    (headline / sobre / per-entry descrições — surfaced, NEVER truncated),
+    the SC4 qa key contract (pt-BR dict with list-valued glossario/bleed;
+    en null), the runs.jsonl stage audit (exactly the four linkedin stages,
+    metadata-only lines), and the PT-BR UTF-8 probe (accents intact end to
+    end).
+    """
+    from app.linkedin.pipeline import run_linkedin_pipeline
+    from app.profile.loader import load_profile
+
+    monkeypatch.setattr("app.profile.loader.PROFILE_PATH", shipped_profile_path)
+    runs_log = tmp_path / "runs.jsonl"
+    envelope = run_linkedin_pipeline(objetivo, language, runs_log=runs_log)  # client=None: real path
+
+    # The pipeline builds the ok envelope MINUS the "status" key (the gerar
+    # route wraps with {"status": "ok", **result} — pinned offline in
+    # test_linkedin_api.py). Reaching here at all means no stage raised:
+    # all-or-nothing, an erro envelope is unreachable on this direct path.
+    assert set(envelope) == {"idioma", "secoes", "limites", "qa"}, (
+        f"{label}: envelope inesperado: {sorted(envelope)}"
+    )
+    assert envelope["idioma"] == language, f"{label}: idioma divergente do pedido"
+
+    # The four generated sections, minimum substance bar + loud-empty echo.
+    secoes = envelope["secoes"]
+    assert set(secoes) == {"headline", "sobre", "experiencias", "habilidades"}
+    assert secoes["headline"], f"{label}: headline vazio"
+    assert secoes["sobre"], f"{label}: sobre vazio"
+
+    # D-07 limit-or-flag contract (LI-02/LI-03/LI-04): every character-limited
+    # surface within its config constant OR flagged in limites — surfaced,
+    # never silently truncated. limites.limite pins the shipped constants.
+    limites = envelope["limites"]
+    for bloco, max_chars in (
+        ("headline", LINKEDIN_HEADLINE_MAX_CHARS),
+        ("sobre", LINKEDIN_SOBRE_MAX_CHARS),
+    ):
+        assert limites[bloco]["limite"] == max_chars, (
+            f"{label}: limites['{bloco}']['limite'] != constante de config"
+        )
+        assert (
+            len(secoes[bloco]) <= max_chars or limites[bloco]["excesso"] > 0
+        ), f"{label}: {bloco} acima do limite SEM flag em limites (truncado?)"
+    assert len(limites["experiencias"]) == len(secoes["experiencias"]), (
+        f"{label}: limites de experiências desalinhadas das entradas"
+    )
+    for idx, entry in enumerate(secoes["experiencias"]):
+        flag = limites["experiencias"][idx]
+        assert (
+            len(entry["descricao"]) <= LINKEDIN_EXPERIENCIA_MAX_CHARS or flag["excesso"] > 0
+        ), f"{label}: experiencias[{idx}] acima do limite SEM flag (truncado?)"
+
+    # Habilidades non-empty when the shipped profile has skills to draw from
+    # (the skills-less-profile lint surface never triggers here); the sanity
+    # record matches the list.
+    profile = load_profile()  # same shipped persona the pipeline just loaded
+    if any(group.items for group in profile.skills):
+        assert secoes["habilidades"], f"{label}: habilidades vazio com perfil com skills"
+    assert limites["habilidades"]["contagem"] == len(secoes["habilidades"])
+
+    # SC4 qa contract (06-04): pt-BR ok runs ALWAYS carry the deterministic
+    # report (loud-empty lists when clean); en ok runs ALWAYS carry null —
+    # the language gate. No frontend recomputation exists to mask a missing
+    # key: a shape break here IS a user-visible contract break.
+    if language == "pt-BR":
+        qa = envelope["qa"]
+        assert isinstance(qa, dict), f"{label}: qa não é dict no run pt-BR: {qa!r}"
+        assert isinstance(qa.get("glossario"), list), (
+            f"{label}: qa['glossario'] ausente/não-lista no run pt-BR"
+        )
+        assert isinstance(qa.get("bleed"), list), (
+            f"{label}: qa['bleed'] ausente/não-lista no run pt-BR"
+        )
+        # UTF-8 probe (fixture discipline): the PT-BR sobre keeps accents.
+        assert any(
+            ch in secoes["sobre"] for ch in "áéíóúãõçêâô"
+        ), f"{label}: sobre PT-BR sem caracteres acentuados (probe de UTF-8)"
+    else:
+        assert envelope["qa"] is None, f"{label}: qa deveria ser None no run en"
+
+    # D-10/D-13 at LinkedIn-pipeline scale: attempt lines cover EXACTLY the
+    # four linkedin stages (fresh per-run log) — the extraction stage must
+    # NEVER appear. Every line stays metadata-only (D-10: no prompt/response
+    # content in the audit).
+    lines = [
+        json.loads(line)
+        for line in runs_log.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    attempt_lines = [line for line in lines if line.get("event") != "run_summary"]
+    assert attempt_lines, f"{label}: nenhuma linha por tentativa em runs.jsonl"
+    stages_seen = {line["stage"] for line in attempt_lines}
+    assert stages_seen == LINKEDIN_PIPELINE_STAGES, (
+        f"{label}: estágios do audit divergentes: "
+        f"faltando={sorted(LINKEDIN_PIPELINE_STAGES - stages_seen)} "
+        f"inesperado={sorted(stages_seen - LINKEDIN_PIPELINE_STAGES)}"
+    )
+    for line in attempt_lines:
+        assert line["model"] == LLM_MODEL
+        assert line["language"] == language, (
+            f"{label}: language inesperado em runs.jsonl: {line['language']!r}"
+        )
+        assert isinstance(line["attempt"], int) and line["attempt"] >= 1
+        for content_key in ("messages", "input", "input_text", "response", "output"):
+            assert content_key not in line, (
+                f"{label}: campo de conteúdo '{content_key}' em runs.jsonl (D-10)"
+            )
