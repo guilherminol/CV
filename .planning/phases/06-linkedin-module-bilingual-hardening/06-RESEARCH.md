@@ -554,7 +554,7 @@ def gerar_linkedin(payload: LinkedinGerarRequest) -> dict:
 | A6 | Per-skill name bound (~80 chars) if adopted | Character Limits | LOW: optional; profile skills are short; same graceful-degradation posture |
 | A7 | Glossário pairs live in YAML frontmatter (not body markup) | Pattern 3 | LOW: planner discretion (CONTEXT.md); frontmatter matches the strict-validation pattern already shipped |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Curate the EN-bleed list at planning time**
    - What we know: detection mechanics are settled (fold + lookaround, non-blocking); the exact shipped terms are a judgment call.
