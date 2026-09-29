@@ -20,7 +20,12 @@ from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 
 from app.llm.errors import LLMError
-from app.llm.schemas import LinkedinHeadline
+from app.llm.schemas import (
+    LinkedinExperiencias,
+    LinkedinHeadline,
+    LinkedinSkills,
+    LinkedinSobre,
+)
 from app.main import app
 
 client = TestClient(app)
@@ -40,11 +45,41 @@ HEADLINE_CONTENT = json.dumps(
     {"headline": "Engenheira de Dados Sênior — Python, SQL e plataformas de dados em nuvem"},
     ensure_ascii=False,
 )
+SOBRE_CONTENT = json.dumps(
+    {"sobre": "Sobre gerado com foco em dados: engenheira sênior em plataformas de nuvem."},
+    ensure_ascii=False,
+)
+EXPERIENCIAS_CONTENT = json.dumps(
+    {
+        "experiencias": [
+            {
+                "company": "Exemplo IA",
+                "title": "Engenheira de Software Sênior",
+                "descricao": "Liderei pipelines de dados em produção com impacto medido.",
+            }
+        ]
+    },
+    ensure_ascii=False,
+)
+SKILLS_CONTENT = json.dumps({"habilidades": ["Python", "SQL", "Docker"]}, ensure_ascii=False)
+
+_CONTENT_BY_STAGE = {
+    "linkedin-headline": HEADLINE_CONTENT,
+    "linkedin-sobre": SOBRE_CONTENT,
+    "linkedin-experiencias": EXPERIENCIAS_CONTENT,
+    "linkedin-skills": SKILLS_CONTENT,
+}
+
+_MODEL_BY_STAGE = {
+    "linkedin-headline": LinkedinHeadline,
+    "linkedin-sobre": LinkedinSobre,
+    "linkedin-experiencias": LinkedinExperiencias,
+    "linkedin-skills": LinkedinSkills,
+}
 
 
 def _canned_model(stage: str):
-    assert stage == "linkedin-headline"
-    return LinkedinHeadline.model_validate(json.loads(HEADLINE_CONTENT))
+    return _MODEL_BY_STAGE[stage].model_validate(json.loads(_CONTENT_BY_STAGE[stage]))
 
 
 @pytest.fixture
@@ -57,18 +92,22 @@ def _profile_file(monkeypatch: pytest.MonkeyPatch, valid_profile_path) -> None:
 
 def _stub_stages(monkeypatch: pytest.MonkeyPatch, script: list | None = None) -> None:
     """Stub app.linkedin.pipeline.run_stage: a canned model per requested
-    stage (or the next scripted item — content str or exception)."""
+    stage (or the next scripted item — content str or exception). With no
+    script, EVERY call gets its stage's canned model (the quartet runs four
+    calls per gerar)."""
     import app.linkedin.pipeline as pipeline_module
 
-    items = list(script) if script is not None else [None]
+    items = list(script) if script is not None else None
 
     def fake_run_stage(stage, input_text, language, runs_log=None, client=None):
+        if items is None:  # canned model for the requested stage, every call
+            return _canned_model(stage)
         item = items.pop(0)
         if isinstance(item, Exception):
             raise item
-        if item is None:  # canned model for the requested stage
-            return _canned_model(stage)
-        return LinkedinHeadline.model_validate(json.loads(item))
+        if isinstance(item, str):
+            return _canned_model(stage).model_validate(json.loads(item))
+        return item  # a pre-built model (regen helpers pass models directly)
 
     monkeypatch.setattr(pipeline_module, "run_stage", fake_run_stage)
 

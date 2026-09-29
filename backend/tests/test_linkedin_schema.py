@@ -102,16 +102,26 @@ def test_linkedin_experiencias_nested_item_properties_match_pydantic() -> None:
     assert set(wire_items) == set(pyd_items)  # names match at the nested level too
 
 
-def test_only_the_tracer_stage_is_registered_in_the_gateway() -> None:
-    # Plan 06-01 Task 2: the three new stages are NOT registered yet — the
-    # stages land with their prompt files in 06-02 (registration without a
-    # prompt file would make any accidental call fail at the loader; keep the
-    # tracer's registration surface minimal).
+def test_all_four_linkedin_stages_are_registered_in_the_gateway() -> None:
+    # Plan 06-02: the three remaining stages register WITH their prompt files
+    # (06-01 kept the tracer surface minimal) — the full D-09 quartet is now
+    # live, each wired to the same wire dict + model this file drift-locks.
     from app.llm.gateway import _STAGE_SCHEMAS
 
-    assert "linkedin-headline" in _STAGE_SCHEMAS
-    for stage in ("linkedin-sobre", "linkedin-experiencias", "linkedin-skills"):
-        assert stage not in _STAGE_SCHEMAS, stage
+    for stage, wire_name, model_name in (
+        ("linkedin-headline", "LINKEDIN_HEADLINE_STRICT_SCHEMA", "LinkedinHeadline"),
+        ("linkedin-sobre", "LINKEDIN_SOBRE_STRICT_SCHEMA", "LinkedinSobre"),
+        (
+            "linkedin-experiencias",
+            "LINKEDIN_EXPERIENCIAS_STRICT_SCHEMA",
+            "LinkedinExperiencias",
+        ),
+        ("linkedin-skills", "LINKEDIN_SKILLS_STRICT_SCHEMA", "LinkedinSkills"),
+    ):
+        assert stage in _STAGE_SCHEMAS, stage
+        model, wire = _STAGE_SCHEMAS[stage]
+        assert model is _sym(model_name), stage
+        assert wire is _sym(wire_name), stage
 
 
 def test_gateway_registers_linkedin_headline_exactly_once() -> None:
