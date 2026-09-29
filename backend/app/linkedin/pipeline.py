@@ -1,9 +1,13 @@
-"""LinkedIn orchestration — run_linkedin_pipeline (plan 06-02, LI-01/D-04/D-09).
+"""LinkedIn orchestration — run_linkedin_pipeline + run_linkedin_section_regen
+(plan 06-02, LI-01/LI-03/LI-04/LI-05, D-04/D-09).
 
 One gerar execution generates ALL FOUR sections sequentially in D-09 order
 (linkedin-headline → linkedin-sobre → linkedin-experiencias →
 linkedin-skills), one run_stage call each with the SAME composed stage_input:
 a bad About never re-rolls the headline (per-block stages, localized retry).
+run_linkedin_section_regen powers POST /api/linkedin/regenerar with the
+Phase 5 semantics: exactly ONE stage per call, merged server-side over the
+SUBMITTED displayed state, siblings byte-identical.
 
 House disciplines carried from app.resume.pipeline (D-09 wholesale reuse):
 - ALL-OR-NOTHING: exceptions propagate UNTOUCHED — the ROUTE owns the erro
@@ -50,9 +54,10 @@ from app.config import (
 )
 from app.llm.errors import LLMError
 from app.llm.gateway import run_stage
+from app.linkedin.models import LinkedinSecoes
 from app.profile.loader import load_profile
 from app.resume.coverage import _fold
-from app.resume.facts import serialize_profile_facts
+from app.resume.facts import append_dica_block, serialize_profile_facts
 
 LINKEDIN_HEADLINE_STAGE = "linkedin-headline"
 LINKEDIN_SOBRE_STAGE = "linkedin-sobre"
@@ -83,6 +88,15 @@ def compose_linkedin_stage_input(facts: str, objetivo: str) -> str:
         "OBJETIVO DE CARREIRA:\n"
         f"{objetivo}"
     )
+
+
+def compose_linkedin_regen_stage_input(facts: str, objetivo: str, dica: str | None) -> str:
+    """The per-section regen variant (plan 06-02, D-04): the LinkedIn base
+    composition plus the shared input-agnostic dica framing (append_dica_block
+    from app.resume.facts — ONE framing string, many bases). Blank/None dica
+    yields the base composition unchanged — normalization at the compose
+    boundary, never inside the gateway."""
+    return append_dica_block(compose_linkedin_stage_input(facts, objetivo), dica)
 
 
 def _require_non_empty(value: str, block_label: str, stage: str) -> str:
@@ -263,7 +277,83 @@ def run_linkedin_pipeline(
     return {"idioma": language, "secoes": secoes, "limites": _build_limites(secoes)}
 
 
-# --- Per-section regeneration (plan 06-02 Task 2, D-04) is added on top of
-# this quartet in the next task commit: SECTION_STAGE_BY_ID +
-# run_linkedin_section_regen reuse these same helpers over the SUBMITTED
-# state with Phase 5 merge semantics. --------------------------------------
+# --- Per-section regeneration (plan 06-02 Task 2, D-04: the Phase 5
+# mechanism over LinkedIn stages) ------------------------------------------
+
+
+def run_linkedin_section_regen(
+    objetivo: str,
+    language: str,
+    secao: str,
+    secoes_submetidas: LinkedinSecoes,
+    dica: str | None = None,
+    runs_log: Path | None = None,
+    client: object | None = None,
+) -> dict:
+    """Regenerate ONE LinkedIn section: exactly ONE gateway stage → server-side
+    merge over the SUBMITTED displayed state (D-04, Phase 5 semantics).
+
+    The dica joins the user message as DATA via compose_linkedin_regen_stage_input
+    (the LinkedIn base plus the input-agnostic Phase 5 dica framing shared
+    with app.resume.facts — blank/None dica yields the base composition;
+    normalized at the compose boundary, never inside the gateway, T-06-01).
+    The merge starts from the SUBMITTED
+    state and replaces ONLY the regenerated block (experiências swaps the
+    whole entries list — the group is the regen unit); siblings pass through
+    BY REFERENCE, never re-rendered (byte-identity is a response-level
+    testable property). `limites` is recomputed over the FULL merged state;
+    the loud-empty contracts re-run on the regenerated block only. Returns
+    the full ok envelope — the route returns it directly (no re-wrap, Phase 5
+    pattern). Raises on any failure; the route converts to the erro envelope
+    (all-or-nothing).
+    """
+    profile = load_profile()  # fresh, once per invocation (D-15)
+    facts = serialize_profile_facts(profile, language)
+    stage_input = compose_linkedin_regen_stage_input(facts, objetivo, dica)
+
+    # Exactly ONE stage for the requested section (D-04/D-09) — run_stage
+    # returns the output already validated against that stage's strict schema.
+    output = run_stage(
+        SECTION_STAGE_BY_ID[secao], stage_input, language, runs_log=runs_log, client=client
+    )
+
+    # Siblings pass through BY REFERENCE from the submitted state — never
+    # re-rendered, reordered, or re-generated (D-04/Phase 5 SC1 semantics).
+    merged = {
+        "headline": secoes_submetidas.headline,
+        "sobre": secoes_submetidas.sobre,
+        "experiencias": [
+            entry.model_dump() for entry in secoes_submetidas.experiencias
+        ],
+        "habilidades": list(secoes_submetidas.habilidades),
+    }
+    if secao == "headline":
+        merged["headline"] = _require_non_empty(
+            output.headline, "headline", LINKEDIN_HEADLINE_STAGE
+        )
+    elif secao == "sobre":
+        merged["sobre"] = _require_non_empty(output.sobre, "sobre", LINKEDIN_SOBRE_STAGE)
+    elif secao == "experiencias":
+        merged["experiencias"] = _process_experiencias(
+            output.experiencias, profile.experiences
+        )
+    else:
+        merged["habilidades"] = _process_habilidades(list(output.habilidades), profile)
+
+    return {
+        "status": "ok",
+        "idioma": language,
+        "secoes": merged,
+        "limites": _build_limites(merged),
+    }
+
+
+# D-04/D-09: section id → gateway stage, built FROM LINKEDIN_SECTION_STAGES
+# order — regeneration runs EXACTLY ONE stage (LinkedIn has no extraction
+# stage; sibling stages never run on a regen).
+SECTION_STAGE_BY_ID = {
+    "headline": LINKEDIN_SECTION_STAGES[0],
+    "sobre": LINKEDIN_SECTION_STAGES[1],
+    "experiencias": LINKEDIN_SECTION_STAGES[2],
+    "habilidades": LINKEDIN_SECTION_STAGES[3],
+}
