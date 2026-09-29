@@ -1,7 +1,8 @@
 ---
 phase: "6"
 slug: "linkedin-module-bilingual-hardening"
-status: draft
+status: approved
+reviewed_at: "2026-09-29"
 shadcn_initialized: false
 preset: none
 created: "2026-09-27"
