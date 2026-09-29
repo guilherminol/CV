@@ -40,6 +40,7 @@ import {
   CURRICULO_JD_LABEL,
   CURRICULO_JD_PLACEHOLDER,
   CURRICULO_JD_TOO_SHORT_HINT,
+  CURRICULO_JD_TOO_LONG_HINT,
   CURRICULO_PAGE_TITLE,
   EXPORTAR_INFLIGHT_HINT,
   PERFIL_ERROR_TITLE,
@@ -55,6 +56,10 @@ type GerarOk = Extract<GerarResponse, { status: 'ok' }>
 // resultado.secoes (D-01); a refresh returns to the last generated result.
 
 const JD_MIN_CHARS = 80 // boundary: exactly 80 trimmed chars enable CTA + lint query
+// WR-01 client mirror of the backend's JD_MAX_LENGTH (routes/resume.py — 422
+// is "a client bug, not a UI state"): the textarea caps at the same bound so
+// an oversized paste is prevented, never retried into a dead-end 422.
+const JD_MAX_CHARS = 20000
 const DEBOUNCE_MS = 800 // one lint call per settled typing state (T-03-10 bound)
 
 // The three generated section ids — iteration order for the regen-success
@@ -611,10 +616,14 @@ export default function CurriculoHome() {
               value={jdText}
               onChange={(event) => setJdText(event.target.value)}
               placeholder={CURRICULO_JD_PLACEHOLDER}
+              maxLength={JD_MAX_CHARS}
               className={TEXTAREA_CLASSES}
             />
             {trimmed.length < JD_MIN_CHARS && (
               <p className="text-xs text-gray-500">{CURRICULO_JD_TOO_SHORT_HINT}</p>
+            )}
+            {jdText.length >= JD_MAX_CHARS && (
+              <p className="text-xs text-gray-500">{CURRICULO_JD_TOO_LONG_HINT}</p>
             )}
           </div>
 

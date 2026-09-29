@@ -41,11 +41,21 @@ export function dividirLinhas(texto: string): string[] {
     .filter((linha) => linha.length > 0)
 }
 
-/** Client min_length guard (must-have: empty/whitespace-only saves are
- *  rejected client-side; the server re-validates strictly). Resumo needs any
- *  non-whitespace text; Experiência/Habilidades need ≥1 non-empty line. */
+// WR-01 client mirror of the backend's RESUMO_MAX_LENGTH (routes/export.py —
+// an oversized saved resumo would poison every subsequent regen/export POST
+// with an unretryable 422): the resumo editor caps at the same bound.
+const RESUMO_MAX_CHARS = 8000
+
+/** Client bounds guard (must-have: empty/whitespace-only saves are rejected
+ *  client-side; the server re-validates strictly). Resumo needs 1..8000
+ *  non-whitespace chars (export envelope min_length=1 / max_length); the
+ *  textarea's maxLength already prevents overshoot — this is the checkable
+ *  mirror. Experiência/Habilidades need ≥1 non-empty line (no ceiling). */
 export function textoEditorValido(secao: SecaoId, draft: string): boolean {
-  if (secao === 'resumo') return draft.trim().length > 0
+  if (secao === 'resumo') {
+    const texto = draft.trim()
+    return texto.length > 0 && texto.length <= RESUMO_MAX_CHARS
+  }
   return dividirLinhas(draft).length > 0
 }
 
@@ -104,6 +114,7 @@ export function SectionEditor({
         aria-label={EDITAR_ARIA_LABEL.replace('{secao}', REGEN_SECAO_LABELS[secao])}
         value={draft}
         onChange={(event) => onDraftChange(event.target.value)}
+        maxLength={secao === 'resumo' ? RESUMO_MAX_CHARS : undefined}
         className={TEXTAREA_CLASSES}
       />
       {!confirmandoDescarte && (

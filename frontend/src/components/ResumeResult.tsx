@@ -58,6 +58,11 @@ import { SectionVersionsPanel, type OrigemBadge, type SectionVersion } from './S
 const CARD_CLASSES = 'rounded-md border border-gray-200 bg-white px-6 py-5 shadow-sm'
 const SECONDARY_BUTTON_CLASSES =
   'min-h-10 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
+// WR-01 client mirror of the backend's RegenerarRequest.dica bound
+// (routes/resume.py Field(max_length=500) — 422 is a client bug, not a UI
+// state): the dica input caps at the same bound so an oversized hint is
+// prevented at the source, never retried into a dead-end 422.
+const DICA_MAX_CHARS = 500
 
 /**
  * Run-language display convention (extends ProfilePreview's D-04 `t()`): EN
@@ -273,6 +278,7 @@ function GeneratedSection({
             onChange={(event) => onDicaChange(secao, event.target.value)}
             placeholder={DICA_PLACEHOLDER}
             disabled={regenerando}
+            maxLength={DICA_MAX_CHARS}
             className={HINT_INPUT_CLASSES}
           />
         </div>

@@ -103,6 +103,11 @@ export const CURRICULO_JD_LABEL = 'Descrição da vaga'
 export const CURRICULO_JD_PLACEHOLDER = 'Cole aqui o texto completo da vaga…'
 export const CURRICULO_JD_TOO_SHORT_HINT =
   'Cole a descrição da vaga (mínimo 80 caracteres) para habilitar a geração.'
+// WR-01: shown when the JD hits the client-side cap (textarea maxLength) —
+// the backend rejects >20000 chars with an unretryable 422, so the input is
+// capped at the same bound and the cap states itself instead of failing.
+export const CURRICULO_JD_TOO_LONG_HINT =
+  'Limite de 20.000 caracteres atingido — o texto excedente não faz parte da descrição.'
 export const CURRICULO_IDIOMA_LABEL = 'Idioma do currículo'
 export const CURRICULO_IDIOMA_OPTIONS = {
   'pt-BR': 'Português (BR)',
