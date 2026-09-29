@@ -56,6 +56,13 @@ interface SectionEditorProps {
   dirty: boolean
   /** False disables Salvar alterações and shows the save-guard hint. */
   canSave: boolean
+  /** CR-01: a long op is pending (full gerar / section regen / export in
+   *  flight). Disables Salvar alterações AND Cancelar edição for the flight —
+   *  the response of a regen swaps secoes WHOLESALE, so any save confirmed
+   *  mid-flight would be silently destroyed by that swap (the edit exists
+   *  nowhere after it: not displayed, not stacked). The draft itself stays
+   *  editable; only the closing/saving actions freeze until the op settles. */
+  locked: boolean
   onDraftChange: (valor: string) => void
   onSave: () => void
   /** Discard + close. Only reached directly when clean; when dirty the
@@ -72,13 +79,17 @@ interface SectionEditorProps {
  * save-guard hint while empty) · Cancelar edição (quiet) + the D-02 policy
  * line repeated. Cancel on a clean editor reverts immediately; on a dirty
  * editor swaps to the inline amber ConfirmStrip — never a browser dialog.
- * All content renders as JSX text children (T-01-08 posture).
+ * While `locked` (a long op is pending), BOTH footer buttons freeze: a
+ * regen response swaps secoes wholesale, so a save confirmed mid-flight
+ * would be silently destroyed by that swap (CR-01). All content renders as
+ * JSX text children (T-01-08 posture).
  */
 export function SectionEditor({
   secao,
   draft,
   dirty,
   canSave,
+  locked,
   onDraftChange,
   onSave,
   onCancel,
@@ -100,7 +111,7 @@ export function SectionEditor({
           <button
             type="button"
             onClick={onSave}
-            disabled={!canSave}
+            disabled={!canSave || locked}
             className={COMPACT_SECONDARY_BUTTON_CLASSES}
           >
             {SALVAR_ALTERACOES_CTA}
@@ -108,6 +119,7 @@ export function SectionEditor({
           <button
             type="button"
             onClick={() => (dirty ? setConfirmandoDescarte(true) : onCancel())}
+            disabled={locked}
             className={QUIET_BUTTON_CLASSES}
           >
             {CANCELAR_EDICAO_CTA}

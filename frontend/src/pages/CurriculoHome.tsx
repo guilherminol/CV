@@ -57,6 +57,10 @@ type GerarOk = Extract<GerarResponse, { status: 'ok' }>
 const JD_MIN_CHARS = 80 // boundary: exactly 80 trimmed chars enable CTA + lint query
 const DEBOUNCE_MS = 800 // one lint call per settled typing state (T-03-10 bound)
 
+// The three generated section ids — iteration order for the regen-success
+// wholesale-swap defense (CR-01 stack-before-mutate covers EVERY section).
+const SECOES_IDS: SecaoId[] = ['resumo', 'experiencias', 'habilidades']
+
 // Pinned class strings from the UI-SPEC Component conventions (plan 03-04).
 // PRIMARY_BUTTON_CLASSES + TEXTAREA_CLASSES live in constants/ui.ts — single
 // definitions shared with ExportZone / SectionEditor (IN-04).
@@ -264,6 +268,26 @@ export default function CurriculoHome() {
         // — the swap below is destructive, and the prior text + its badge
         // origin must already be on the version stack when it happens.
         empilharVersaoAtual(variables.secao)
+        // CR-01 defense in depth (stack-before-mutate on EVERY displayed-state
+        // mutation): the swap below replaces secoes WHOLESALE — siblings
+        // included, byte-identical to the SUBMITTED snapshot (D-07). If a
+        // sibling's CURRENT displayed text differs from that snapshot, the
+        // displayed state changed mid-flight; stack that text FIRST so the
+        // swap cannot silently destroy it. (The SectionEditor lock + the
+        // salvarEdicao guard close the only known mid-flight path — an edit
+        // saved during this flight — but the stack must not depend on the
+        // lock staying closed.)
+        if (resultado) {
+          for (const irma of SECOES_IDS) {
+            if (
+              irma !== variables.secao &&
+              JSON.stringify(resultado.secoes[irma]) !==
+                JSON.stringify(variables.secoes[irma])
+            ) {
+              empilharValor(irma, resultado.secoes[irma], origens[irma])
+            }
+          }
+        }
         // Export-state reset FIRST (UI-SPEC, mirrors the gerar pattern): the
         // prior exported PDF no longer matches the displayed resume — clear
         // the receipt + self-check panel + export errors BEFORE mounting the
@@ -426,9 +450,15 @@ export default function CurriculoHome() {
   // destructive path (edit save below, section regen success in the regenerar
   // mutation, restore, confirmed full regen) — pushes the section's CURRENT
   // displayed text + badge origin onto its version stack before any write,
-  // so nothing is ever silently destroyed. Long-op locks guarantee the
-  // displayed state cannot change between mutate() and onSuccess, so the
-  // closure reads below are always the texts being replaced.
+  // so nothing is ever silently destroyed. CR-01 hardens the premise that the
+  // displayed state cannot change between mutate() and onSuccess with THREE
+  // layers: the open editor's Salvar/Cancelar freeze while any long op is
+  // pending (SectionEditor `locked`), salvarEdicao refuses to write while
+  // operacaoLongaPendente, and the regen-success handler stacks any section
+  // whose displayed text drifted from the request's submitted snapshot
+  // before the wholesale swap — so the closure reads below are always the
+  // texts being replaced, and even a future reopened gap cannot destroy
+  // an edit silently.
   function empilharValor(secao: SecaoId, valor: SectionValor, origem: OrigemBadge) {
     setVersoes((prev) => ({ ...prev, [secao]: [{ secao, origem, valor }, ...prev[secao]] }))
   }
@@ -458,6 +488,13 @@ export default function CurriculoHome() {
   // (gerar-time snapshot rule — only regen success swaps them).
   function salvarEdicao() {
     if (!editor || !resultado) return
+    // CR-01 belt-and-braces: never write the displayed state under an
+    // in-flight wholesale swap — a regen/gerar response replaces secoes
+    // WHOLESALE on success, so an edit written mid-flight is silently
+    // destroyed by that swap. (The editor's Salvar/Cancelar buttons are
+    // already locked via SectionEditor's `locked` prop; this guards the
+    // handler itself so the invariant does not depend on the button.)
+    if (operacaoLongaPendente) return
     if (!textoEditorValido(editor.secao, editor.draft)) return // guard paranoia (button already disabled)
     const { secao, entryIdx, draft } = editor
     empilharVersaoAtual(secao)
@@ -536,7 +573,10 @@ export default function CurriculoHome() {
   //  - locksEdicao: additionally, an open editor disables every edit
   //    affordance + Exportar PDF + Gerar novamente + every Restaurar versão,
   //    while Regenerar seção stays enabled (own section routes through the
-  //    D-14 strip; sibling regens do not touch the open editor).
+  //    D-14 strip; sibling regens do not touch the open editor — they DO
+  //    freeze its Salvar/Cancelar buttons for the flight via SectionEditor's
+  //    `locked` prop, CR-01: a regen response swaps secoes wholesale, so a
+  //    mid-flight save would be silently destroyed by it).
   const operacaoLongaPendente = gerar.isPending || exportar.isPending || regenerar.isPending
   const locksEdicao = editor !== null || operacaoLongaPendente
 

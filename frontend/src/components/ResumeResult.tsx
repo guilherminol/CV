@@ -616,6 +616,7 @@ export function ResumeResult({
                 draft={editor.draft}
                 dirty={editor.draft !== editor.inicial}
                 canSave={textoEditorValido('resumo', editor.draft)}
+                locked={regenerando}
                 onDraftChange={onDraftChange}
                 onSave={onSalvarEdicao}
                 onCancel={onCancelarEdicao}
@@ -665,6 +666,7 @@ export function ResumeResult({
                 draft={editor.draft}
                 dirty={editor.draft !== editor.inicial}
                 canSave={textoEditorValido('experiencias', editor.draft)}
+                locked={regenerando}
                 onDraftChange={onDraftChange}
                 onSave={onSalvarEdicao}
                 onCancel={onCancelarEdicao}
@@ -735,6 +737,7 @@ export function ResumeResult({
                 draft={editor.draft}
                 dirty={editor.draft !== editor.inicial}
                 canSave={textoEditorValido('habilidades', editor.draft)}
+                locked={regenerando}
                 onDraftChange={onDraftChange}
                 onSave={onSalvarEdicao}
                 onCancel={onCancelarEdicao}
