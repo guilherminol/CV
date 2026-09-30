@@ -71,7 +71,7 @@ Phase: 6 (LinkedIn Module + Bilingual Hardening) — EXECUTED, verification huma
 ( bloqueio: créditos OpenRouter esgotados — 402; geração ao vivo impossível até top-up)
 Plan: 6 of 6 executed (26/26 phase plans across the milestone)
 Status: Awaiting human verification (phases 1 and 6) — milestone completion gate refuses until both pass
-Last activity: 2026-09-30 — Phase 6 executed + verified human_needed (UAT partially blocked on credits)
+Last activity: 2026-09-30 - Completed quick task 260930-sll: Enrich master profile from old resume base — GIA + Nexus Agente projects, stronger impact metrics, 10 new skills, MCP Professional Certification
 
 Progress: [███████░░░] 67% (4 of 6 phases verified complete; all 6 executed)
 
@@ -203,6 +203,12 @@ None yet.
 - Phase 2: no OpenRouter model pinned yet — validate strict json_schema compliance and PT-BR quality via the fixture harness; model slugs stay in config
 - Phase 6: LinkedIn character limits (220/2,600/2,000) rest on MEDIUM-confidence sources — verify at planning
 - OpenRouter credits exhausted (402 Payment Required) during the 06-05 full-file -m llm run — top up at openrouter.ai/settings/credits and re-run: cd backend && uv run pytest tests/test_llm_harness.py -m llm -q (the dedicated linkedin run passed both labels green before exhaustion)
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260930-sll | Enrich master profile from old resume base — GIA + Nexus Agente projects, stronger impact metrics, 10 new skills, MCP Professional Certification | 2026-09-30 | 6cf1904 | [260930-sll-enrich-profile-from-old-resume-base](./quick/260930-sll-enrich-profile-from-old-resume-base/) |
 
 ## Deferred Items
 
