@@ -212,6 +212,26 @@ function tLang(map: LocalizedText | null | undefined, language: ResumeLanguage):
   return map['pt-BR'] ?? (Object.values(map).find(Boolean) ?? '')
 }
 
+/** The counter + red over-limit flag pair for one {limite, tamanho, excesso}
+ *  record (D-06/D-07): per block / per entry — a compliant block shows a
+ *  normal counter while another is over; never a page-level verdict. The
+ *  flag never disables Copiar (it warns, the user decides). IN-01: module
+ *  scope — a component defined inside the render body gets a fresh type
+ *  identity every render, unmounting/remounting its subtree each parent
+ *  render (it needs no closure variables beyond its props). */
+function ContadorLimite({ limite }: { limite: LinkedinLimiteDTO }) {
+  return (
+    <>
+      <CharacterCounter count={limite.tamanho} limite={limite.limite} />
+      {limite.excesso > 0 && (
+        <p className="mt-1 text-xs text-red-600">
+          {LINKEDIN_OVERLIMIT_FLAG.replace('{excesso}', String(limite.excesso))}
+        </p>
+      )}
+    </>
+  )
+}
+
 /**
  * Zone 2 — objective-tied lint (D-03), LintPanel structure verbatim with
  * LinkedIn-scoped title + clear line; the hint reuses the Currículo constant.
@@ -880,23 +900,6 @@ export default function LinkedInHome() {
   // Narrowed ok payload (guaranteed by the early returns above) — the
   // experiência sub-block headers anchor to ITS facts.
   const perfilOk = perfilQuery.data
-
-  // The counter + red over-limit flag pair for one {limite, tamanho, excesso}
-  // record (D-06/D-07): per block / per entry — a compliant block shows a
-  // normal counter while another is over; never a page-level verdict. The
-  // flag never disables Copiar (it warns, the user decides).
-  function ContadorLimite({ limite }: { limite: LinkedinLimiteDTO }) {
-    return (
-      <>
-        <CharacterCounter count={limite.tamanho} limite={limite.limite} />
-        {limite.excesso > 0 && (
-          <p className="mt-1 text-xs text-red-600">
-            {LINKEDIN_OVERLIMIT_FLAG.replace('{excesso}', String(limite.excesso))}
-          </p>
-        )}
-      </>
-    )
-  }
 
   // The dica block (D-05): labeled one-line input, revealed by the
   // Adicionar dica toggle; disabled (toggle + input) while a long op runs.
