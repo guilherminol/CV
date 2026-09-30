@@ -213,13 +213,21 @@ export function LinkedinComparisonPanel({
 
   if (bloco === 'experiencias') {
     // Per-entry alignment: each generated entry is fold-matched to the profile
-    // entry by company (comparison.ts fold both sides — Pitfall 8). Source
-    // facts are strict per-entry (description + impacts); when ANY pairing
-    // fails, the fallback scope is ALL profile entries under the neutral note
-    // — never an empty facts column (UI-SPEC all-entries fallback note).
+    // entry by company (comparison.ts fold both sides — Pitfall 8). WR-04:
+    // first-UNUSED-match consumption — same-company generated entries each
+    // pair with one DISTINCT profile entry (the backend's own semantics,
+    // pipeline.py `_align_experiencias`), never all against the first match.
+    // Source facts are strict per-entry (description + impacts); when ANY
+    // pairing fails, the fallback scope is ALL profile entries under the
+    // neutral note — never an empty facts column (UI-SPEC all-entries
+    // fallback note).
+    const used = new Set<number>()
     const comparadas = (entradas ?? []).map((entrada) => {
-      const alvo =
-        perfil.experiences.find((exp) => fold(exp.company) === fold(entrada.company)) ?? null
+      const idx = perfil.experiences.findIndex(
+        (exp, i) => !used.has(i) && fold(exp.company) === fold(entrada.company),
+      )
+      if (idx >= 0) used.add(idx)
+      const alvo = idx >= 0 ? perfil.experiences[idx] : null
       return {
         entrada,
         alvo,
