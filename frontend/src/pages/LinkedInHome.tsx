@@ -27,6 +27,7 @@ import {
 import { PlaceholderBanner } from '../components/PlaceholderBanner'
 import { StatusLine } from '../components/StatusLine'
 import { dividirLinhas } from '../components/SectionEditor'
+import { fold } from '../lib/comparison'
 import type { OrigemBadge } from '../components/SectionVersionsPanel'
 import {
   BADGE_EDITADO,
@@ -263,8 +264,12 @@ function LinkedinLintPanel({ resultado }: { resultado: LinkedinLintOk | null }) 
  * the backend PT-BR lines verbatim; a fetch-level failure renders the generic
  * hint path; a failed gerar keeps any prior result mounted (failure never
  * blanks). Experiência sub-block headers are anchored to PROFILE FACTS —
- * never the generated payload strings; per-entry Copiar copies that entry's
- * descricao ONLY. All content renders as JSX text children — no raw-HTML path
+ * verified client-side by company fold-match (WR-03: when the pipeline fell
+ * back to returned-order pairing, the index no longer corresponds to the
+ * profile entry, so the entry's own strings take over — a header never
+ * labels text generated for a different employer); per-entry Copiar copies
+ * that entry's descricao ONLY. All content renders as JSX text children —
+ * no raw-HTML path
  * (T-06-05). Over-limit output is flagged in place, NEVER truncated (D-07);
  * Copiar stays enabled (the flag warns, the user decides).
  */
@@ -1165,12 +1170,20 @@ export default function LinkedInHome() {
         {renderDica('experiencias')}
         <div className="mt-2 space-y-4">
           {entradas.map((entrada, i) => {
-            // Index-aligned pairing (06-02 alignment contract); the profile
-            // facts win whenever the pairing exists — the LLM strings are
-            // display anchors only (fallback for a defensive length drift).
+            // WR-03: index alignment holds ONLY in the pipeline's fold-match
+            // mode; when ANY company pairing failed, the backend returned the
+            // fallback list in RETURNED order and entrada[i] no longer
+            // corresponds to perfilExps[i] — anchoring by index would label
+            // the text with a DIFFERENT employer. Verify the pair client-side
+            // (fold both sides, comparison.ts mechanics): anchor to the
+            // PROFILE FACT header only when the companies fold-match;
+            // otherwise the entry's own generated strings — so per-entry
+            // Copiar always copies what its header shows.
             const perfilExp = perfilExps[i]
-            const company = perfilExp ? perfilExp.company : entrada.company
-            const title = perfilExp ? tLang(perfilExp.title, resultado.idioma) : entrada.title
+            const anchorOk =
+              perfilExp !== undefined && fold(perfilExp.company) === fold(entrada.company)
+            const company = anchorOk ? perfilExp.company : entrada.company
+            const title = anchorOk ? tLang(perfilExp.title, resultado.idioma) : entrada.title
             const limite = resultado.limites.experiencias[i]
             const pilhaEntrada = versoes[`experiencias-${i}`] ?? []
             return (
