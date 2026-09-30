@@ -64,6 +64,7 @@ import {
   LINKEDIN_EMPTY_TITLE,
   LINKEDIN_ERROR_TITLE,
   LINKEDIN_EXPERIENCIA_MAX_CHARS,
+  LINKEDIN_EXPERIENCIA_LISTA_ZERO,
   LINKEDIN_EXPERIENCIA_ZERO,
   LINKEDIN_HEADLINE_MAX_CHARS,
   LINKEDIN_IDIOMA_LABEL,
@@ -1142,13 +1143,18 @@ export default function LinkedInHome() {
     if (!resultado) return null
     const entradas = resultado.secoes.experiencias
     const perfilExps = perfilOk.perfil.experiences
-    // Zero experiences (profile OR generated list — defensive on both sides)
-    // renders the loud muted line — never an empty block (LI-04/empty).
+    // Zero experiences (profile OR generated list) renders the loud muted
+    // line — never an empty block (LI-04/empty). WR-05: the line names the
+    // actual CAUSE — a zero-experience profile is the legitimate display
+    // state (the old wording blamed the profile even when the profile had
+    // entries and only the generated list came back empty).
     if (perfilExps.length === 0 || entradas.length === 0) {
+      const linhaZero =
+        perfilExps.length === 0 ? LINKEDIN_EXPERIENCIA_ZERO : LINKEDIN_EXPERIENCIA_LISTA_ZERO
       return (
         <div className="mt-4 border-t border-gray-200 pt-3">
           <h4 className={BLOCK_HEADING_CLASSES}>{LINKEDIN_BLOCK_LABELS.experiencias}</h4>
-          <p className="mt-2 text-sm text-gray-500">{LINKEDIN_EXPERIENCIA_ZERO}</p>
+          <p className="mt-2 text-sm text-gray-500">{linhaZero}</p>
         </div>
       )
     }

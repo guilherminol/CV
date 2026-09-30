@@ -364,9 +364,16 @@ export const LINKEDIN_LINT_TITLE = 'Lacunas do perfil para este objetivo'
 export const LINKEDIN_LINT_CLEAR = 'Nenhum gap relevante encontrado para este objetivo.'
 
 // Experiência group zero line (probe edge LI-04/empty): loud muted — never a
-// silent empty block (also covers an empty generated list defensively).
+// silent empty block. WR-05: the line is differentiated per CAUSE — the
+// profile-empty arm (the documented legitimate display state, now reachable
+// after gerar) vs the list-empty arm (generated list came back empty while
+// the profile HAS experiences — unreachable after the backend's
+// profile-aware guard, kept loud as a defensive state that never claims the
+// profile is the cause).
 export const LINKEDIN_EXPERIENCIA_ZERO =
   'Nenhuma experiência no perfil — nada para reescrever aqui.'
+export const LINKEDIN_EXPERIENCIA_LISTA_ZERO =
+  'Nenhuma experiência foi gerada nesta execução.'
 
 // Skills count line (UI-SPEC skills-counter exception, honest-information
 // rule): LinkedIn imposes no total character limit on the skills list and

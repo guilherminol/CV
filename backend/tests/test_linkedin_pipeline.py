@@ -447,6 +447,30 @@ def test_zero_entry_experiencias_fails_loud(
     assert len(client.calls) == 3  # skills never ran (all-or-nothing)
 
 
+def test_zero_entry_experiencias_ok_on_experience_less_profile(
+    tmp_path: Path,
+) -> None:
+    """WR-05 regression (probe edge LI-04/empty, backend half): a profile
+    with ZERO experiences is a legitimate display state (models.py docstring)
+    — an empty returned experiências list must NOT fail the run (the
+    profile-aware mirror of the habilidades rule). The old unconditional
+    guard made the whole module unusable for such profiles with a misleading
+    "regenere as seções" error that could never succeed."""
+    from conftest import minimal_profile
+
+    profile = minimal_profile()
+    profile["experiences"] = []  # the legitimate empty display state
+    profile_path = _write_profile_dict(tmp_path, profile)
+    client, envelope = _run(
+        QUARTET_CONTENT[:2] + [json.dumps({"experiencias": []}), SKILLS_CONTENT],
+        tmp_path,
+        profile_path,
+    )
+    assert len(client.calls) == 4  # the run completes — all four stages
+    assert envelope["secoes"]["experiencias"] == []
+    assert envelope["limites"]["experiencias"] == []
+
+
 def test_blank_descricao_entry_fails_loud(
     tmp_path: Path, _profile_path: None
 ) -> None:

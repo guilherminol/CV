@@ -20,11 +20,14 @@ House disciplines carried from app.resume.pipeline (D-09 wholesale reuse):
   existing mechanism; no new fields.
 
 Post-generation contracts (D-07, probe edges LI-03/LI-04/LI-05):
-- LOUD-EMPTY: a blank headline or sobre, zero experiência entries, or any
-  entry with a blank descricao raises LLMError — an empty block is never
-  rendered or swapped into a displayed state. Empty habilidades fails ONLY
-  when the profile HAS skills to draw from — a skills-less profile is a lint
-  aviso surface (frontend), not a run failure.
+- LOUD-EMPTY: a blank headline or sobre, or any entry with a blank
+  descricao raises LLMError — an empty block is never rendered or swapped
+  into a displayed state. An empty EXPERIÊNCIAS list fails ONLY when the
+  profile HAS experiences to draw from (WR-05: a zero-experience profile is
+  a legitimate display state, models.py) — and empty habilidades fails ONLY
+  when the profile HAS skills to draw from. A skills-less or
+  experience-less profile is a loud-muted-line surface (frontend), not a
+  run failure.
 - ALIGNMENT (LI-04/adjacency + LI-04/ordering): returned experiência entries
   are reordered into PROFILE order by fold-matching company values (coverage
   `_fold` — first unused match wins, so same-company entries each consume one
@@ -170,12 +173,22 @@ def _align_experiencias(profile_experiences: list, returned: list) -> list[dict]
 
 
 def _process_experiencias(returned: list, profile_experiences: list) -> list[dict]:
-    """Loud-empty + alignment for the experiências stage output (LI-04)."""
-    if not returned:
+    """Loud-empty + alignment for the experiências stage output (LI-04).
+
+    WR-05: the empty-list guard is PROFILE-AWARE, mirroring
+    _process_habilidades — an empty returned list fails ONLY when the
+    profile HAS experiences to draw from. A zero-experience profile is a
+    legitimate display state (app/linkedin/models.py docstring): the empty
+    experiências list renders as the frontend's loud muted line, never a run
+    failure that would also discard the headline/sobre/habilidades blocks
+    (all-or-nothing) with a misleading "regenere as seções" dead-end.
+    """
+    if not returned and profile_experiences:
         raise LLMError(
             "O modelo devolveu uma lista de experiências vazia — regenere as "
             "seções (detalhes no terminal)",
-            f"empty experiencias list from the '{LINKEDIN_EXPERIENCIAS_STAGE}' stage",
+            f"empty experiencias list from the '{LINKEDIN_EXPERIENCIAS_STAGE}' stage "
+            "(profile has experiences to draw from)",
         )
     for idx, entry in enumerate(returned):
         if not entry.descricao or not entry.descricao.strip():
