@@ -255,9 +255,13 @@ def run_linkedin_qa(
 
     # Bleed over the POST-glossary text only — the report and the copied
     # text must agree (research constraint #4). Experiência rows are labeled
-    # by the entry's company (the fixed profile-fact anchor the frontend
-    # renders as the sub-block header); habilidade rows carry the skill
-    # itself, the exact deliverable line where the term sits.
+    # by the entry's RETURNED company string — the model's display anchor,
+    # which the alignment contract explicitly allows to deviate from the
+    # profile fact (case variants like "EXEMPLO IA"/"exemplo ia" ride into
+    # the displayed state); the header rendered above the same text may show
+    # the profile-fact spelling instead (frontend WR-03 anchor verification).
+    # Habilidade rows carry the skill itself, the exact deliverable line
+    # where the term sits.
     bleed: list[dict] = []
     for superficie in ("headline", "sobre"):
         bleed.extend(detect_english_bleed(secoes[superficie], superficie))
