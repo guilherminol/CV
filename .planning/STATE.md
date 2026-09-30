@@ -30,9 +30,11 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 | Phase | State | Resume |
 |-------|-------|--------|
 | 1 | verification_deferred_human | /gsd-verify-work 1 |
-| 4 | verification_deferred_human | /gsd-verify-work 4 |
-| 5 | verification_deferred_human | /gsd-verify-work 5 |
-| 6 | verification_deferred_human | /gsd-verify-work 6 |
+| 6 | verification_deferred_human (bloqueada em créditos OpenRouter — 402; ver /gsd-verify-work 6 e WINDOWS entrada 10) | /gsd-verify-work 6 |
+
+(Phases 4 and 5 were listed here during the run and subsequently verified PASSED — their UAT
+was executed by the autonomous agent with browser-automation evidence on 2026-09-27/29; the
+rows were removed on resolution.)
 
 Deferred during autonomous run (2026-09-26): user chose to defer phase 1's 6 human checks
 (browser smoke, broken-profile state, edit-refresh, pt-BR preview, 3 code prohibitions,
@@ -65,12 +67,13 @@ action in 06-06-SUMMARY.md, Deferred Human Verification table; WINDOWS.md entry 
 
 ## Current Position
 
-Phase: 6 (LinkedIn Module + Bilingual Hardening) — EXECUTING
-Plan: 6 of 6
-Status: Phase complete — ready for verification
-Last activity: 2026-09-29 — Phase 6 execution started
+Phase: 6 (LinkedIn Module + Bilingual Hardening) — EXECUTED, verification human_needed
+( bloqueio: créditos OpenRouter esgotados — 402; geração ao vivo impossível até top-up)
+Plan: 6 of 6 executed (26/26 phase plans across the milestone)
+Status: Awaiting human verification (phases 1 and 6) — milestone completion gate refuses until both pass
+Last activity: 2026-09-30 — Phase 6 executed + verified human_needed (UAT partially blocked on credits)
 
-Progress: [███████░░░] 67%
+Progress: [███████░░░] 67% (4 of 6 phases verified complete; all 6 executed)
 
 ## Performance Metrics
 
