@@ -138,9 +138,15 @@ def _align_experiencias(profile_experiences: list, returned: list) -> list[dict]
     same-company profile entries each consume one distinct returned entry and
     never collide or merge. If ANY profile entry fails to pair, fall back to
     positional pairing over ALL returned entries in RETURNED order (UI-SPEC
-    all-entries fallback) rather than crashing. Output entries are model
-    dumps: the generated company/title strings ride along as display anchors
-    only — the frontend renders headers from PROFILE FACTS (06-03).
+    all-entries fallback) rather than crashing. WR-02: when every profile
+    entry pairs but the model returned MORE entries than the profile has,
+    the surplus rides after the matched ones in RETURNED order — returned
+    entries are never silently dropped (they are exactly the
+    hallucination/duplicate case where auditability matters most; the same
+    keep-everything discipline as the pairing-failure fallback). Output
+    entries are model dumps: the generated company/title strings ride along
+    as display anchors only — the frontend renders headers from PROFILE
+    FACTS (06-03).
     """
     used: set[int] = set()
     matched: list = []
@@ -157,6 +163,9 @@ def _align_experiencias(profile_experiences: list, returned: list) -> list[dict]
             return [entry.model_dump() for entry in returned]
         matched.append(returned[found])
         used.add(found)
+    # WR-02: surplus returned entries (every profile entry paired, but the
+    # model generated more) — keep them, in returned order, never dropped.
+    matched.extend(returned[i] for i in range(len(returned)) if i not in used)
     return [entry.model_dump() for entry in matched]
 
 

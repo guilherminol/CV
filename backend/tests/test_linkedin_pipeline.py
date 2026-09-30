@@ -659,6 +659,53 @@ def test_experiencias_partial_match_falls_back_wholesale(
     assert [entry["descricao"] for entry in entries] == ["DESC-A", "DESC-B"]  # returned order
 
 
+def test_experiencias_keep_surplus_returned_entries_in_matched_mode(
+    tmp_path: Path, valid_profile_path: Path
+) -> None:
+    """WR-02 regression: when every profile experience pairs but the model
+    returned MORE entries than the profile has, the surplus rides after the
+    matched ones in RETURNED order — never silently dropped (no report row,
+    no fallback, no trace was the old bug; the surplus entries are exactly
+    the hallucination/duplicate case where auditability matters most)."""
+    returned = json.dumps(
+        {
+            "experiencias": [
+                {
+                    "company": "Exemplo IA",  # pairs with the profile's single entry
+                    "title": "Engenheira Sênior",
+                    "descricao": "DESC-IA",
+                },
+                {
+                    "company": "Empresa Inventada 1",  # surplus — kept, not dropped
+                    "title": "T1",
+                    "descricao": "DESC-SURPLUS-1",
+                },
+                {
+                    "company": "Empresa Inventada 2",  # surplus — kept, not dropped
+                    "title": "T2",
+                    "descricao": "DESC-SURPLUS-2",
+                },
+            ]
+        },
+        ensure_ascii=False,
+    )
+    _, envelope = _run(
+        [HEADLINE_CONTENT, SOBRE_CONTENT, returned, SKILLS_CONTENT],
+        tmp_path,
+        valid_profile_path,
+    )
+    entries = envelope["secoes"]["experiencias"]
+    # Matched entry first (profile order), surplus entries after it in
+    # RETURNED order — all three present.
+    assert [entry["descricao"] for entry in entries] == [
+        "DESC-IA",
+        "DESC-SURPLUS-1",
+        "DESC-SURPLUS-2",
+    ]
+    assert len(envelope["limites"]["experiencias"]) == 3
+    assert all(lim["limite"] == 2000 for lim in envelope["limites"]["experiencias"])
+
+
 # ---------------------------------------------------------------------------
 # (e) Skills dedupe + order preservation (LI-05/adjacency + LI-05/ordering)
 # ---------------------------------------------------------------------------
