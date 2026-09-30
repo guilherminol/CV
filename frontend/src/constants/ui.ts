@@ -276,6 +276,13 @@ export const VERSOES_TOGGLE = 'Versões'
 export const VERSOES_TOGGLE_COUNT = 'Versões ({count})'
 export const VERSOES_INTRO = 'Versões anteriores desta seção — mais recente primeiro.'
 export const RESTAURAR_VERSAO_CTA = 'Restaurar versão'
+// IN-03: per-ENTRY stacks orphaned by a count-changing swap (indices beyond
+// the CURRENT experiências list) stay visible inside the group Versões
+// panel — never silently unreachable ("never capped, never silently
+// dropped"); Restaurar stays disabled because the indexed entry no longer
+// exists to restore into.
+export const VERSOES_EXPERIENCIA_ORFAAS_NOTA =
+  'Versões de entradas de execuções anteriores — a entrada correspondente não existe mais nesta lista, então não podem ser restauradas.'
 
 // --- fact-vs-generated comparison (UI-SPEC Copywriting Contract, plan 05-03):
 // D-09 two-column panel, D-10 deterministic amber marks, D-11 "suspicion, not

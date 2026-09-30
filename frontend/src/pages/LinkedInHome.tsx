@@ -99,6 +99,7 @@ import {
   REGEN_SOBE_EDICAO_NOTE,
   RESTAURAR_VERSAO_CTA,
   TEXTAREA_CLASSES,
+  VERSOES_EXPERIENCIA_ORFAAS_NOTA,
   VERSOES_INTRO,
   VERSOES_TOGGLE,
   VERSOES_TOGGLE_COUNT,
@@ -1178,10 +1179,22 @@ export default function LinkedInHome() {
         </div>
       )
     }
-    const grupoVersoesCount = entradas.reduce(
-      (total, _, i) => total + (versoes[`experiencias-${i}`]?.length ?? 0),
-      0,
-    )
+    // IN-03: the group count comes from the STACKS themselves (every
+    // `experiencias-N` key), not from the CURRENT entries' indices — after a
+    // count-changing swap, orphaned stacks stay counted ("never capped,
+    // never silently dropped") instead of vanishing from the toggle.
+    const grupoVersoesCount = Object.keys(versoes)
+      .filter((k) => k.startsWith('experiencias-'))
+      .reduce((total, k) => total + (versoes[k]?.length ?? 0), 0)
+    // Orphaned stacks: indices beyond the CURRENT list — rendered below the
+    // entries (rows visible, Restaurar disabled: the indexed entry no longer
+    // exists to restore into).
+    const pilhasOrfas = Object.keys(versoes)
+      .map((k) => ({ chave: k, indice: Number(k.slice('experiencias-'.length)) }))
+      .filter(
+        ({ chave, indice }) =>
+          indice >= entradas.length && (versoes[chave]?.length ?? 0) > 0,
+      )
     return (
       <div className="mt-4 border-t border-gray-200 pt-3">
         <h4 className={BLOCK_HEADING_CLASSES}>{LINKEDIN_BLOCK_LABELS.experiencias}</h4>
@@ -1266,6 +1279,32 @@ export default function LinkedInHome() {
             )
           })}
         </div>
+        {/* IN-03: orphaned per-entry stacks stay VISIBLE (the count above
+            includes them) — rows render inside the open group Versões panel
+            with Restaurar disabled, so a count-changing swap can never
+            silently make stored versions unreachable. */}
+        {versoesAbertas.experiencias && pilhasOrfas.length > 0 && (
+          <div className="mt-3 space-y-2">
+            <p className="text-xs text-gray-500">{VERSOES_EXPERIENCIA_ORFAAS_NOTA}</p>
+            {pilhasOrfas.map(({ chave }) => (
+              <div key={chave}>
+                {(versoes[chave] ?? []).map((versao, j) => (
+                  <LinkedinVersaoRow
+                    key={`${chave}-${j}`}
+                    versao={versao}
+                    desabilitado={true}
+                    onRestaurar={() => {
+                      /* no-op: the indexed entry no longer exists — restoring
+                         would remove the version from its stack with nowhere
+                         to write it, so the button stays disabled and the
+                         handler must never drop the stored version. */
+                    }}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
         {comparacaoAbertas.experiencias && (
           <LinkedinComparisonPanel
             bloco="experiencias"
