@@ -14,6 +14,13 @@ the report can never disagree (D-13 + research constraint #4). Habilidades
 entries are NEVER rewritten (substituting inside a skill name would silently
 alter the deliverable list) — they get bleed detection only.
 
+WR-01 carve-out: the regen path passes `apply_glossario_to=<secao id>`, so
+the MUTATION is confined to that ONE surface while detection (glossary rows
+included) still covers the whole merged state — siblings ride by reference
+byte-identical (D-04/SC1), and the report never claims a substitution the
+displayed text does not carry. The full-run path passes None (the default:
+every prose surface mutates, as before).
+
 Non-blocking contract (D-14): QA findings are payload rows, never failures.
 Nothing in this module raises for findings — the ONLY loud path is the
 glossário load, where a malformed user-edited file raises PromptError through
@@ -201,7 +208,10 @@ def detect_english_bleed(text: str, secao: str) -> list[dict]:
 
 
 def run_linkedin_qa(
-    secoes: dict, language: str, prompts_dir: Path | None = None
+    secoes: dict,
+    language: str,
+    prompts_dir: Path | None = None,
+    apply_glossario_to: str | None = None,
 ) -> dict | None:
     """The orchestration seam (SC4): glossary FIRST, then bleed detection on
     the POST-glossary text (research constraint #4 — the report describes
@@ -211,26 +221,37 @@ def run_linkedin_qa(
     sobre, each experiência descricao — MUTATED in place, see the module
     docstring), then runs bleed detection over the post-glossary text of
     those surfaces plus every habilidades entry (detected ONLY — never
-    rewritten). Returns {"glossario": [rows], "bleed": [rows]} — possibly
-    with empty lists, which the frontend renders as loud zero lines. For
-    "en": returns None (QA is defined for PT-BR outputs; SC4) — the language
-    gate short-circuits BEFORE the glossário read, so an EN run never touches
-    the file. `prompts_dir` threads the load_glossario test seam through.
+    rewritten). `apply_glossario_to` (WR-01) confines the MUTATION to that
+    ONE section id on the section-regen path — siblings stay byte-identical
+    (D-04/SC1) while detection still covers the whole merged state; None
+    (the full-run default) mutates every prose surface. Returns
+    {"glossario": [rows], "bleed": [rows]} — possibly with empty lists,
+    which the frontend renders as loud zero lines. For "en": returns None
+    (QA is defined for PT-BR outputs; SC4) — the language gate short-circuits
+    BEFORE the glossário read, so an EN run never touches the file.
+    `prompts_dir` threads the load_glossario test seam through.
     """
     if language != "pt-BR":
         return None
 
     spec = load_glossario(prompts_dir)
 
+    def _muta_glossario(superficie: str) -> bool:
+        # WR-01: mutate only the regenerated surface on the regen path —
+        # sibling byte-identity must hold THROUGH the QA pass.
+        return apply_glossario_to is None or apply_glossario_to == superficie
+
     relatorio: list[dict] = []
     for superficie in ("headline", "sobre"):
-        texto, rows = apply_glossario(secoes[superficie], spec)
-        secoes[superficie] = texto
-        relatorio.extend(rows)
+        if _muta_glossario(superficie):
+            texto, rows = apply_glossario(secoes[superficie], spec)
+            secoes[superficie] = texto
+            relatorio.extend(rows)
     for entry in secoes["experiencias"]:
-        texto, rows = apply_glossario(entry["descricao"], spec)
-        entry["descricao"] = texto
-        relatorio.extend(rows)
+        if _muta_glossario("experiencias"):
+            texto, rows = apply_glossario(entry["descricao"], spec)
+            entry["descricao"] = texto
+            relatorio.extend(rows)
 
     # Bleed over the POST-glossary text only — the report and the copied
     # text must agree (research constraint #4). Experiência rows are labeled

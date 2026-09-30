@@ -595,6 +595,108 @@ def test_regen_qa_recomputed_over_the_full_merged_state(
     assert envelope["secoes"]["sobre"] is submitted.sobre
 
 
+def test_regen_glossario_never_mutates_siblings_byte_identity_through_qa(
+    tmp_path: Path, _profile_path: None
+) -> None:
+    """WR-01 regression (D-04/SC1 through the QA pass): with a LIVE glossário
+    pair, regenerating the headline must leave the submitted sobre and the
+    submitted experiência BYTE-IDENTICAL — the reviewer's exact vector: a
+    sibling submitted as "machine learning" must NOT come back as
+    "aprendizado de máquina" when an unrelated section regenerates. The
+    glossário MUTATION is confined to the regenerated surface, while
+    detection still covers the whole merged state and the report never
+    claims a substitution the displayed text does not carry."""
+    from app.linkedin.pipeline import run_linkedin_section_regen
+
+    prompts_dir = _write_glossario(
+        tmp_path, [{"de": "machine learning", "para": "aprendizado de máquina"}]
+    )
+    sobre_submetido = "Especialista em machine learning e dados com track record comprovado."
+    descricao_submetida = "Descrição de experiência em exibição com machine learning."
+    submitted = LinkedinSecoes(
+        headline=SUBMITTED_HEADLINE,
+        sobre=sobre_submetido,
+        experiencias=[
+            ExperienciaLinkedin(
+                company="Exemplo IA",
+                title="Engenheira de Software Sênior",
+                descricao=descricao_submetida,
+            )
+        ],
+        habilidades=list(SUBMITTED_HABILIDADES),
+    )
+    client = ScriptedClient([NEW_HEADLINE_CONTENT])
+    envelope = run_linkedin_section_regen(
+        OBJETIVO_REGEN,
+        "pt-BR",
+        "headline",
+        submitted,
+        runs_log=tmp_path / "runs.jsonl",
+        client=client,
+        prompts_dir=prompts_dir,
+    )
+
+    secoes = envelope["secoes"]
+    # Sibling byte-identity HOLDS through the glossário pass — same string
+    # objects the client submitted, term untouched.
+    assert secoes["sobre"] is submitted.sobre
+    assert secoes["sobre"] == sobre_submetido
+    assert "aprendizado de máquina" not in secoes["sobre"]
+    assert secoes["experiencias"][0]["descricao"] == descricao_submetida
+    assert secoes["experiencias"][0]["descricao"] is submitted.experiencias[0].descricao
+    # The regenerated target still gets the glossário applied to ITSELF (the
+    # displayed text of the regenerated block is post-glossary).
+    assert secoes["headline"] == json.loads(NEW_HEADLINE_CONTENT)["headline"]
+    # The report never claims a sibling substitution: the only glossário
+    # candidate lives in the untouched siblings, the target trips nothing —
+    # zero rows (text/report agreement, D-13).
+    assert envelope["qa"] is not None
+    assert envelope["qa"]["glossario"] == []
+    # Detection still covers the FULL merged state: the sibling's EN term
+    # surfaces in bleed, labeled by its surface (Pitfall 4 truthfulness).
+    assert {"termo": "track record", "secao": "sobre"} in envelope["qa"]["bleed"]
+
+
+def test_regen_glossario_still_applies_to_the_regen_target(
+    tmp_path: Path, _profile_path: None
+) -> None:
+    """The WR-01 carve-out confines the MUTATION, not the feature: a glossário
+    pair matching the REGENERATED block is applied to it and reported — the
+    displayed target text IS post-glossary while siblings stay identical."""
+    from app.linkedin.pipeline import run_linkedin_section_regen
+
+    prompts_dir = _write_glossario(
+        tmp_path, [{"de": "machine learning", "para": "aprendizado de máquina"}]
+    )
+    submitted = _submitted()
+    new_headline = json.dumps(
+        {"headline": "Novo headline — especialista em machine learning e dados"},
+        ensure_ascii=False,
+    )
+    client = ScriptedClient([new_headline])
+    envelope = run_linkedin_section_regen(
+        OBJETIVO_REGEN,
+        "pt-BR",
+        "headline",
+        submitted,
+        runs_log=tmp_path / "runs.jsonl",
+        client=client,
+        prompts_dir=prompts_dir,
+    )
+    # The TARGET block is post-glossary (case shape preserved) and reported.
+    assert envelope["secoes"]["headline"] == (
+        "Novo headline — especialista em aprendizado de máquina e dados"
+    )
+    assert envelope["qa"] is not None
+    assert {
+        "de": "machine learning",
+        "para": "aprendizado de máquina",
+        "ocorrencias": 1,
+    } in envelope["qa"]["glossario"]
+    # The sibling sobre (which also contains the term) stays byte-identical.
+    assert envelope["secoes"]["sobre"] is submitted.sobre
+
+
 def test_regen_en_carries_qa_null(tmp_path: Path, _profile_path: None) -> None:
     """The language contract holds on the regen path too: en regen → qa None."""
     from app.linkedin.pipeline import run_linkedin_section_regen

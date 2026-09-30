@@ -50,11 +50,15 @@ Post-generation contracts (D-07, probe edges LI-03/LI-04/LI-05):
   non-blocking report as "qa": {"glossario": [...], "bleed": [...]} for
   pt-BR runs and "qa": None for en runs (the language gate — findings are
   avisos, never a gate; hard failures stay reserved for schema/network
-  errors). `limites` is computed AFTER the substitution, so the counters
-  describe the final text. Both pipeline functions thread the
-  `prompts_dir` seam down to load_glossario (the same offline-test seam as
-  `client`/`runs_log`; production resolves the repo-root prompts/ fresh on
-  every execution — D-12).
+  errors). WR-01 carve-out: on the SECTION-REGEN path the glossário mutation
+  is confined to the regenerated surface — siblings ride by reference
+  BYTE-IDENTICAL through the QA pass (D-04/SC1), while detection still
+  covers the whole merged state and the report never claims a substitution
+  the displayed text does not carry. `limites` is computed AFTER the
+  substitution, so the counters describe the final text. Both pipeline
+  functions thread the `prompts_dir` seam down to load_glossario (the same
+  offline-test seam as `client`/`runs_log`; production resolves the
+  repo-root prompts/ fresh on every execution — D-12).
 """
 
 from pathlib import Path
@@ -330,7 +334,9 @@ def run_linkedin_section_regen(
     state and replaces ONLY the regenerated block (experiências swaps the
     whole entries list — the group is the regen unit); siblings pass through
     BY REFERENCE, never re-rendered (byte-identity is a response-level
-    testable property). `limites` is recomputed over the FULL merged state;
+    testable property — WR-01: it holds THROUGH the QA pass, where the
+    glossário mutation is confined to the regenerated surface).
+    `limites` is recomputed over the FULL merged state;
     the loud-empty contracts re-run on the regenerated block only. QA is
     recomputed over the FULL merged PT-BR state on every regen success
     (plan 06-04 truthfulness — the report always describes the whole current
@@ -373,9 +379,13 @@ def run_linkedin_section_regen(
         merged["habilidades"] = _process_habilidades(list(output.habilidades), profile)
 
     # Post-gen QA recomputed over the FULL merged state on EVERY regen
-    # success (Pitfall 4 truthfulness) — glossary first (mutating `merged`),
-    # then bleed on the post-glossary text; None for en runs.
-    qa = run_linkedin_qa(merged, language, prompts_dir=prompts_dir)
+    # success (Pitfall 4 truthfulness) — glossary first, then bleed on the
+    # post-glossary text; None for en runs. WR-01: the glossário MUTATION is
+    # confined to the regenerated surface (apply_glossario_to=secao) so the
+    # siblings riding by reference stay BYTE-IDENTICAL through the QA pass
+    # (D-04/SC1) — detection still covers the whole merged state, and the
+    # report never claims a substitution the displayed text does not carry.
+    qa = run_linkedin_qa(merged, language, prompts_dir=prompts_dir, apply_glossario_to=secao)
     return {
         "status": "ok",
         "idioma": language,
