@@ -370,6 +370,16 @@ export default function LinkedInHome() {
   // AND no long op pending AND no editor open. `operacaoLongaPendente` and
   // `locksEdicao` are derived ONCE below (after the mutations), never scattered.
   const ctaHabilitado = trimmed.length >= LINKEDIN_OBJETIVO_MIN_CHARS
+  // WR-06: regen requests carry the CURRENT form objetivo — when it no longer
+  // meets the backend's 80..2000 floor the POST would die in an unretryable
+  // FastAPI 422 rendered as the generic fetch-failure panel (the dead-end
+  // class the client mirrors exist to prevent). Every regen entry point
+  // gates on the SAME floor the CTA uses.
+  const objetivoCurto = trimmed.length < LINKEDIN_OBJETIVO_MIN_CHARS
+  const objetivoCurtoHint = LINKEDIN_OBJETIVO_TOO_SHORT_HINT.replace(
+    '{min}',
+    String(LINKEDIN_OBJETIVO_MIN_CHARS),
+  )
 
   const gerar = useMutation({
     mutationFn: gerarLinkedin,
@@ -551,6 +561,7 @@ export default function LinkedInHome() {
   // editor (the button is disabled; guard here too).
   function tentarGerarCompleta() {
     if (editor) return
+    if (objetivoCurto) return // WR-06: never POST a request the bound rejects
     const temEdicao =
       origens.headline === 'editado' ||
       origens.sobre === 'editado' ||
@@ -581,6 +592,7 @@ export default function LinkedInHome() {
   // Gerado badge regenerates directly.
   function tentarRegenerarSecao(secao: LinkedinSecaoId) {
     if (!resultado) return
+    if (objetivoCurto) return // WR-06: never POST a request the bound rejects
     const suja = editor !== null && editor.bloco === secao && editor.draft !== editor.inicial
     const editada =
       secao === 'experiencias'
@@ -631,6 +643,7 @@ export default function LinkedInHome() {
   // is dropped inside regenerarSecaoLinkedin.)
   function regenerarSecaoAgora(secao: LinkedinSecaoId) {
     if (!resultado) return
+    if (objetivoCurto) return // WR-06 guard paranoia (buttons already disabled)
     regenerar.mutate({
       objetivo: trimmed,
       language: idioma,
@@ -956,15 +969,19 @@ export default function LinkedInHome() {
 
   /** The trailing Regenerar seção button (compact secondary) for one block —
    *  the experiência GROUP is one regen unit. In-flight label swap; disabled
-   *  only while a long op runs (an open editor does NOT disable it —
-   *  own-section regen routes through the D-14 strip). */
+   *  while a long op runs or the current objetivo misses the backend's min
+   *  bound (WR-06 — the disabled button states why via its title hint, so a
+   *  shortened objetivo can never become the misleading generic 422 panel;
+   *  an open editor does NOT disable it — own-section regen routes through
+   *  the D-14 strip). */
   function renderRegenerarBotao(bloco: LinkedinSecaoId) {
     const pending = secaoRegenerando === bloco
     return (
       <button
         type="button"
         onClick={() => tentarRegenerarSecao(bloco)}
-        disabled={operacaoLongaPendente}
+        disabled={operacaoLongaPendente || objetivoCurto}
+        title={objetivoCurto ? objetivoCurtoHint : undefined}
         className={COMPACT_SECONDARY_BUTTON_CLASSES}
       >
         {pending
@@ -1487,14 +1504,18 @@ export default function LinkedInHome() {
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h3 className="text-base font-semibold text-gray-900">{LINKEDIN_RESULT_TITLE}</h3>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                  {/* Full regen (D-04/D-14): disabled while an editor is open
-                      or a long op runs; with any Editado block/entry it routes
-                      through the amber strip below (messages verbatim — the
-                      "Versões" reference stays true here). */}
+                  {/* Full regen (D-04/D-14): disabled while an editor is open,
+                      a long op runs, or the current objetivo misses the
+                      backend's min bound (WR-06 — same dead-end 422 class as
+                      the per-section buttons; the title states why). With any
+                      Editado block/entry it routes through the amber strip
+                      below (messages verbatim — the "Versões" reference stays
+                      true here). */}
                   <button
                     type="button"
                     onClick={tentarGerarCompleta}
-                    disabled={locksEdicao}
+                    disabled={locksEdicao || objetivoCurto}
+                    title={objetivoCurto ? objetivoCurtoHint : undefined}
                     className={COMPACT_SECONDARY_BUTTON_CLASSES}
                   >
                     {CURRICULO_REGENERAR}
