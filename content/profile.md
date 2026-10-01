@@ -463,6 +463,35 @@ projects:
   - WhatsApp Business API
   - Google Calendar API
   impacts: []
+- name: Financeiro — Gestão pessoal de finanças e investimentos
+  description:
+    pt-BR: 'Projeto pessoal: plataforma web completa de finanças pessoais e investimentos,
+      em produção em VPS própria (Docker Compose + Caddy + PostgreSQL). Orçamentos,
+      metas, transações recorrentes com agendador, cartões, portfólio consolidado
+      de investimentos com cotações automáticas (jobs agendados), ações com dividendos
+      e benchmarks, renda fixa com histórico de aportes/resgates e valorização,
+      grupos compartilhados (finanças entre vários usuários) e servidor MCP com
+      autenticação bearer que expõe as ferramentas financeiras a clientes de IA.'
+    en: 'Personal project: a complete personal finance and investment web platform,
+      in production on a self-hosted VPS (Docker Compose + Caddy + PostgreSQL).
+      Budgets, goals, scheduled recurring transactions, cards, a consolidated investment
+      portfolio with automatic price quotes (scheduled jobs), stocks with dividends
+      and benchmarks, fixed income with deposit/withdrawal history and valuation,
+      shared groups (multi-user finances), and an MCP server with bearer auth exposing
+      finance tools to AI clients.'
+  technologies:
+  - Python 3.12
+  - FastAPI (async)
+  - NiceGUI
+  - SQLAlchemy 2.0
+  - PostgreSQL
+  - Alembic
+  - APScheduler
+  - Docker Compose
+  - Caddy
+  - MCP (Model Context Protocol)
+  - pytest
+  impacts: []
 languages:
 - name:
     pt-BR: Português
