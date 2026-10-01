@@ -315,6 +315,8 @@ skills:
   - HTML5
   - CSS3
   - Redux
+  - SQLAlchemy
+  - NiceGUI
 - category: Dados
   items:
   - PostgreSQL
@@ -323,6 +325,10 @@ skills:
   - Pinecone
   - Engenharia de dados
   - Desenvolvimento de API
+  - Power BI
+  - pandas
+  - Redis
+  - Excel
 - category: Competências
   items:
   - Agente de IA
@@ -334,6 +340,8 @@ skills:
   - Agentes de IA
   - Busca Vetorial
   - Inglês
+  - CI/CD
+  - Testes automatizados (pytest)
 - category: Ferramentas
   items:
   - Banco de dados vetorial
@@ -342,6 +350,7 @@ skills:
   - Azure
   - AI Gateway
   - Anthropic
+  - Docker
 certifications:
 - name: Model Context Protocol (MCP) Professional Certification
   issuer:
@@ -471,20 +480,23 @@ projects:
     en: Nexus Agent
   scope: pessoal
   description:
-    pt-BR: 'Projeto pessoal: agente de IA para WhatsApp focado em agendamentos para
-      os setores de saúde e beleza (AI Appointment Setter SaaS), em produção e disponível
-      em AgendaFacilitada.com. Integra LLMs (LangChain/LangGraph) com APIs de calendário
-      e processamento de linguagem natural para conversas fluidas via WhatsApp.'
-    en: 'Personal project: a WhatsApp AI agent focused on appointment scheduling for
-      the health and beauty sectors (AI Appointment Setter SaaS), in production and
-      available at AgendaFacilitada.com. Integrates LLMs (LangChain/LangGraph) with
-      calendar APIs and natural-language processing for fluid WhatsApp conversations.'
+    pt-BR: 'Projeto pessoal de aprendizado: agente de IA para WhatsApp focado em
+      agendamentos para os setores de saúde e beleza (AI Appointment Setter), no
+      ar em AgendaFacilitada.com em VPS própria. Integra LLMs (LangChain/LangGraph)
+      com APIs de calendário e processamento de linguagem natural para conversas
+      fluidas via WhatsApp (Evolution API).'
+    en: 'Personal learning project: a WhatsApp AI agent focused on appointment scheduling
+      for the health and beauty sectors (AI Appointment Setter), live at AgendaFacilitada.com
+      on a self-hosted VPS. Integrates LLMs (LangChain/LangGraph) with calendar APIs
+      and natural-language processing for fluid WhatsApp conversations (Evolution
+      API).'
   technologies:
   - Python
   - LangChain
   - LangGraph
   - WhatsApp Business API
   - Google Calendar API
+  - Evolution API
   impacts: []
 - name:
     pt-BR: Financeiro — Gestão pessoal de finanças e investimentos
@@ -492,18 +504,23 @@ projects:
   scope: pessoal
   description:
     pt-BR: 'Projeto pessoal: plataforma web completa de finanças pessoais e investimentos,
-      em produção em VPS própria (Docker Compose + Caddy + PostgreSQL). Orçamentos,
-      metas, transações recorrentes com agendador, cartões, portfólio consolidado
-      de investimentos com cotações automáticas (jobs agendados), ações com dividendos
-      e benchmarks, renda fixa com histórico de aportes/resgates e valorização, grupos
-      compartilhados (finanças entre vários usuários) e servidor MCP com autenticação
-      bearer que expõe as ferramentas financeiras a clientes de IA.'
+      em produção em VPS própria (Docker Compose + Caddy + PostgreSQL + backups
+      automatizados) e em uso diário pela família do autor. Orçamentos, metas,
+      transações recorrentes com agendador, cartões, portfólio consolidado de investimentos
+      com cotações automáticas de 3 fontes (brapi, CoinGecko e yfinance como fallback)
+      consolidadas em portfólio único, ações com dividendos e benchmarks, renda fixa
+      com histórico de aportes/resgates e valorização, grupos compartilhados multiusuário
+      (finanças da família) e servidor MCP com autenticação bearer que expõe as
+      ferramentas financeiras a clientes de IA.'
     en: 'Personal project: a complete personal finance and investment web platform,
-      in production on a self-hosted VPS (Docker Compose + Caddy + PostgreSQL). Budgets,
-      goals, scheduled recurring transactions, cards, a consolidated investment portfolio
-      with automatic price quotes (scheduled jobs), stocks with dividends and benchmarks,
-      fixed income with deposit/withdrawal history and valuation, shared groups (multi-user
-      finances), and an MCP server with bearer auth exposing finance tools to AI clients.'
+      in production on a self-hosted VPS (Docker Compose + Caddy + PostgreSQL +
+      automated backups) and in daily use by the author''s family. Budgets, goals,
+      scheduled recurring transactions, cards, a consolidated investment portfolio
+      with automatic quotes from 3 sources (brapi, CoinGecko, and yfinance as fallback)
+      consolidated into a single portfolio, stocks with dividends and benchmarks,
+      fixed income with deposit/withdrawal history and valuation, multi-user shared
+      groups (family finances), and an MCP server with bearer auth exposing finance
+      tools to AI clients.'
   technologies:
   - Python 3.12
   - FastAPI (async)
@@ -516,7 +533,116 @@ projects:
   - Caddy
   - MCP (Model Context Protocol)
   - pytest
-  impacts: []
+  impacts:
+  - action:
+      pt-BR: Construiu servidor MCP financeiro com 35 tools em produção (orçamentos,
+        metas, transações, investimentos, renda fixa, dividendos e grupos compartilhados),
+        autenticado por bearer, operável por clientes de IA em linguagem natural
+      en: Built a finance MCP server exposing 35 tools in production (budgets, goals,
+        transactions, investments, fixed income, dividends, and shared groups),
+        bearer-authenticated, operable by AI clients in natural language
+    metric:
+      pt-BR: 35 tools MCP em produção; autenticação bearer; clientes de IA operam
+        as finanças em linguagem natural
+      en: 35 MCP tools in production; bearer authentication; AI clients operate the
+        finances in natural language
+  - action:
+      pt-BR: 'Opera plataforma financeira multiusuário real: grupos compartilhados
+        em uso diário pela família, sobre VPS própria com Docker Compose + Caddy
+        e backups automatizados'
+      en: 'Runs a real multi-user finance platform: shared groups in the family''s
+        daily use, on a self-hosted VPS with Docker Compose + Caddy and automated
+        backups'
+    metric:
+      pt-BR: em uso diário pela família do autor; grupos compartilhados multiusuário;
+        VPS própria com Docker Compose + Caddy + backups automatizados; 1.3k+ commits
+        desde 2026-08
+      en: in daily use by the author's family; multi-user shared groups; self-hosted
+        VPS with Docker Compose + Caddy + automated backups; 1.3k+ commits since
+        2026-08
+  - action:
+      pt-BR: Automatizou cotações de mercado com jobs agendados consolidando múltiplas
+        fontes em portfólio único
+      en: Automated market quotes with scheduled jobs consolidating multiple sources
+        into a single portfolio
+    metric:
+      pt-BR: cotações agendadas de 3 fontes (brapi, CoinGecko, yfinance como fallback)
+        consolidadas em portfólio único de ações, cripto e renda fixa
+      en: scheduled quotes from 3 sources (brapi, CoinGecko, yfinance as fallback)
+        consolidated into a single portfolio of stocks, crypto, and fixed income
+  - action:
+      pt-BR: Mantém qualidade de engenharia com suíte de testes automatizados cobrindo
+        regras financeiras, autenticação e tools MCP
+      en: Maintains engineering quality with an automated test suite covering finance
+        rules, authentication, and MCP tools
+    metric:
+      pt-BR: 667 testes automatizados (pytest/asyncio) cobrindo regras financeiras,
+        autenticação e tools MCP
+      en: 667 automated tests (pytest/asyncio) covering finance rules, authentication,
+        and MCP tools
+- name:
+    pt-BR: Termômetro da Massa
+    en: Termômetro da Massa
+  scope: pessoal
+  description:
+    pt-BR: 'Projeto acadêmico em desenvolvimento (trabalho de mineração de texto
+      da PUC Minas): pipeline de ABSA (análise de sentimento baseada em aspectos)
+      que mede a percepção dos torcedores do Atlético Mineiro sobre cada jogador
+      a partir de comentários públicos no X (Twitter) e Instagram. Coleta via Apify
+      com re-execuções cache-first e registro de custo por execução; camadas de
+      dados raw → silver → gold com deduplicação e espelho sanitizado dos dados
+      brutos; extração de aspectos via LLM (OpenAI); dataset gold com kappa entre
+      anotadores; app de anotação em Streamlit. 7 partidas coletadas até o momento.'
+    en: 'Academic project in development (PUC Minas text-mining coursework): an ABSA
+      (aspect-based sentiment analysis) pipeline measuring Atlético Mineiro fans''
+      perception of each player from public X (Twitter) and Instagram comments.
+      Apify collection with cache-first re-runs and a per-run cost ledger; raw →
+      silver → gold data layers with dedup and a sanitized mirror of the raw data;
+      LLM-based aspect extraction (OpenAI); gold dataset with inter-annotator kappa;
+      Streamlit annotation app. 7 matches collected so far.'
+  technologies:
+  - Python 3.12
+  - Apify
+  - OpenAI
+  - pandas
+  - PyArrow (Parquet)
+  - scikit-learn
+  - Streamlit
+  - pytest
+  - uv
+  impacts:
+  - action:
+      pt-BR: Estruturou pipeline ABSA ponta a ponta com camadas de dados raw →
+        silver → gold (deduplicação e espelho sanitizado), extração de aspectos
+        via LLM e dataset gold para anotação
+      en: Structured an end-to-end ABSA pipeline with raw → silver → gold data
+        layers (dedup and sanitized mirror), LLM-based aspect extraction, and a
+        gold dataset for annotation
+    metric:
+      pt-BR: pipeline ABSA ponta a ponta com camadas raw → silver → gold e
+        453 testes automatizados
+      en: end-to-end ABSA pipeline with raw → silver → gold layers and 453 automated
+        tests
+  - action:
+      pt-BR: Implementou coleta Apify cache-first com registro de custo por execução
+        sobre comentários públicos do X (Twitter) e Instagram
+      en: Implemented cache-first Apify collection with a per-run cost ledger over
+        public X (Twitter) and Instagram comments
+    metric:
+      pt-BR: coleta cache-first com registro de custo por execução; 7 partidas curadas
+        entre X (Twitter) e Instagram sem gasto descontrolado
+      en: cache-first collection with a per-run cost ledger; 7 curated matches across
+        X (Twitter) and Instagram without unbounded spend
+  - action:
+      pt-BR: 'Construiu a disciplina de dataset gold: app de anotação em Streamlit
+        com amostragem, manifest e kappa entre anotadores'
+      en: 'Built gold-set discipline: a Streamlit annotation app with sampling, a
+        manifest, and inter-annotator kappa'
+    metric:
+      pt-BR: app de anotação em Streamlit com amostragem e manifest; módulo de kappa
+        inter-anotadores sobre o dataset gold
+      en: Streamlit annotation app with sampling and manifest; inter-annotator kappa
+        module over the gold dataset
 languages:
 - name:
     pt-BR: Português
