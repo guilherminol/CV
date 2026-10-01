@@ -135,9 +135,9 @@ experiences:
       en: Redesigned the relational database structure with software-engineering best
         practices
     metric:
-      pt-BR: 90 tabelas redesenhadas, com aumento de performance de 70%; economia
-        estimada de ~60% do tempo de manutenção das bases; infraestrutura preparada
-        para suportar fluxos de Inteligência Artificial
+      pt-BR: 90 tabelas redesenhadas, com aumento de performance de 70%;
+        economia estimada de ~60% do tempo de manutenção das bases; infraestrutura
+        preparada para suportar fluxos de Inteligência Artificial
       en: 90 tables redesigned with a 70% performance increase; estimated ~60% saving
         in database-maintenance time; infrastructure prepared to support AI workflows
     context:
