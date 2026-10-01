@@ -24,7 +24,10 @@ def minimal_profile() -> dict:
     """Smallest dict valid against the v1 schema (every other section defaults)."""
     return {
         "name": "Ana Exemplo",
-        "contact": {"email": "ana.exemplo@example.com", "location": "São Paulo, SP"},
+        "contact": {
+            "email": "ana.exemplo@example.com",
+            "location": {"pt-BR": "São Paulo, SP", "en": "Sao Paulo, SP"},
+        },
         "summary": {"pt-BR": "Resumo de exemplo.", "en": "Example summary."},
         "experiences": [
             {
@@ -61,7 +64,10 @@ def full_profile() -> dict:
             "education": [
                 {
                     "institution": "Universidade Exemplo",
-                    "degree": "Bacharelado em Ciência da Computação",
+                    "degree": {
+                        "pt-BR": "Bacharelado em Ciência da Computação",
+                        "en": "Bachelor's degree in Computer Science",
+                    },
                     "start_date": "2013-02",
                     "end_date": "2017-12",
                 }
@@ -75,17 +81,28 @@ def full_profile() -> dict:
             "certifications": [
                 {
                     "name": "AWS Certified Solutions Architect",
-                    "issuer": "Amazon Web Services",
+                    "issuer": {
+                        "pt-BR": "Amazon Web Services",
+                        "en": "Amazon Web Services",
+                    },
                     "year": "2023",
                 }
             ],
             "languages": [
-                {"name": "Português", "level": "nativo"},
-                {"name": "Inglês", "level": "avançado"},
+                {
+                    "name": {"pt-BR": "Português", "en": "Portuguese"},
+                    "level": {"pt-BR": "nativo", "en": "native"},
+                },
+                {
+                    "name": {"pt-BR": "Inglês", "en": "English"},
+                    "level": {"pt-BR": "avançado", "en": "advanced"},
+                },
             ],
             "projects": [
                 {
+                    # str name (brand) — exercises the `str | LocalizedText` union.
                     "name": "Assistente Exemplo",
+                    "scope": "profissional",
                     "description": {
                         "pt-BR": "Chat de IA generativa para documentos internos.",
                         "en": "Generative-AI chat over internal documents.",

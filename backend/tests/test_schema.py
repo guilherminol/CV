@@ -132,7 +132,11 @@ def test_unknown_key_rejected_on_contact() -> None:
 def test_unknown_key_rejected_on_education_entry() -> None:
     with pytest.raises(ValidationError) as excinfo:
         EducationEntry.model_validate(
-            {"institution": "Universidade Exemplo", "degree": "BSc", "ano": "2017"}
+            {
+                "institution": "Universidade Exemplo",
+                "degree": {"pt-BR": "Bacharelado", "en": "Bachelor's degree"},
+                "ano": "2017",
+            }
         )
     error = excinfo.value.errors(include_url=False)[0]
     assert error["type"] == "extra_forbidden"
@@ -171,6 +175,7 @@ def test_unknown_key_rejected_on_project() -> None:
         Project.model_validate(
             {
                 "name": "Assistente Exemplo",
+                "scope": "profissional",
                 "description": {"pt-BR": "d", "en": "d"},
                 "tecnologias": ["FastAPI"],
             }
@@ -272,7 +277,7 @@ def test_optional_date_field_still_accepts_null() -> None:
     education = EducationEntry.model_validate(
         {
             "institution": "Universidade Exemplo",
-            "degree": "BSc",
+            "degree": {"pt-BR": "Bacharelado", "en": "Bachelor's degree"},
             "start_date": "2013-02",
             "end_date": None,
         }
@@ -285,6 +290,32 @@ def test_example_flag_round_trips(minimal_profile_data: dict) -> None:
     assert Profile.model_validate(minimal_profile_data).example is True
     minimal_profile_data["example"] = False
     assert Profile.model_validate(minimal_profile_data).example is False
+
+
+def test_project_scope_and_name_union(minimal_profile_data: dict) -> None:
+    """Project.scope separates in-company from personal projects (fails loud
+    when missing); the name accepts a brand str OR a localized map."""
+    minimal_profile_data["projects"] = [
+        {
+            "name": {
+                "pt-BR": "Financeiro — Gestão pessoal",
+                "en": "Financeiro — Personal finance",
+            },
+            "scope": "pessoal",
+            "description": {"pt-BR": "d", "en": "d"},
+        }
+    ]
+    project = Profile.model_validate(minimal_profile_data).projects[0]
+    assert project.scope == "pessoal"
+    assert project.name["en"] == "Financeiro — Personal finance"
+
+    minimal_profile_data["projects"][0]["name"] = "Nexus Agente"  # brand str — valid
+    assert Profile.model_validate(minimal_profile_data).projects[0].name == "Nexus Agente"
+
+    del minimal_profile_data["projects"][0]["scope"]
+    with pytest.raises(ValidationError) as exc:
+        Profile.model_validate(minimal_profile_data)
+    assert "scope" in str(exc.value)
 
 
 # ---------------------------------------------------------------------------

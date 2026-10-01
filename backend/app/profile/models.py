@@ -77,6 +77,8 @@ class _BaseLanguageMixin(BaseModel):
             values = getattr(self, name)
             if values is None:
                 continue  # optional localized field absent — base rule does not apply
+            if isinstance(values, str):
+                continue  # `str | LocalizedText` union: a brand str IS the whole value
             if BASE_LANGUAGE not in values:
                 raise ValueError(
                     f"idioma base '{BASE_LANGUAGE}' ausente no campo localizado "
@@ -86,11 +88,13 @@ class _BaseLanguageMixin(BaseModel):
 
 
 class Contact(_BaseLanguageMixin, _Strict):
-    """D-07 contact block — single values only (D-02: contact info is language-neutral)."""
+    """D-07 contact block. Email and LinkedIn are language-neutral single
+    values; location and phone ARE localized (D-02 pattern — both render on
+    sendable documents: "Brasil"/"Brazil", local vs +55 phone format)."""
 
     email: str
-    location: str | None = None
-    phone: str | None = None
+    location: LocalizedText | None = None
+    phone: LocalizedText | None = None
     linkedin: str | None = None
 
 
@@ -116,8 +120,11 @@ class Experience(_BaseLanguageMixin, _Strict):
 
 
 class EducationEntry(_BaseLanguageMixin, _Strict):
-    institution: str
-    degree: str
+    """Work-history education entry; the degree IS localized (D-02 pattern —
+    it renders on sendable documents in the run language)."""
+
+    institution: str  # single-value per D-02: proper noun
+    degree: LocalizedText
     start_date: str | None = None
     end_date: str | None = None
     _norm_dates = field_validator("start_date", "end_date", mode="before")(_date_to_str)
@@ -131,20 +138,34 @@ class SkillGroup(_BaseLanguageMixin, _Strict):
 
 
 class CertificationEntry(_BaseLanguageMixin, _Strict):
+    """Certification entry; the name is a single-value proper noun, but the
+    issuer IS localized (D-02 pattern — the issuer line may carry the
+    certificate's nature, e.g. course completion vs exam, per language)."""
+
     name: str
-    issuer: str | None = None
+    issuer: LocalizedText | None = None
     year: str | None = None
 
 
 class LanguageEntry(_BaseLanguageMixin, _Strict):
-    name: str
-    level: str
+    """Language name and proficiency ARE localized (D-02 pattern — both render
+    on sendable documents in the run language)."""
+
+    name: LocalizedText
+    level: LocalizedText
 
 
 class Project(_BaseLanguageMixin, _Strict):
-    """D-08 pattern applied to projects: embedded impacts per project."""
+    """D-08 pattern applied to projects: embedded impacts per project.
 
-    name: str
+    name: brand str OR localized map — a title may carry a per-language
+    descriptor ("Financeiro — Gestão pessoal..." / "— Personal finance...").
+    scope separates in-company (profissional) from personal projects so the
+    document groups them honestly instead of mixing employers with side
+    projects."""
+
+    name: str | LocalizedText
+    scope: Literal["profissional", "pessoal"]
     description: LocalizedText
     technologies: list[str] = []
     impacts: list[Impact] = []

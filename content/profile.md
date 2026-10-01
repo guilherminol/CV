@@ -48,12 +48,12 @@ experiences:
       en: Built the Group Verifica solution end to end (frontend, backend, AI, and
         database) for the condominium and HR markets
     metric:
-      pt-BR: 'Menos de 30 segundos por análise (vs. quase 1 dia manual, ~90% de redução);
+      pt-BR: Menos de 30 segundos por análise (vs. quase 1 dia manual, ~90% de redução);
         53 clientes testaram em 20 dias; 72% demonstraram interesse em comprar; 196+
-        consultas em produção; R$4.750 de MRR'
-      en: 'Under 30 seconds per analysis (vs. nearly 1 manual day, ~90% reduction);
+        consultas em produção; R$4.750 de MRR nos primeiros 45 dias
+      en: Under 30 seconds per analysis (vs. nearly 1 manual day, ~90% reduction);
         53 clients tested within 20 days; 72% demonstrated purchase interest; 196+
-        queries in production; R$4,750 MRR'
+        queries in production; R$4,750 MRR in the first 45 days
     context:
       pt-BR: Produto lançado com IA Generativa
       en: Product shipped with generative AI
@@ -63,22 +63,27 @@ experiences:
       en: Architected a document-ingestion platform with a two-layer pipeline (summary
         + raw text), overlapping chunking, semantic search, and re-ranking
     metric:
-      pt-BR: Alta precisão na recuperação de contextos complexos
-      en: High precision in retrieving complex contexts
+      pt-BR: 'Adoção em duas frentes: moradores consultam documentos do condomínio
+        subidos ao RAG via WhatsApp e via site/app; times de suporte adotaram a
+        plataforma como base de conhecimento central, consultando os documentos antes
+        de responder — redução de até 80% no tempo de resposta do suporte'
+      en: 'Dual adoption: residents consult condo documents uploaded to the RAG via
+        WhatsApp and via site/app; support teams adopted the platform as their central
+        knowledge base, consulting documents before answering — up to 80% reduction
+        in support response time'
     context:
       pt-BR: RAG avançado em produção
       en: Advanced RAG in production
   - action:
-      pt-BR: 'Projetou o motor de risco configurável do Group Verifica com fluxos
-        de agentes LangGraph e tools para consulta a APIs de antecedentes em tempo
-        real'
-      en: 'Designed Group Verifica''s configurable risk engine with LangGraph agent
-        flows and tools querying real-time background-check APIs'
+      pt-BR: Projetou o motor de risco configurável do Group Verifica com fluxos de
+        agentes LangGraph e tools para consulta a APIs de antecedentes em tempo real
+      en: Designed Group Verifica's configurable risk engine with LangGraph agent
+        flows and tools querying real-time background-check APIs
     metric:
-      pt-BR: 'Motor configurável em 3 níveis de risco (Brando/Normal/Rigoroso) com
-        lógica de fallback e rastreabilidade completa de cada decisão'
-      en: 'Engine configurable in 3 risk levels (Brando/Normal/Rigoroso) with fallback
-        logic and full traceability of every decision'
+      pt-BR: Motor configurável em 3 níveis de risco (Brando/Normal/Rigoroso) com
+        lógica de fallback e rastreabilidade completa de cada decisão
+      en: Engine configurable in 3 risk levels (Brando/Normal/Rigoroso) with fallback
+        logic and full traceability of every decision
     context:
       pt-BR: Integração com sistemas legados e bancos de produção
       en: Integration with legacy systems and production databases
@@ -88,13 +93,13 @@ experiences:
       en: Implemented AI-based transcription and automatic generation of assembly
         minutes and call notices
     metric:
-      pt-BR: '482 atas geradas em 49 dias de produção; 68,1% de adoção orgânica entre
+      pt-BR: 482 atas geradas em 49 dias de produção; 68,1% de adoção orgânica entre
         assembleias elegíveis (pico de 77,3%); 1.446 horas de trabalho especializado
         eliminadas (482 × 3h por ata manual); 135 administradoras de condomínio adotaram
-        a feature'
-      en: '482 meeting minutes generated in 49 days of production; 68.1% organic
-        adoption among eligible assemblies (peak 77.3%); 1,446 specialist hours eliminated
-        (482 × 3h per manual minute); 135 management companies adopted the feature'
+        a feature
+      en: 482 meeting minutes generated in 49 days of production; 68.1% organic adoption
+        among eligible assemblies (peak 77.3%); 1,446 specialist hours eliminated
+        (482 × 3h per manual minute); 135 management companies adopted the feature
   - action:
       pt-BR: Desenvolveu motor de Geração de Leads Inteligente que identifica oportunidades
         de cross-selling (seguros, financeiro, energia) a partir de transcrições de
@@ -102,12 +107,12 @@ experiences:
       en: Built a smart lead-generation engine that spots cross-selling opportunities
         (insurance, financial, energy) from meeting transcripts
     metric:
-      pt-BR: '239 leads gerados em 78 dias (3,1 leads/dia, autônomo e contínuo, sem
+      pt-BR: 239 leads gerados em 78 dias (3,1 leads/dia, autônomo e contínuo, sem
         equipe dedicada); custo total de IA de ~R$107 para os 239 leads vs. R$597–R$1.434
-        em plataformas de mercado (~93% de economia)'
-      en: '239 leads generated in 78 days (3.1 leads/day, autonomous and continuous,
+        em plataformas de mercado (~93% de economia)
+      en: 239 leads generated in 78 days (3.1 leads/day, autonomous and continuous,
         no dedicated team); total AI cost ~R$107 for the 239 leads vs. R$597–R$1,434
-        on market platforms (~93% savings)'
+        on market platforms (~93% savings)
 - company: H&P
   title:
     pt-BR: Cientista de Dados | Engenheiro de IA
@@ -130,10 +135,11 @@ experiences:
       en: Redesigned the relational database structure with software-engineering best
         practices
     metric:
-      pt-BR: '90 tabelas redesenhadas, com aumento de performance de 70%; infraestrutura
-        preparada para suportar fluxos de Inteligência Artificial'
-      en: '90 tables redesigned with a 70% performance increase; infrastructure prepared
-        to support AI workflows'
+      pt-BR: 90 tabelas redesenhadas, com aumento de performance de 70%; economia
+        estimada de ~60% do tempo de manutenção das bases; infraestrutura preparada
+        para suportar fluxos de Inteligência Artificial
+      en: 90 tables redesigned with a 70% performance increase; estimated ~60% saving
+        in database-maintenance time; infrastructure prepared to support AI workflows
     context:
       pt-BR: Arquitetura e governança de dados
       en: Data architecture and governance
@@ -141,10 +147,10 @@ experiences:
       pt-BR: Implantou de forma pioneira soluções de IA Generativa na empresa
       en: Pioneered the deployment of generative-AI solutions across the company
     metric:
-      pt-BR: 'Redução de até 80% no tempo de escrita de relatórios pelo time responsável,
-        a partir dos casos de uso estratégicos identificados'
-      en: 'Up to 80% reduction in report-writing time for the responsible team, from
-        the identified strategic use cases'
+      pt-BR: Redução de até 80% no tempo de escrita de relatórios pelo time responsável,
+        a partir dos casos de uso estratégicos identificados
+      en: Up to 80% reduction in report-writing time for the responsible team, from
+        the identified strategic use cases
   - action:
       pt-BR: Coordenou grupos de estudo internos focados em IA (RAG, chunks, embeddings
         e seleção de modelos LLMs)
@@ -161,10 +167,10 @@ experiences:
       en: Owned governance and integrity of the Fundão dam breach (Mariana/MG) registration
         databases
     metric:
-      pt-BR: 'Precisão absoluta dos dados para decisões estratégicas e relatórios
-        de alto impacto; 1.200 usuários atendidos'
-      en: 'Absolute data accuracy for strategic decisions and high-impact reports;
-        1,200 people served'
+      pt-BR: Precisão absoluta dos dados para decisões estratégicas e relatórios de
+        alto impacto; 1.200 usuários atendidos
+      en: Absolute data accuracy for strategic decisions and high-impact reports;
+        1,200 people served
 - company: The Brooklyn Brothers
   title:
     pt-BR: Desenvolvedor Front-end Pleno
@@ -187,10 +193,10 @@ experiences:
       pt-BR: Desenvolveu e aprimorou interfaces web de alto desempenho para a Rexona
       en: Developed and improved high-performance web interfaces for Rexona
     metric:
-      pt-BR: 'Melhoria de 23% no SEO, além de melhor experiência do usuário, eficiência
-        operacional e acessibilidade'
-      en: '23% SEO improvement, plus better user experience, operational efficiency,
-        and accessibility'
+      pt-BR: Melhoria de 23% no SEO, além de melhor experiência do usuário, eficiência
+        operacional e acessibilidade; melhoria de ~30% em performance
+      en: 23% SEO improvement, plus better user experience, operational efficiency,
+        and accessibility; ~30% performance improvement
     context:
       pt-BR: React, Context API e JavaScript (ES6+); HTML5, CSS3 e web components
         responsivos
@@ -322,12 +328,20 @@ skills:
   - Agente de IA
   - IA Generativa
   - Aprendizado de Máquina
+  - Engenharia de IA
+  - Multi-tenancy
+  - Observabilidade
+  - Agentes de IA
+  - Busca Vetorial
+  - Inglês
 - category: Ferramentas
   items:
   - Banco de dados vetorial
   - GPT
   - Gemini
   - Azure
+  - AI Gateway
+  - Anthropic
 certifications:
 - name: Model Context Protocol (MCP) Professional Certification
   issuer:
@@ -351,7 +365,10 @@ certifications:
     pt-BR: Anthropic (curso com certificado de conclusão)
     en: Anthropic (certificate of completion)
 projects:
-- name: GIA — Plataforma de IA Group Software
+- name:
+    pt-BR: GIA — Plataforma de IA Group Software
+    en: GIA — Group Software AI Platform
+  scope: profissional
   description:
     pt-BR: 'Plataforma central de IA que unifica e expõe as capacidades de Inteligência
       Artificial de todos os produtos Group Software. Atua como gateway/centralizador
@@ -381,6 +398,9 @@ projects:
   - pgvector
   - OpenAI GPT-4o
   - JWT Auth
+  - Redis (filas)
+  - Azure (containers + PostgreSQL gerenciado)
+  - Azure OpenAI
   impacts:
   - action:
       pt-BR: 'Co-arquitetou e desenvolveu a GIA como camada de orquestração multi-MCP
@@ -393,12 +413,12 @@ projects:
         access point, with dynamic tool routing by client entitlement and message
         context, and real-time capability discovery and exposure'
     metric:
-      pt-BR: '3 produtos Group Software integrados simultaneamente via 3 servidores
+      pt-BR: 3 produtos Group Software integrados simultaneamente via 3 servidores
         MCP centralizados; ~20 tools de IA expostas no total; base potencial de ~1
-        milhão de clientes; ~2 meses em produção atendendo clientes e uso interno'
-      en: '3 Group Software products integrated simultaneously via 3 centralized
-        MCP servers; ~20 AI tools exposed in total; potential base of ~1 million clients;
-        ~2 months in production serving clients and internal use'
+        milhão de clientes; ~2 meses em produção atendendo clientes e uso interno
+      en: 3 Group Software products integrated simultaneously via 3 centralized MCP
+        servers; ~20 AI tools exposed in total; potential base of ~1 million clients;
+        ~2 months in production serving clients and internal use
   - action:
       pt-BR: 'Estabeleceu de forma pioneira o padrão de IA da organização: antes da
         GIA nenhum produto Group Software tinha IA nem qualquer servidor MCP; cada
@@ -409,12 +429,12 @@ projects:
         as agent-consumable tools, replacing point-to-point integrations with one
         unified, governable catalog'
     metric:
-      pt-BR: 'Integrar um novo produto ao padrão MCP passou a levar 1–2 semanas,
-        vs. estimativa de 2+ meses no modelo de integração ponto a ponto anterior;
-        de zero produtos com IA para um catálogo multi-produto centralizado'
-      en: 'Onboarding a new product to the MCP standard now takes 1–2 weeks, vs.
-        an estimated 2+ months under the previous point-to-point integration model;
-        from zero products with AI to a centralized multi-product catalog'
+      pt-BR: Integrar um novo produto ao padrão MCP passou a levar 1–2 semanas, vs.
+        estimativa de 2+ meses no modelo de integração ponto a ponto anterior; de
+        zero produtos com IA para um catálogo multi-produto centralizado
+      en: Onboarding a new product to the MCP standard now takes 1–2 weeks, vs. an
+        estimated 2+ months under the previous point-to-point integration model; from
+        zero products with AI to a centralized multi-product catalog
   - action:
       pt-BR: 'Roteamento cross-product por contexto conversacional: a GIA identifica,
         pela própria mensagem do usuário, qual produto/tool acionar — habilitando
@@ -427,11 +447,11 @@ projects:
         with a unified chat interface and a JWT auth layer respecting each integrated
         product''s specific auth method'
     metric:
-      pt-BR: 'Interface de chat unificada sobre 3 produtos; autenticação JWT com
-        fluxo específico por produto; seleção de tools por contexto + entitlement
-        em tempo real'
-      en: 'Unified chat interface over 3 products; JWT auth with a per-product flow;
-        real-time tool selection by context + entitlement'
+      pt-BR: Interface de chat unificada sobre 3 produtos; autenticação JWT com fluxo
+        específico por produto; seleção de tools por contexto + entitlement em tempo
+        real
+      en: Unified chat interface over 3 products; JWT auth with a per-product flow;
+        real-time tool selection by context + entitlement
   - action:
       pt-BR: 'Chat de documentos sobre a GIA em uso hoje: RAG que responde perguntas
         com base na documentação dos produtos, adotado internamente pela equipe de
@@ -442,20 +462,23 @@ projects:
         recently evolved to a multi-tenant architecture with per-tenant isolation
         and plug-and-play onboarding'
     metric:
-      pt-BR: 'Em uso em produção (suporte interno + clientes); milhares de documentos
-        indexados; RAG sobre pgvector; camada multi-tenant recém-lançada'
-      en: 'In production (internal support + clients); thousands of documents indexed;
-        RAG over pgvector; multi-tenant layer recently launched'
-- name: Nexus Agente
+      pt-BR: Em uso em produção (suporte interno + clientes); milhares de documentos
+        indexados; RAG sobre pgvector; camada multi-tenant recém-lançada
+      en: In production (internal support + clients); thousands of documents indexed;
+        RAG over pgvector; multi-tenant layer recently launched
+- name:
+    pt-BR: Nexus Agente
+    en: Nexus Agent
+  scope: pessoal
   description:
     pt-BR: 'Projeto pessoal: agente de IA para WhatsApp focado em agendamentos para
       os setores de saúde e beleza (AI Appointment Setter SaaS), em produção e disponível
       em AgendaFacilitada.com. Integra LLMs (LangChain/LangGraph) com APIs de calendário
       e processamento de linguagem natural para conversas fluidas via WhatsApp.'
-    en: 'Personal project: a WhatsApp AI agent focused on appointment scheduling
-      for the health and beauty sectors (AI Appointment Setter SaaS), in production
-      and available at AgendaFacilitada.com. Integrates LLMs (LangChain/LangGraph)
-      with calendar APIs and natural-language processing for fluid WhatsApp conversations.'
+    en: 'Personal project: a WhatsApp AI agent focused on appointment scheduling for
+      the health and beauty sectors (AI Appointment Setter SaaS), in production and
+      available at AgendaFacilitada.com. Integrates LLMs (LangChain/LangGraph) with
+      calendar APIs and natural-language processing for fluid WhatsApp conversations.'
   technologies:
   - Python
   - LangChain
@@ -463,22 +486,24 @@ projects:
   - WhatsApp Business API
   - Google Calendar API
   impacts: []
-- name: Financeiro — Gestão pessoal de finanças e investimentos
+- name:
+    pt-BR: Financeiro — Gestão pessoal de finanças e investimentos
+    en: Financeiro — Personal finance and investment management
+  scope: pessoal
   description:
     pt-BR: 'Projeto pessoal: plataforma web completa de finanças pessoais e investimentos,
       em produção em VPS própria (Docker Compose + Caddy + PostgreSQL). Orçamentos,
       metas, transações recorrentes com agendador, cartões, portfólio consolidado
       de investimentos com cotações automáticas (jobs agendados), ações com dividendos
-      e benchmarks, renda fixa com histórico de aportes/resgates e valorização,
-      grupos compartilhados (finanças entre vários usuários) e servidor MCP com
-      autenticação bearer que expõe as ferramentas financeiras a clientes de IA.'
+      e benchmarks, renda fixa com histórico de aportes/resgates e valorização, grupos
+      compartilhados (finanças entre vários usuários) e servidor MCP com autenticação
+      bearer que expõe as ferramentas financeiras a clientes de IA.'
     en: 'Personal project: a complete personal finance and investment web platform,
-      in production on a self-hosted VPS (Docker Compose + Caddy + PostgreSQL).
-      Budgets, goals, scheduled recurring transactions, cards, a consolidated investment
-      portfolio with automatic price quotes (scheduled jobs), stocks with dividends
-      and benchmarks, fixed income with deposit/withdrawal history and valuation,
-      shared groups (multi-user finances), and an MCP server with bearer auth exposing
-      finance tools to AI clients.'
+      in production on a self-hosted VPS (Docker Compose + Caddy + PostgreSQL). Budgets,
+      goals, scheduled recurring transactions, cards, a consolidated investment portfolio
+      with automatic price quotes (scheduled jobs), stocks with dividends and benchmarks,
+      fixed income with deposit/withdrawal history and valuation, shared groups (multi-user
+      finances), and an MCP server with bearer auth exposing finance tools to AI clients.'
   technologies:
   - Python 3.12
   - FastAPI (async)

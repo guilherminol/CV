@@ -156,12 +156,14 @@ def test_unmapped_error_type_falls_back_to_ptbr_template() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_example_profile_validates(shipped_profile_path) -> None:
+def test_shipped_profile_validates(shipped_profile_path) -> None:
+    """The shipped content/profile.md validates against the FULL schema —
+    it now carries the owner's real data (example: false since the real
+    profile landed), so the old example-persona shape pins are gone; what
+    must hold forever is that the owner-edited file parses clean."""
     profile = load_profile(shipped_profile_path)  # any key mismatch fails via extra=forbid
-    assert profile.example is True  # D-11: the shipped file IS the example
-    assert profile.name == "Ana Exemplo"
-    assert len(profile.experiences) == 3  # D-16 persona shape
+    assert profile.name  # parsed profile object is present
+    assert profile.experiences  # SC3 data half: experiences present
     assert all(exp.impacts for exp in profile.experiences)  # D-08: impacts embedded
-    assert len(profile.skills) == 4  # D-09: categorized groups
-    assert len(profile.projects) == 2
+    assert all(exp.title.get("pt-BR") and exp.title.get("en") for exp in profile.experiences)
     assert profile.education and profile.certifications and profile.languages
