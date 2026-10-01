@@ -71,7 +71,7 @@ Phase: 6 (LinkedIn Module + Bilingual Hardening) — EXECUTED, verification huma
 ( bloqueio: créditos OpenRouter esgotados — 402; geração ao vivo impossível até top-up)
 Plan: 6 of 6 executed (26/26 phase plans across the milestone)
 Status: Awaiting human verification (phases 1 and 6) — milestone completion gate refuses until both pass
-Last activity: 2026-10-01 - Completed quick task 261001-o9w: deep-dive profile enrichment from projects — Group Software dual-adoption metric, GIA Redis/Azure tech, H&P ~60% estimate, Brooklyn ~30% performance, honest Nexus rewrite, Financeiro 4 repo-grounded impacts, new Termômetro da Massa project, 10 approved skills
+Last activity: 2026-10-01 - Completed quick task 261001-q9v: two Group Software projects added — Plataforma Conversacional (GIA IEBT, team framing) and Servidor MCP do Ecossistema Condominial (mcp-com, direct work)
 
 Progress: [███████░░░] 67% (4 of 6 phases verified complete; all 6 executed)
 
@@ -209,6 +209,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 261001-o9w | Deep-dive profile enrichment from projects — dual-adoption Group Software metric, GIA Redis/Azure, H&P estimate, Brooklyn performance, honest Nexus, Financeiro impacts, Termômetro da Massa, 10 skills | 2026-10-01 | 4efcb1e, 68b4820, 71b0e99 | [261001-o9w-quero-melhorar-o-meu-profile-com-oq-eu-j](./quick/261001-o9w-quero-melhorar-o-meu-profile-com-oq-eu-j/) |
+| 261001-q9v | Add two Group Software projects — Plataforma Conversacional (GIA IEBT, team framing, renamed to avoid GIA collision) and Servidor MCP do Ecossistema Condominial (mcp-com, direct work); professional projects grouped first; no skills changes | 2026-10-01 | d80bbbc | [261001-q9v-add-two-group-software-projects-to-maste](./quick/261001-q9v-add-two-group-software-projects-to-maste/) |
 | 260930-sll | Enrich master profile from old resume base — GIA + Nexus Agente projects, stronger impact metrics, 10 new skills, MCP Professional Certification | 2026-09-30 | 6cf1904 | [260930-sll-enrich-profile-from-old-resume-base](./quick/260930-sll-enrich-profile-from-old-resume-base/) |
 
 ## Deferred Items
