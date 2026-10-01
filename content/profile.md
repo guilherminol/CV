@@ -476,6 +476,83 @@ projects:
       en: In production (internal support + clients); thousands of documents indexed;
         RAG over pgvector; multi-tenant layer recently launched
 - name:
+    pt-BR: Plataforma Conversacional Group Software (GIA IEBT)
+    en: Group Software Conversational Platform (GIA IEBT)
+  scope: profissional
+  description:
+    pt-BR: 'Sistema centralizador de MCP (Model Context Protocol) do Group Software que interpreta a demanda do usuário dentro da conversa e roteia dinamicamente para o fluxo ou agente de IA correto com base no estado da conversa (não em uma árvore fixa de intenções). Multicanal — 6 canais de entrada: 3 vias de WhatsApp (integração própria, uazapi e Twilio), Telegram, API de chat interna e transbordo para atendimento humano. Memória de longo prazo entre conversas (inspirada em arquiteturas MemGPT, com escopo isolado por cliente e por usuário), identidade canônica entre contas e produtos e auditoria de custo de LLM por conversa, cliente e modelo. Em desenvolvimento ativo desde 2026-07, com pipeline de entrega para 3 ambientes AWS (ECS, provisionado via Terraform).'
+    en: 'Group Software''s centralized MCP (Model Context Protocol) system that interprets the user''s request inside a conversation and routes dynamically to the right AI flow or agent based on conversation state (not a fixed intent tree). Multichannel — 6 input channels: 3 WhatsApp paths (own integration, uazapi, and Twilio), Telegram, an internal chat API, and a human-handoff channel. Long-term memory between conversations (MemGPT-inspired, scoped per client and per user), canonical identity across accounts and products, and LLM cost auditing per conversation, client, and model. In active development since 2026-07, with a delivery pipeline to 3 AWS environments (ECS, provisioned via Terraform).'
+  technologies:
+  - Python 3.13
+  - FastAPI
+  - LangGraph
+  - LangChain
+  - OpenRouter
+  - PostgreSQL (SQLAlchemy async + Alembic)
+  - Redis
+  - Qdrant
+  - Terraform (AWS ECS)
+  - OpenTelemetry
+  - Langfuse
+  - Docker
+  - pytest
+  - promptfoo
+  impacts:
+  - action:
+      pt-BR: 'Integra o time que construiu a plataforma conversacional multicanal do Group Software sobre arquitetura de roteamento dinâmico baseado no estado da conversa'
+      en: 'Part of the team that built Group Software''s multichannel conversational platform on a state-based dynamic-routing architecture'
+    metric:
+      pt-BR: 'o time entregou 6 canais de entrada (3 vias de WhatsApp, Telegram, API interna e transbordo humano), 21 entidades de domínio e 120 migrations em ~3 meses de desenvolvimento ativo (408 commits)'
+      en: 'the team delivered 6 input channels (3 WhatsApp paths, Telegram, an internal chat API, and human handoff), 21 domain entities, and 120 database migrations in ~3 months of active development (408 commits)'
+  - action:
+      pt-BR: 'Atua no desenvolvimento sob a régua de qualidade de engenharia do projeto'
+      en: 'Contributes to development under the project''s engineering quality bar'
+    metric:
+      pt-BR: '2.870 testes automatizados em 290 arquivos com gate mínimo de 90% de cobertura no CI; 28 especificações formais versionadas; arquitetura hexagonal com LangGraph/LangChain confinados à infraestrutura'
+      en: '2,870 automated tests across 290 files with a minimum 90% coverage gate in CI; 28 versioned formal specifications; hexagonal architecture with LangGraph/LangChain confined to the infrastructure layer'
+  - action:
+      pt-BR: 'Integra o time que trata segurança e operação de LLM como requisitos de primeira classe — multi-tenancy resolvido no servidor, identidade canônica e red team automatizado'
+      en: 'Part of the team treating security and LLM operations as first-class requirements — server-side multi-tenancy, canonical identity, and automated red teaming'
+    metric:
+      pt-BR: 'multi-tenancy resolvido no servidor (nunca aceito do canal), identidade canônica entre contas, red team automatizado com promptfoo (isolamento entre clientes, bypass de auth, injeção de instruções), observabilidade OpenTelemetry→Datadog + Langfuse self-hosted e auditoria de custo de LLM por conversa/cliente/modelo; modelos avaliados comparativamente via OpenRouter (GPT-5-mini, GPT-4.1-mini, Claude 3 Haiku, Gemini, Gemma)'
+      en: 'multi-tenancy resolved server-side (never accepted raw from the channel), canonical identity across accounts, automated red teaming with promptfoo (client isolation, auth bypass, instruction injection), OpenTelemetry→Datadog + self-hosted Langfuse observability, and per-conversation/client/model LLM cost auditing; models compared systematically via OpenRouter (GPT-5-mini, GPT-4.1-mini, Claude 3 Haiku, Gemini, Gemma)'
+- name:
+    pt-BR: Servidor MCP do Ecossistema Condominial (mcp-com)
+    en: Condominium Ecosystem MCP Server (mcp-com)
+  scope: profissional
+  description:
+    pt-BR: 'Servidor MCP (Model Context Protocol) que expõe as APIs de autoatendimento do ecossistema de gestão condominial como tools consumíveis por agentes de IA — login, dados de unidades, boletos em PDF (individual e agregado), certidões de "nada consta" (individual e agregada), balancete financeiro e busca de conhecimento. Construído com o SDK oficial do MCP, com transporte duplo (stdio local + HTTP remoto sem estado) servido pelo mesmo núcleo, e consumido pela plataforma de IA conversacional da empresa como cliente. Ativo desde 2026-07.'
+    en: 'An MCP (Model Context Protocol) server exposing the condominium-management ecosystem''s self-service APIs as AI-consumable tools — login, unit data, boletos in PDF (individual and aggregated), "nada consta" certificates (individual and aggregated), financial statements (balancete), and knowledge search. Built with the official MCP SDK, with dual transport (local stdio + stateless remote HTTP) served by the same core, and consumed by the company''s conversational AI platform as a client. Active since 2026-07.'
+  technologies:
+  - TypeScript
+  - Node.js
+  - MCP SDK (oficial)
+  - Fastify
+  - Zod
+  - Vitest
+  - OpenTelemetry
+  - Terraform
+  - Docker
+  impacts:
+  - action:
+      pt-BR: 'Desenvolveu o conjunto de tools MCP de produção para o ecossistema de gestão condominial, consumido pela plataforma de IA conversacional da empresa'
+      en: 'Developed the production MCP tool set for the condominium-management ecosystem, consumed by the company''s conversational AI platform'
+    metric:
+      pt-BR: '19 tools MCP em produção com schemas Zod estritos de entrada/saída, truncamento e paginação consistentes nos dois transportes (stdio e HTTP remoto)'
+      en: '19 MCP tools in production with strict Zod input/output schemas, truncation, and pagination consistent across both transports (stdio and remote HTTP)'
+  - action:
+      pt-BR: 'Implementou autenticação em duas camadas e assinatura criptográfica de requisições para um sistema parceiro de IA'
+      en: 'Implemented two-layer authentication and cryptographic request signing for a partner AI system'
+    metric:
+      pt-BR: 'autenticação em duas camadas (chave de API do cliente MCP + JWT do usuário final por chamada, nunca exposto como parâmetro aberto); assinatura RSA-SHA256 reimplementada em TypeScript com compatibilidade byte a byte com o protocolo Java legado, via engenharia reversa de protocolo sem especificação formal'
+      en: 'two-layer authentication (MCP client API key + end-user JWT per call, never exposed as an open parameter); RSA-SHA256 signing reimplemented in TypeScript with byte-for-byte compatibility with the legacy Java protocol, via reverse engineering of a protocol with no formal specification'
+  - action:
+      pt-BR: 'Mantém qualidade e entrega com suíte de testes Vitest, arquitetura DDD/hexagonal e pipeline self-hosted'
+      en: 'Maintains quality and delivery with a Vitest test suite, DDD/hexagonal architecture, and a self-hosted pipeline'
+    metric:
+      pt-BR: '250 testes automatizados (Vitest) em arquitetura DDD/hexagonal com registry composto de tools; CI/CD self-hosted com SonarQube, build Docker e deploy remoto controlado via Terraform'
+      en: '250 automated tests (Vitest) on a DDD/hexagonal architecture with a composite tool registry; self-hosted CI/CD with SonarQube, Docker build, and remote deploy controlled via Terraform'
+- name:
     pt-BR: Nexus Agente
     en: Nexus Agent
   scope: pessoal
