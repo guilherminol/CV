@@ -82,7 +82,7 @@ group_label_style = ParagraphStyle(
 )
 meta_style = ParagraphStyle(
     "ResumeMeta", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
-    textColor=META, spaceBefore=0, spaceAfter=2,
+    textColor=META, spaceBefore=0, spaceAfter=1,
     allowWidows=0, allowOrphans=0,
 )
 body_style = ParagraphStyle(
@@ -91,7 +91,7 @@ body_style = ParagraphStyle(
     allowWidows=0, allowOrphans=0,
 )
 bullet_style = ParagraphStyle(
-    "ResumeBullet", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
+    "ResumeBullet", fontName="SegoeUI", fontSize=10.5, leading=11.6,
     leftIndent=14, bulletIndent=2, textColor=BODY,
     spaceBefore=0, spaceAfter=0, allowWidows=0, allowOrphans=0,
 )
