@@ -159,7 +159,12 @@ def main():
             in_contact = False
             story.extend(section_header(line[3:]))
         elif line.startswith("# "):
-            story.append(Paragraph(esc(line[2:]), name_style))
+            # headline: name at 20pt, vacancy title as a smaller muted suffix
+            head = esc(line[2:])
+            if "|" in head:
+                name, _, suffix = head.partition("|")
+                head = f'{name}<font size="13.5" color="#555555"> | {suffix}</font>'
+            story.append(Paragraph(head, name_style))
             in_contact = True
         elif line.startswith("> "):
             meta = Paragraph(esc(line[2:]), meta_style)

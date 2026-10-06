@@ -12,7 +12,7 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 | Agile Methods | Covered | Core Skills (Ways of Working: Agile methodologies, Scrum); Group Software ("highly autonomous agile squad"); The Brooklyn Brothers ("agile (Scrum) environment") |
 | Snowflake | Gap (honest) | Kept out of the CV — no Snowflake (or comparable enterprise data warehouse) experience in the profile; the data-ecosystem requirement is covered by production vector databases instead |
 | CI/CD | Covered | Core Skills; Group Software (90% minimum coverage gate in CI); condominium MCP server (self-hosted CI/CD with SonarQube) |
-| Machine Learning | Covered | Core Skills (Data and Machine Learning); H&P title "Data Scientist \| AI Engineer"; PUC Minas Data Science and AI degree (Summary) |
+| Machine Learning | Covered | Core Skills (Data and Machine Learning); H&P title "Data Scientist \| AI Engineer" |
 | AI Agents | Covered | Core Skills (Agentic AI — AI agents, multi-agent systems); Group Software (autonomous LangGraph agents, agent tool integration) |
 | MLOps | Partial — see Gaps | CV claims the LLMOps practices the profile supports (AI evaluations, promptfoo red teaming, Langfuse/OpenTelemetry/Datadog observability, per-conversation cost auditing, CI/CD) but makes no formal MLOps-platform claim |
 | GenAI – Generative AI | Covered | Professional Summary; Core Skills ("GenAI — Generative AI and LLMs"); every Group Software bullet and Use of AI field |
@@ -24,7 +24,7 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 | JD requirement | Verdict | Where in the CV |
 |---|---|---|
 | 3+ years in ML / AI engineering roles | Covered | Professional Summary ("Three years of AI and data engineering work (since November 2023)"); H&P (Data Scientist \| AI Engineer, Nov 2023 – Jun 2025) + Group Software (AI Engineer, Jun 2025 – Present) |
-| Hands-on ML (1+ year): training, fine-tuning, evaluating models, solid ML fundamentals | Partial — see Gaps | Evaluating models and ML fundamentals are covered (PUC Minas degree in the Summary; LLM evaluation and model selection in Core Skills). Training/fine-tuning depth is NOT claimed — flagged as Gap (honest) below |
+| Hands-on ML (1+ year): training, fine-tuning, evaluating models, solid ML fundamentals | Partial — see Gaps | Evaluating models and ML fundamentals are covered (LLM evaluation and model selection in Core Skills). Training/fine-tuning depth is NOT claimed — flagged as Gap (honest) below |
 | Production AI/ML systems, not just prototypes, incl. generative/agentic AI | Covered | Professional Summary ("production systems, not prototypes"); Group Software (Group Verifica: 196+ queries in production, R$4,750 MRR; 482 AI minutes; 135 management companies; GIA ~2 months serving clients) |
 | Strong Python + agentic tooling (Claude Code, Cursor, Codex, GitHub Copilot) + agentic architecture patterns | Covered | Core Skills (Python; Claude Code, Cursor, GitHub Copilot, Codex); Group Software Use of AI ("Uses agentic coding tools daily"); agentic architecture (dynamic tool routing by entitlement/conversational context, hexagonal architecture with LangGraph/LangChain confined to infrastructure) |
 | Modern GenAI patterns: RAG, embeddings, vector search, tool/function calling, structured outputs | Covered | Core Skills (Agentic AI, Agents and RAG group lists all five); Group Software (two-layer RAG ingestion; 19 MCP tools with strict Zod schemas for structured outputs) |
@@ -69,6 +69,10 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 > (RSA-SHA256, 196+ queries, risk-level names) dropped; GS tech stack trimmed to distinctive items
 > (duplicates of Core Skills removed); Certifications compressed to 2 lines (all 5 names kept);
 > Kenzie reduced to 1 bullet; Red Lion tech line dropped; document is now a 2-pager.
+> 6th revision (same day): headline adds the vacancy title next to the name
+> (Guilhermino Lucas | Forward Deployed AI Engineer); Summary trimmed at owner request —
+> "(since November 2023)", "(from nearly a manual day to under 30 seconds)" and the PUC Minas
+> degree sentence removed.
 
 - [x] Single column layout
 - [x] Section headers follow the app D-05 montage (Summary, Experience, Core Skills, Certifications, Languages; Education and Projects removed at owner request, 4th revision — the degree stays signaled in the Summary)

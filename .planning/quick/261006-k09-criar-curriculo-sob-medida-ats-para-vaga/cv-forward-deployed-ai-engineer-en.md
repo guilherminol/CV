@@ -1,10 +1,10 @@
-# Guilhermino Lucas
+# Guilhermino Lucas | Forward Deployed AI Engineer
 
 guilherminolucasc@gmail.com · Belo Horizonte, Brazil · +55 (37) 99928-1391 · linkedin.com/in/guilherminolucas
 
 ## Summary
 
-Forward Deployed AI Engineer profile: full-stack engineer who ships production generative-AI and agentic systems end to end, from Python/FastAPI backends and LangGraph/LangChain agent flows to TypeScript/React frontends. Three years of AI and data engineering work (since November 2023) building advanced RAG platforms and MCP (Model Context Protocol) tool ecosystems adopted by real clients. Production systems, not prototypes: a criminal-background and lawsuit analysis solution that cut analysis time by up to 90% (from nearly a manual day to under 30 seconds), AI-generated assembly minutes adopted by 135 management companies, and a support knowledge base that cut response time by up to 80%. Drives AI-first engineering across teams with custom Claude Code agents and skills that raise the quality and consistency of AI-generated code. Currently studying Data Science and Artificial Intelligence at PUC Minas.
+Forward Deployed AI Engineer profile: full-stack engineer who ships production generative-AI and agentic systems end to end, from Python/FastAPI backends and LangGraph/LangChain agent flows to TypeScript/React frontends. Three years of AI and data engineering work building advanced RAG platforms and MCP (Model Context Protocol) tool ecosystems adopted by real clients. Production systems, not prototypes: a criminal-background and lawsuit analysis solution that cut analysis time by up to 90%, AI-generated assembly minutes adopted by 135 management companies, and a support knowledge base that cut response time by up to 80%. Drives AI-first engineering across teams with custom Claude Code agents and skills that raise the quality and consistency of AI-generated code.
 
 ## Experience
 
