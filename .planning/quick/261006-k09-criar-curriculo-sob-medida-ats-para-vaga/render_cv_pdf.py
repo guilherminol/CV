@@ -95,6 +95,10 @@ bullet_style = ParagraphStyle(
     leftIndent=14, bulletIndent=2, textColor=BODY,
     spaceBefore=0, spaceAfter=0, allowWidows=0, allowOrphans=0,
 )
+bullet_spaced_style = ParagraphStyle(
+    "ResumeBulletSpaced", parent=bullet_style,
+    spaceBefore=6, spaceAfter=6,
+)
 
 LABEL_RE = re.compile(r"^\*\*[^*]+:\*\*$")
 
@@ -125,6 +129,7 @@ def main():
     story = []
     in_contact = False
     contact_buf = []
+    current_section = ""
     pending_blocks = []   # entry heading (+ optional meta line) awaiting first content
     pending_label = None  # standalone **Label:** line awaiting its first content
 
@@ -157,6 +162,7 @@ def main():
                     story.append(Paragraph(esc(c), contact_style))
                 contact_buf = []
             in_contact = False
+            current_section = line[3:].strip().lower()
             story.extend(section_header(line[3:]))
         elif line.startswith("# "):
             # headline: name at 20pt, vacancy title as a smaller muted suffix
@@ -173,7 +179,8 @@ def main():
             else:
                 flush(meta)
         elif line.startswith("- "):
-            flush(Paragraph("• " + esc(line[2:]), bullet_style))
+            style = bullet_spaced_style if current_section == "experience" else bullet_style
+            flush(Paragraph("• " + esc(line[2:]), style))
         elif LABEL_RE.match(line.strip()) and not in_contact:
             pending_label = Paragraph(esc(line), body_style)
         else:
