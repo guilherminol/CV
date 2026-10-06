@@ -17,7 +17,7 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 ## Core Skills
 
 - **GenAI — Generative AI and LLMs:** OpenAI, OpenRouter, Azure OpenAI, Claude API, GPT, Gemini, Anthropic, prompt engineering, LLM deployment, speech-to-text, text-to-speech, voice AI
-- **Agentic AI, Agents and RAG:** LangChain, LangGraph, advanced RAG, multi-agent systems, agent tool integration, tool/function calling, MCP — Model Context Protocol, semantic search, context engineering, embeddings, vector search, vector databases (pgvector, Qdrant, Chroma, Pinecone)
+- **Agentic AI, Agents and RAG:** AI agents, agentic AI, LangChain, LangGraph, advanced RAG, multi-agent systems, agent tool integration, tool/function calling, MCP — Model Context Protocol, semantic search, context engineering, embeddings, vector search, vector databases (pgvector, Qdrant, Chroma, Pinecone)
 - **AI Tooling and Ops:** Claude Code, Cursor, GitHub Copilot, Codex, AI evaluations, LLMOps practices (automated red teaming, LLM observability, per-conversation LLM cost auditing), AI observability, CI/CD, Docker, Terraform, Azure, Azure AI Foundry, Vertex AI, pytest
 - **Languages and Frameworks:** Python, TypeScript, JavaScript, FastAPI, React, SQLAlchemy, Node.js, Vitest
 - **Data and Machine Learning:** PostgreSQL, MongoDB, Redis, data engineering, API development, pandas, Power BI, Machine Learning fundamentals (LLM evaluation and model selection)
