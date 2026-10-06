@@ -93,7 +93,7 @@ body_style = ParagraphStyle(
 bullet_style = ParagraphStyle(
     "ResumeBullet", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
     leftIndent=14, bulletIndent=2, textColor=BODY,
-    spaceBefore=1, spaceAfter=1, allowWidows=0, allowOrphans=0,
+    spaceBefore=0, spaceAfter=0, allowWidows=0, allowOrphans=0,
 )
 
 LABEL_RE = re.compile(r"^\*\*[^*]+:\*\*$")
