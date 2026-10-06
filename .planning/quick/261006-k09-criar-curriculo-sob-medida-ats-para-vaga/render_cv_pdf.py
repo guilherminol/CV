@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 """Render the tailored CV markdown master to an ATS-safe PDF (ReportLab).
 
+Layout mirrors the app's D-05 montage (backend/app/export/render.py):
+name + one-line contact, then Summary / Experience / Education / Core
+Skills / Certifications / Languages / Projects. Visual design kept from the
+previous iteration: Times New Roman, slate-blue section titles, A4.
+
+Markdown vocabulary:
+    #  name            ##  section title     ###  entry heading
+    #### group label   >   meta line (dates, tech)   -  bullet
+    **Label:** standalone line sticks to its first content block
+
 Re-run after every edit to cv-forward-deployed-ai-engineer-en.md:
     python render_cv_pdf.py
 """
@@ -54,6 +64,20 @@ section_title_style = ParagraphStyle(
     "ResumeSectionTitle", fontName="TimesNewRoman", fontSize=13.5, leading=17,
     spaceBefore=0, spaceAfter=0, textColor=HEADER_FILL,
 )
+entry_title_style = ParagraphStyle(
+    "ResumeEntryTitle", fontName="TimesNewRoman", fontSize=11.5, leading=15,
+    textColor=TEXT_PRIMARY, spaceBefore=9, spaceAfter=1,
+    allowWidows=0, allowOrphans=0,
+)
+group_label_style = ParagraphStyle(
+    "ResumeGroupLabel", fontName="TimesNewRoman", fontSize=10.5, leading=14,
+    textColor=TEXT_MUTED, spaceBefore=7, spaceAfter=2,
+)
+meta_style = ParagraphStyle(
+    "ResumeMeta", fontName="TimesNewRoman-Italic", fontSize=10, leading=13,
+    textColor=TEXT_MUTED, spaceBefore=0, spaceAfter=3,
+    allowWidows=0, allowOrphans=0,
+)
 body_style = ParagraphStyle(
     "ResumeBody", fontName="TimesNewRoman", fontSize=11, leading=15.2,
     textColor=TEXT_PRIMARY, spaceBefore=2.5, spaceAfter=2.5,
@@ -92,31 +116,49 @@ def main():
     story = []
     in_contact = False
     contact_buf = []
+    pending_blocks = []   # entry heading (+ optional meta line) awaiting first content
     pending_label = None  # standalone **Label:** line awaiting its first content
 
     def flush(block):
-        nonlocal pending_label
-        if pending_label is not None:
-            story.append(KeepTogether([pending_label, block]))
-            pending_label = None
-        else:
-            story.append(block)
+        nonlocal pending_blocks, pending_label
+        chain = pending_blocks + ([pending_label] if pending_label else []) + [block]
+        pending_blocks = []
+        pending_label = None
+        story.append(KeepTogether(chain) if len(chain) > 1 else chain[0])
 
     for raw in md_text.splitlines():
         line = raw.rstrip()
         if not line.strip():
             continue
-        if line.startswith("# "):
-            story.append(Paragraph(esc(line[2:]), name_style))
-            story.append(Spacer(1, 4))
-            in_contact = True
+        if line.startswith("#### "):
+            if pending_blocks:
+                story.extend(pending_blocks)
+                pending_blocks = []
+            pending_label = None
+            story.append(Paragraph(esc(line[5:]), group_label_style))
+        elif line.startswith("### "):
+            pending_blocks = [Paragraph("<b>" + esc(line[4:]) + "</b>", entry_title_style)]
         elif line.startswith("## "):
+            if pending_blocks:
+                story.extend(pending_blocks)
+                pending_blocks = []
+            pending_label = None
             if contact_buf:
                 for c in contact_buf:
                     story.append(Paragraph(esc(c), contact_style))
                 contact_buf = []
             in_contact = False
             story.extend(section_header(line[3:]))
+        elif line.startswith("# "):
+            story.append(Paragraph(esc(line[2:]), name_style))
+            story.append(Spacer(1, 4))
+            in_contact = True
+        elif line.startswith("> "):
+            meta = Paragraph(esc(line[2:]), meta_style)
+            if pending_blocks:
+                pending_blocks.append(meta)
+            else:
+                flush(meta)
         elif line.startswith("- "):
             flush(Paragraph("• " + esc(line[2:]), bullet_style))
         elif LABEL_RE.match(line.strip()) and not in_contact:
@@ -126,6 +168,8 @@ def main():
                 contact_buf.append(line)
             else:
                 flush(Paragraph(esc(line), body_style))
+
+    story.extend(pending_blocks)
     if pending_label is not None:
         story.append(pending_label)
 

@@ -50,14 +50,23 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 
 ## 2. Format audit checklist
 
+> Updated 2026-10-06 (2nd revision): the CV was restructured to the app's own
+> export montage (backend/app/export/render.py D-05) at the owner's request —
+> section order Summary / Experience / Education / Core Skills / Certifications /
+> Languages / Projects, entries as `Company · Role` + date line + bullets, one-line
+> contact header, projects grouped under a scope label. Core Skills kept as a
+> categorized section (owner preference, replaces the app's single-paragraph
+> Skills). All recruiter-required fields remain present per experience, mapped
+> into the app-native entry format.
+
 - [x] Single column layout
-- [x] Standard section headers (Professional Summary, Core Skills, Professional Experience, Selected Projects, Education, Certifications, Languages)
+- [x] Section headers follow the app D-05 montage (Summary, Experience, Education, Core Skills, Certifications, Languages, Projects)
 - [x] No tables, graphics, images, or text boxes
 - [x] Consistent Month YYYY date format on every experience (June 2025 – Present; November 2023 – June 2025; March 2022 – January 2023; August 2021 – February 2022; March 2020 – May 2020) and education
 - [x] Action-verb-first bullets (Built, Architected, Designed, Implemented, Co-architected, Contributed, Developed, Upheld, Redesigned, Pioneered, Ran, Owned, Worked, Coached, Clarified, Taught)
-- [x] Contact info complete in the header (location, phone, email, LinkedIn, languages)
+- [x] Contact info complete in the header as one line (email · location · phone · LinkedIn; languages have their own section)
 - [x] File is plain markdown that parses cleanly (no broken bold/heading syntax, no tabs, no HTML)
-- [x] Recruiter's 5-field structure present exactly once per experience: **Company** / **Position/Role** / **Tasks and responsibilities** / **Tech stack and tools used** / **Use of AI** — 5 × 5
+- [x] Recruiter-required per-experience fields preserved in app-native format (all 5 experiences): entry heading = **Company · Position/Role** (`Company · Role`, dates on the meta line) / tasks and responsibilities = entry bullets / **Tech stack and tools used** = "Tech stack:" meta line / **Use of AI** = "Use of AI:" sub-block
 
 ## 3. Fixes applied
 

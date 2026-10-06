@@ -1,35 +1,16 @@
 # Guilhermino Lucas
 
-Belo Horizonte, Minas Gerais, Brazil
+guilherminolucasc@gmail.com · Belo Horizonte, Minas Gerais, Brazil · +55 (37) 99928-1391 · linkedin.com/in/guilherminolucas
 
-Phone: +55 (37) 99928-1391
-
-Email: guilherminolucasc@gmail.com
-
-LinkedIn: linkedin.com/in/guilherminolucas
-
-Languages: English (full professional proficiency), Portuguese (native)
-
-## Professional Summary
+## Summary
 
 Forward Deployed AI Engineer profile: full-stack engineer who ships production generative-AI and agentic systems end to end — from Python/FastAPI backends and LangGraph/LangChain agent flows to TypeScript/React frontends. Three years of AI and data engineering work (since November 2023) building advanced RAG platforms and MCP (Model Context Protocol) tool ecosystems adopted by real clients — production systems, not prototypes: a criminal-background and lawsuit analysis solution that cut analysis time by up to 90% (from nearly a manual day to under 30 seconds), AI-generated assembly minutes adopted by 135 management companies, and a support knowledge base that cut response time by up to 80%. Currently studying Data Science and Artificial Intelligence at PUC Minas.
 
-## Core Skills
+## Experience
 
-- **GenAI — Generative AI and LLMs:** OpenAI, OpenRouter, Azure OpenAI, Claude API, GPT, Gemini, Anthropic, prompt engineering, LLM deployment, speech-to-text, text-to-speech, voice AI
-- **Agentic AI, Agents and RAG:** AI agents, agentic AI, LangChain, LangGraph, advanced RAG, multi-agent systems, agent tool integration, tool/function calling, MCP — Model Context Protocol, semantic search, context engineering, embeddings, vector search, vector databases (pgvector, Qdrant, Chroma, Pinecone)
-- **AI Tooling and Ops:** Claude Code, Cursor, GitHub Copilot, Codex, AI evaluations, LLMOps practices (automated red teaming, LLM observability, per-conversation LLM cost auditing), AI observability, CI/CD, Docker, Terraform, Azure, Azure AI Foundry, Vertex AI, pytest
-- **Languages and Frameworks:** Python, TypeScript, JavaScript, FastAPI, React, SQLAlchemy, Node.js, Vitest
-- **Data and Machine Learning:** PostgreSQL, MongoDB, Redis, data engineering, API development, pandas, Power BI, Machine Learning fundamentals (LLM evaluation and model selection)
-- **Ways of Working:** Agile methodologies, Scrum, automated testing, multi-tenancy, hexagonal architecture
+### Group Software · AI Engineer
 
-## Professional Experience
-
-**Company:** Group Software
-
-**Position/Role:** AI Engineer, June 2025 – Present (Belo Horizonte, Brazil)
-
-**Tasks and responsibilities:**
+> June 2025 – Present
 
 - Built the Group Verifica solution end to end (frontend, backend, AI, and database) for the condominium and HR markets, shipped with generative AI — under 30 seconds per criminal-background and lawsuit analysis (vs. nearly 1 manual day, ~90% reduction); 53 clients tested within 20 days; 72% demonstrated purchase interest; 196+ queries in production; R$4,750 MRR in the first 45 days
 - Architected a document-ingestion platform with a two-layer pipeline (summary + raw text), overlapping chunking, semantic search, and re-ranking — residents consult condo documents uploaded to the RAG via WhatsApp and via site/app, and support teams adopted the platform as their central knowledge base, delivering up to 80% reduction in support response time
@@ -41,7 +22,7 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 - Developed the production MCP tool set for the condominium-management ecosystem, consumed by the company's conversational AI platform — 19 MCP tools in production with strict Zod schemas for structured outputs, consistent across both transports (local stdio and stateless remote HTTP); two-layer authentication (MCP client API key + end-user JWT per call); RSA-SHA256 request signing reimplemented in TypeScript with byte-for-byte compatibility with the legacy Java protocol
 - Upheld the team's engineering quality bar — 2,870 automated tests across 290 files with a minimum 90% coverage gate in CI, hexagonal architecture with LangGraph/LangChain confined to the infrastructure layer, and 28 versioned formal specifications
 
-**Tech stack and tools used:** Python, FastAPI, TypeScript, React, Node.js, Fastify, LangChain, LangGraph, MCP (Model Context Protocol), OpenRouter, OpenAI GPT-4o, Azure OpenAI, Claude API, pgvector, Qdrant, Redis, PostgreSQL, Azure (containers + managed PostgreSQL), AWS ECS, Terraform, Docker, OpenTelemetry, Datadog, Langfuse, promptfoo, pytest, Vitest, Zod
+> **Tech stack:** Python, FastAPI, TypeScript, React, Node.js, Fastify, LangChain, LangGraph, MCP (Model Context Protocol), OpenRouter, OpenAI GPT-4o, Azure OpenAI, Claude API, pgvector, Qdrant, Redis, PostgreSQL, Azure (containers + managed PostgreSQL), AWS ECS, Terraform, Docker, OpenTelemetry, Datadog, Langfuse, promptfoo, pytest, Vitest, Zod
 
 **Use of AI:**
 
@@ -51,79 +32,106 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 - Operates MCP servers that expose product APIs as AI-consumable tools (19 production tools with strict Zod structured-output schemas), plus the GIA multi-MCP orchestration layer routing ~20 tools by entitlement and conversational context
 - Uses agentic coding tools daily (Claude Code, Cursor, GitHub Copilot, Codex) across design, implementation, testing, and review
 
-**Company:** H&P
+### H&P · Data Scientist / AI Engineer
 
-**Position/Role:** Data Scientist | AI Engineer, November 2023 – June 2025 (Belo Horizonte, Brazil)
-
-**Tasks and responsibilities:**
+> November 2023 – June 2025
 
 - Redesigned the relational database structure with software-engineering best practices — 90 tables redesigned with a 70% performance increase and an estimated ~60% saving in database-maintenance time, preparing the infrastructure to support AI workflows
 - Pioneered the deployment of generative-AI solutions across the company, from identified strategic use cases — up to 80% reduction in report-writing time for the responsible team
 - Ran internal AI study groups on RAG, chunks, embeddings, and LLM selection — 12 professionals upskilled during the program
 - Owned governance and integrity of the Fundão dam breach (Mariana/MG) registration databases — absolute data accuracy for strategic decisions and high-impact reports, serving 1,200 people
 
-**Tech stack and tools used:** Relational database architecture and governance; generative-AI (LLM) solutions; RAG, chunking, embeddings, and LLM selection (internal AI study program)
+> **Tech stack:** Relational database architecture and governance; generative-AI (LLM) solutions; RAG, chunking, embeddings, and LLM selection (internal AI study program)
 
 **Use of AI:** Pioneered company-wide generative-AI adoption at H&P: shipped LLM solutions that automated report writing (up to 80% time reduction for the responsible team) and built internal AI capability by running study groups on RAG, chunking, embeddings, and LLM selection (12 professionals upskilled).
 
-**Company:** The Brooklyn Brothers
+### The Brooklyn Brothers · Mid-Level Front-End Developer
 
-**Position/Role:** Mid-Level Front-End Developer, March 2022 – January 2023
-
-**Tasks and responsibilities:**
+> March 2022 – January 2023
 
 - Developed and improved high-performance web interfaces for Rexona, one of the top clients in the global portfolio — 23% SEO improvement plus better user experience, operational efficiency, and accessibility; ~30% performance improvement
 - Worked hand-in-hand with development teams in India and the United Kingdom in a global team of 15 people, in a multilingual, agile (Scrum) environment
 
-**Tech stack and tools used:** React, Context API, JavaScript (ES6+), HTML5, CSS3, responsive web components
+> **Tech stack:** React, Context API, JavaScript (ES6+), HTML5, CSS3, responsive web components
 
-**Use of AI:** AI tooling was not part of this role, which predates my AI engineering work (2022); my AI track record is documented in the two roles above.
+**Use of AI:** AI tooling was not part of this role, which predates my AI engineering work (2022); my AI track record is documented at Group Software and H&P.
 
-**Company:** Kenzie Academy Brasil
+### Kenzie Academy Brasil · Peer Coach (Teaching Assistant)
 
-**Position/Role:** Peer Coach (Teaching Assistant), August 2021 – February 2022
-
-**Tasks and responsibilities:**
+> August 2021 – February 2022
 
 - Coached 100 students on React, CSS, and HTML (Virtual DOM, styled-components) and versioning with Git/GitHub, who raised the quality of their projects
 - Clarified Context API, Redux, API consumption, and unit-testing questions, enabling more effective problem-solving among students
 
-**Tech stack and tools used:** React, CSS, HTML, Git/GitHub, Context API, Redux
+> **Tech stack:** React, CSS, HTML, Git/GitHub, Context API, Redux
 
-**Use of AI:** AI tooling was not part of this role; my AI track record is documented in the two roles above.
+**Use of AI:** AI tooling was not part of this role; my AI track record is documented at Group Software and H&P.
 
-**Company:** Red Lion Inglês Britânico
+### Red Lion Inglês Britânico · English Instructor
 
-**Position/Role:** English Instructor, March 2020 – May 2020 (Divinópolis, Brazil)
-
-**Tasks and responsibilities:**
+> March 2020 – May 2020
 
 - Taught English to students of all age groups, creating didactic materials and interactive activities and tracking progress with tests and constructive feedback
 
-**Tech stack and tools used:** None (classroom teaching role)
+> **Tech stack:** None (classroom teaching role)
 
-**Use of AI:** Not applicable to this teaching role; my AI track record is documented in the two roles above.
-
-## Selected Projects
-
-- **Nexus Agent** — WhatsApp AI agent for appointment scheduling in the health and beauty sectors (AI Appointment Setter), live at AgendaFacilitada.com on a self-hosted VPS; integrates LLMs (LangChain/LangGraph) with calendar APIs and natural-language processing for fluid WhatsApp conversations (Evolution API). Tech: Python, LangChain, LangGraph, WhatsApp Business API, Google Calendar API, Evolution API
-- **Financeiro** — Personal finance and investment platform in daily use by my family, in production on a self-hosted VPS (Docker Compose + Caddy + PostgreSQL with automated backups; 1.3k+ commits since 2026-08); exposes 35 MCP tools in production (bearer-authenticated) so AI clients operate the finances in natural language; 667 automated tests (pytest/asyncio) covering finance rules, authentication, and MCP tools. Tech: Python, FastAPI, NiceGUI, SQLAlchemy, PostgreSQL, MCP (Model Context Protocol), Docker Compose, Caddy, pytest
-- **Termômetro da Massa** — PUC Minas academic project (text-mining coursework): an ABSA (aspect-based sentiment analysis) pipeline measuring Atlético Mineiro fans' perception of each player from public X (Twitter) and Instagram comments; raw → silver → gold data layers with dedup; LLM-based aspect extraction (OpenAI); gold dataset with inter-annotator kappa (Streamlit annotation app); 453 automated tests. This project is my machine-learning fundamentals and evaluation evidence. Tech: Python, Apify, OpenAI, pandas, scikit-learn, PyArrow (Parquet), Streamlit, pytest
+**Use of AI:** Not applicable to this teaching role; my AI track record is documented at Group Software and H&P.
 
 ## Education
 
-- **PUC Minas** — Bachelor's degree in Data Science and Artificial Intelligence, August 2023 – July 2027 (in progress)
-- **Kenzie Academy Brazil** — Web Development, May 2021 – May 2022
+### Bachelor's degree in Data Science and Artificial Intelligence · PUC Minas
+
+> August 2023 – July 2027 (in progress)
+
+### Web Development · Kenzie Academy Brazil
+
+> May 2021 – May 2022
+
+## Core Skills
+
+- **GenAI — Generative AI and LLMs:** OpenAI, OpenRouter, Azure OpenAI, Claude API, GPT, Gemini, Anthropic, prompt engineering, LLM deployment, speech-to-text, text-to-speech, voice AI
+- **Agentic AI, Agents and RAG:** AI agents, agentic AI, LangChain, LangGraph, advanced RAG, multi-agent systems, agent tool integration, tool/function calling, MCP — Model Context Protocol, semantic search, context engineering, embeddings, vector search, vector databases (pgvector, Qdrant, Chroma, Pinecone)
+- **AI Tooling and Ops:** Claude Code, Cursor, GitHub Copilot, Codex, AI evaluations, LLMOps practices (automated red teaming, LLM observability, per-conversation LLM cost auditing), AI observability, CI/CD, Docker, Terraform, Azure, Azure AI Foundry, Vertex AI, pytest
+- **Languages and Frameworks:** Python, TypeScript, JavaScript, FastAPI, React, SQLAlchemy, Node.js, Vitest
+- **Data and Machine Learning:** PostgreSQL, MongoDB, Redis, data engineering, API development, pandas, Power BI, Machine Learning fundamentals (LLM evaluation and model selection)
+- **Ways of Working:** Agile methodologies, Scrum, automated testing, multi-tenancy, hexagonal architecture
 
 ## Certifications
 
-- Model Context Protocol (MCP) Professional Certification — Anthropic (certificate of completion), 2026
-- Model Context Protocol: Advanced Topics — Anthropic (certificate of completion)
-- Introduction to Model Context Protocol — Anthropic (certificate of completion)
-- Introduction to Subagents — Anthropic (certificate of completion)
-- Introduction to Agent Skills — Anthropic (certificate of completion)
+Model Context Protocol (MCP) Professional Certification — Anthropic (certificate of completion), 2026
+
+Model Context Protocol: Advanced Topics — Anthropic (certificate of completion)
+
+Introduction to Model Context Protocol — Anthropic (certificate of completion)
+
+Introduction to Subagents — Anthropic (certificate of completion)
+
+Introduction to Agent Skills — Anthropic (certificate of completion)
 
 ## Languages
 
-- Portuguese — native
-- English — full professional
+Portuguese — native
+
+English — full professional
+
+## Projects
+
+#### Personal projects
+
+### Nexus Agent
+
+WhatsApp AI agent for appointment scheduling in the health and beauty sectors (AI Appointment Setter), live at AgendaFacilitada.com on a self-hosted VPS; integrates LLMs (LangChain/LangGraph) with calendar APIs and natural-language processing for fluid WhatsApp conversations (Evolution API).
+
+> Python · LangChain · LangGraph · WhatsApp Business API · Google Calendar API · Evolution API
+
+### Financeiro
+
+Personal finance and investment platform in daily use by my family, in production on a self-hosted VPS (Docker Compose + Caddy + PostgreSQL with automated backups; 1.3k+ commits since 2026-08); exposes 35 MCP tools in production (bearer-authenticated) so AI clients operate the finances in natural language; 667 automated tests (pytest/asyncio) covering finance rules, authentication, and MCP tools.
+
+> Python · FastAPI · NiceGUI · SQLAlchemy · PostgreSQL · MCP (Model Context Protocol) · Docker Compose · Caddy · pytest
+
+### Termômetro da Massa
+
+PUC Minas academic project (text-mining coursework): an ABSA (aspect-based sentiment analysis) pipeline measuring Atlético Mineiro fans' perception of each player from public X (Twitter) and Instagram comments; raw → silver → gold data layers with dedup; LLM-based aspect extraction (OpenAI); gold dataset with inter-annotator kappa (Streamlit annotation app); 453 automated tests. This project is my machine-learning fundamentals and evaluation evidence.
+
+> Python · Apify · OpenAI · pandas · scikit-learn · PyArrow (Parquet) · Streamlit · pytest
