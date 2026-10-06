@@ -251,6 +251,106 @@ def test_exportar_rejects_unknown_idioma() -> None:
 
 
 # ---------------------------------------------------------------------------
+# (d-bis) Export selection (quick task 261006-oy9, D-01/D-02): the presentational
+# filter — strict selecao model, payload filtering BEFORE render+gate.
+# ---------------------------------------------------------------------------
+
+
+def test_exportar_selecao_todas_secoes_ok(_stub_ok_export: None) -> None:
+    """The explicit all-selected selecao is the same envelope as omitted —
+    default export is behavior-identical with or without the key (D-02)."""
+    payload = _export_payload("pt-BR")
+    payload["selecao"] = {
+        "resumo": True,
+        "experiencias": True,
+        "formacao": True,
+        "habilidades": True,
+        "certificacoes": True,
+        "idiomas": True,
+        "projetos": True,
+    }
+    resp = client.post("/api/resume/exportar", json=payload)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert set(body) == {"status", "filename", "pdf_base64", "selfcheck"}
+    assert body["status"] == "ok"
+    assert body["selfcheck"]["ordem"] == _PASSING_GATE.ordem_rows
+
+
+def test_exportar_rejects_selecao_toda_vazia() -> None:
+    """All seven flags False → loud 422 (the min_length=1 house precedent —
+    a zero-section document is never renderable)."""
+    payload = _export_payload("pt-BR")
+    payload["selecao"] = {
+        "resumo": False,
+        "experiencias": False,
+        "formacao": False,
+        "habilidades": False,
+        "certificacoes": False,
+        "idiomas": False,
+        "projetos": False,
+    }
+    assert client.post("/api/resume/exportar", json=payload).status_code == 422
+
+
+def test_exportar_rejects_chave_desconhecida_dentro_de_selecao() -> None:
+    """extra=forbid inside selecao too (T-04-02 posture on the new surface)."""
+    payload = _export_payload("pt-BR")
+    payload["selecao"] = {"resumo": True, "contato": False}
+    assert client.post("/api/resume/exportar", json=payload).status_code == 422
+
+
+def test_exportar_indices_fora_do_range_sao_ignorados(_stub_ok_export: None) -> None:
+    """[99, -1] on a one-entry list selects NOTHING (enumerate membership) —
+    ok envelope, never an IndexError (T-OY9-01)."""
+    payload = _export_payload("pt-BR")
+    payload["selecao"] = {"experiencias_indices": [99, -1]}
+    resp = client.post("/api/resume/exportar", json=payload)
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "ok"
+
+
+def test_exportar_secao_false_ignora_indices(_stub_ok_export: None) -> None:
+    """A False section flag excludes the section wholesale — its indices are
+    ignored (never an error, never a partial render of the section)."""
+    payload = _export_payload("pt-BR")
+    payload["selecao"] = {"experiencias": False, "experiencias_indices": [0]}
+    resp = client.post("/api/resume/exportar", json=payload)
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "ok"
+
+
+def test_exportar_selecao_subconjunto_real_render_ok() -> None:
+    """T-OY9-02 real-render proof (REAL chain, no stubs): selecao keeps only
+    the FIRST experience and turns formacao off — the parse-back gate runs
+    over the FILTERED document, and a green gate IS the proof the PDF matches
+    the filtered expectations (a bypass would fail the heading-order check
+    demanding Formação / the dropped entry)."""
+    payload = _export_payload("pt-BR")
+    payload["secoes"]["experiencias"].append(
+        {
+            "company": "Outra Empresa",
+            "title": "Analista de Dados",
+            "bullets": ["Atuação em projeto de dados."],
+        }
+    )
+    payload["selecao"] = {
+        "experiencias_indices": [0],
+        "formacao": False,
+    }
+    resp = client.post("/api/resume/exportar", json=payload)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "ok", body.get("erros")
+    ordem_ids = [row["id"] for row in body["selfcheck"]["ordem"]]
+    assert ordem_ids[0] == "contato"
+    assert "formacao" not in ordem_ids  # section flag False → section hidden
+    assert "experiencias" in ordem_ids  # section kept via indices subset
+    assert all(row["ok"] for row in body["selfcheck"]["ordem"])
+    assert body["selfcheck"]["gate"] == {"coocorrencia": True, "acentos": True}
+
+
+# ---------------------------------------------------------------------------
 # (e) Structural pins: sync handlers, router BEFORE the SPA mount, no LLM
 # ---------------------------------------------------------------------------
 
