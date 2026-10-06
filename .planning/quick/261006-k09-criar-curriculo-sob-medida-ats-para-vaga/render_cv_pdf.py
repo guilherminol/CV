@@ -55,8 +55,8 @@ CONTACT = colors.HexColor("#444444")  # .contact / h4
 META = colors.HexColor("#555555")     # .meta (dates, tech lines)
 RULE = colors.HexColor("#999999")     # h2 border-bottom
 
-# browser-normal line height for Segoe UI ≈ 1.36em → ~14.3pt at 10.5pt
-LEAD = 14
+# browser-normal line height for Segoe UI ≈ 1.36em; 14.5 balances page fill
+LEAD = 14.5
 
 name_style = ParagraphStyle(
     "ResumeName", fontName="SegoeUI", fontSize=20, leading=26,
@@ -92,7 +92,7 @@ body_style = ParagraphStyle(
 bullet_style = ParagraphStyle(
     "ResumeBullet", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
     leftIndent=14, bulletIndent=2, textColor=BODY,
-    spaceBefore=1, spaceAfter=1, allowWidows=0, allowOrphans=0,
+    spaceBefore=2, spaceAfter=2, allowWidows=0, allowOrphans=0,
 )
 
 LABEL_RE = re.compile(r"^\*\*[^*]+:\*\*$")

@@ -57,7 +57,10 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 > contact header, projects grouped under a scope label. Core Skills kept as a
 > categorized section (owner preference, replaces the app's single-paragraph
 > Skills). All recruiter-required fields remain present per experience, mapped
-> into the app-native entry format.
+> into the app-native entry format. 3rd revision (same day): Use of AI is no
+> longer a standalone block — AI usage is woven into the experience bullets
+> (owner decision), with AI-as-work-tool highlighted via the custom Claude Code
+> agents and skills bullet (quality + consistency of AI-generated code).
 
 - [x] Single column layout
 - [x] Section headers follow the app D-05 montage (Summary, Experience, Education, Core Skills, Certifications, Languages, Projects)
@@ -66,7 +69,7 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 - [x] Action-verb-first bullets (Built, Architected, Designed, Implemented, Co-architected, Contributed, Developed, Upheld, Redesigned, Pioneered, Ran, Owned, Worked, Coached, Clarified, Taught)
 - [x] Contact info complete in the header as one line (email · location · phone · LinkedIn; languages have their own section)
 - [x] File is plain markdown that parses cleanly (no broken bold/heading syntax, no tabs, no HTML)
-- [x] Recruiter-required per-experience fields preserved in app-native format (all 5 experiences): entry heading = **Company · Position/Role** (`Company · Role`, dates on the meta line) / tasks and responsibilities = entry bullets / **Tech stack and tools used** = "Tech stack:" meta line / **Use of AI** = "Use of AI:" sub-block
+- [x] Recruiter-required per-experience fields preserved in app-native format (all 5 experiences): entry heading = **Company · Position/Role** (`Company · Role`, dates on the meta line) / tasks and responsibilities = entry bullets / **Tech stack and tools used** = "Tech stack:" meta line / **Use of AI** = woven into the responsibility bullets (LLMOps bullet + AI-first work bullet at Group Software; generative-AI pioneering bullets at H&P)
 
 ## 3. Fixes applied
 

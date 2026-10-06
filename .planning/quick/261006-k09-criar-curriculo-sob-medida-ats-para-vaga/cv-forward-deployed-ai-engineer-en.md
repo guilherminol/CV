@@ -4,7 +4,7 @@ guilherminolucasc@gmail.com · Belo Horizonte, Minas Gerais, Brazil · +55 (37) 
 
 ## Summary
 
-Forward Deployed AI Engineer profile: full-stack engineer who ships production generative-AI and agentic systems end to end, from Python/FastAPI backends and LangGraph/LangChain agent flows to TypeScript/React frontends. Three years of AI and data engineering work (since November 2023) building advanced RAG platforms and MCP (Model Context Protocol) tool ecosystems adopted by real clients. Production systems, not prototypes: a criminal-background and lawsuit analysis solution that cut analysis time by up to 90% (from nearly a manual day to under 30 seconds), AI-generated assembly minutes adopted by 135 management companies, and a support knowledge base that cut response time by up to 80%. Currently studying Data Science and Artificial Intelligence at PUC Minas.
+Forward Deployed AI Engineer profile: full-stack engineer who ships production generative-AI and agentic systems end to end, from Python/FastAPI backends and LangGraph/LangChain agent flows to TypeScript/React frontends. Three years of AI and data engineering work (since November 2023) building advanced RAG platforms and MCP (Model Context Protocol) tool ecosystems adopted by real clients. Production systems, not prototypes: a criminal-background and lawsuit analysis solution that cut analysis time by up to 90% (from nearly a manual day to under 30 seconds), AI-generated assembly minutes adopted by 135 management companies, and a support knowledge base that cut response time by up to 80%. Drives AI-first engineering across teams with custom Claude Code agents and skills that raise the quality and consistency of AI-generated code. Currently studying Data Science and Artificial Intelligence at PUC Minas.
 
 ## Experience
 
@@ -24,13 +24,8 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 
 > **Tech stack:** Python, FastAPI, TypeScript, React, Node.js, Fastify, LangChain, LangGraph, MCP (Model Context Protocol), OpenRouter, OpenAI GPT-4o, Azure OpenAI, Claude API, pgvector, Qdrant, Redis, PostgreSQL, Azure (containers + managed PostgreSQL), AWS ECS, Terraform, Docker, OpenTelemetry, Datadog, Langfuse, promptfoo, pytest, Vitest, Zod
 
-**Use of AI:**
-
-- Builds production LLM applications daily: advanced RAG platforms (two-layer ingestion, overlapping chunking, semantic search, re-ranking) with up to 80% support response-time reduction; autonomous LangGraph agents powering a configurable 3-level risk engine with full decision traceability; AI transcription and generation of assembly minutes (482 minutes in 49 days; 1,446 specialist hours eliminated; 135 management companies); lead generation from meeting transcripts (239 leads at a total AI cost of ~R$107 vs. R$597–R$1,434 on market platforms)
-- Runs multi-model orchestration via OpenRouter with systematic model comparison (GPT-5-mini, GPT-4.1-mini, Claude 3 Haiku, Gemini, Gemma) and per-conversation/client/model LLM cost auditing
-- Treats LLM safety and operations as first-class: automated red teaming with promptfoo (client isolation, auth bypass, instruction injection) plus LLM observability via OpenTelemetry and Datadog, with self-hosted Langfuse
-- Operates MCP servers that expose product APIs as AI-consumable tools (19 production tools with strict Zod structured-output schemas), plus the GIA multi-MCP orchestration layer routing ~20 tools by entitlement and conversational context
-- Uses agentic coding tools daily (Claude Code, Cursor, GitHub Copilot, Codex) across design, implementation, testing, and review
+- Owned LLMOps for the AI platform: multi-model orchestration via OpenRouter with systematic model comparison (GPT-5-mini, GPT-4.1-mini, Claude 3 Haiku, Gemini, Gemma), per-conversation, per-client, and per-model cost auditing, automated red teaming with promptfoo (client isolation, auth bypass, instruction injection), and end-to-end LLM observability (OpenTelemetry to Datadog, self-hosted Langfuse)
+- Worked AI-first daily: used Claude Code, Cursor, GitHub Copilot, and Codex across design, implementation, testing, and code review, and built custom Claude Code agents and skills for the development team, raising the quality of AI-generated code and keeping it consistent across everyone working on the project
 
 ### H&P · Data Scientist / AI Engineer
 
@@ -43,7 +38,6 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 
 > **Tech stack:** Relational database architecture and governance; generative-AI (LLM) solutions; RAG, chunking, embeddings, and LLM selection (internal AI study program)
 
-**Use of AI:** Pioneered company-wide generative-AI adoption at H&P: shipped LLM solutions that automated report writing (up to 80% time reduction for the responsible team) and built internal AI capability by running study groups on RAG, chunking, embeddings, and LLM selection (12 professionals upskilled).
 
 ### The Brooklyn Brothers · Mid-Level Front-End Developer
 
@@ -54,7 +48,6 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 
 > **Tech stack:** React, Context API, JavaScript (ES6+), HTML5, CSS3, responsive web components
 
-**Use of AI:** AI tooling was not part of this role, which predates my AI engineering work (2022); my AI track record is documented at Group Software and H&P.
 
 ### Kenzie Academy Brasil · Peer Coach (Teaching Assistant)
 
@@ -65,7 +58,6 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 
 > **Tech stack:** React, CSS, HTML, Git/GitHub, Context API, Redux
 
-**Use of AI:** AI tooling was not part of this role; my AI track record is documented at Group Software and H&P.
 
 ### Red Lion Inglês Britânico · English Instructor
 
@@ -75,7 +67,6 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 
 > **Tech stack:** None (classroom teaching role)
 
-**Use of AI:** Not applicable to this teaching role; my AI track record is documented at Group Software and H&P.
 
 ## Education
 
@@ -91,7 +82,7 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 
 - **GenAI (Generative AI) and LLMs:** OpenAI, OpenRouter, Azure OpenAI, Claude API, GPT, Gemini, Anthropic, prompt engineering, LLM deployment, speech-to-text, text-to-speech, voice AI
 - **Agentic AI, Agents and RAG:** AI agents, agentic AI, LangChain, LangGraph, advanced RAG, multi-agent systems, agent tool integration, tool/function calling, MCP (Model Context Protocol), semantic search, context engineering, embeddings, vector search, vector databases (pgvector, Qdrant, Chroma, Pinecone)
-- **AI Tooling and Ops:** Claude Code, Cursor, GitHub Copilot, Codex, AI evaluations, LLMOps practices (automated red teaming, LLM observability, per-conversation LLM cost auditing), AI observability, CI/CD, Docker, Terraform, Azure, Azure AI Foundry, Vertex AI, pytest
+- **AI Tooling and Ops:** Claude Code, Cursor, GitHub Copilot, Codex, custom Claude Code agents and skills, AI evaluations, LLMOps practices (automated red teaming, LLM observability, per-conversation LLM cost auditing), AI observability, CI/CD, Docker, Terraform, Azure, Azure AI Foundry, Vertex AI, pytest
 - **Languages and Frameworks:** Python, TypeScript, JavaScript, FastAPI, React, SQLAlchemy, Node.js, Vitest
 - **Data and Machine Learning:** PostgreSQL, MongoDB, Redis, data engineering, API development, pandas, Power BI, Machine Learning fundamentals (LLM evaluation and model selection)
 - **Ways of Working:** Agile methodologies, Scrum, automated testing, multi-tenancy, hexagonal architecture
