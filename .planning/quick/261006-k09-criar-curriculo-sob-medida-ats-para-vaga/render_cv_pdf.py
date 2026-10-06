@@ -34,6 +34,7 @@ from reportlab.pdfbase.pdfmetrics import registerFontFamily
 HERE = __file__.replace("\\", "/").rsplit("/", 1)[0]
 MD_PATH = f"{HERE}/cv-forward-deployed-ai-engineer-en.md"
 PDF_PATH = f"{HERE}/Guilhermino-Lucas-CV-Forward-Deployed-AI-Engineer.pdf"
+TMP_PATH = PDF_PATH + ".building.pdf"
 
 # ── Fonts (Windows Segoe UI — the app's export font stack) ──
 FONTS = "C:/Windows/Fonts"
@@ -55,15 +56,15 @@ CONTACT = colors.HexColor("#444444")  # .contact / h4
 META = colors.HexColor("#555555")     # .meta (dates, tech lines)
 RULE = colors.HexColor("#999999")     # h2 border-bottom
 
-# browser-normal line height for Segoe UI ≈ 1.36em; 14.5 balances page fill
-LEAD = 14.5
+# browser-normal line height for Segoe UI ≈ 1.36em; 14 balances page fill
+LEAD = 12.6
 
 name_style = ParagraphStyle(
     "ResumeName", fontName="SegoeUI", fontSize=20, leading=26,
     alignment=TA_LEFT, textColor=BODY, spaceBefore=0, spaceAfter=2,
 )
 contact_style = ParagraphStyle(
-    "ResumeContact", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
+    "ResumeContact", fontName="SegoeUI", fontSize=10, leading=13,
     alignment=TA_LEFT, textColor=CONTACT, spaceBefore=0, spaceAfter=4,
 )
 section_title_style = ParagraphStyle(
@@ -72,7 +73,7 @@ section_title_style = ParagraphStyle(
 )
 entry_title_style = ParagraphStyle(
     "ResumeEntryTitle", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
-    textColor=BODY, spaceBefore=8, spaceAfter=2,
+    textColor=BODY, spaceBefore=5, spaceAfter=2,
     allowWidows=0, allowOrphans=0,
 )
 group_label_style = ParagraphStyle(
@@ -92,7 +93,7 @@ body_style = ParagraphStyle(
 bullet_style = ParagraphStyle(
     "ResumeBullet", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
     leftIndent=14, bulletIndent=2, textColor=BODY,
-    spaceBefore=2, spaceAfter=2, allowWidows=0, allowOrphans=0,
+    spaceBefore=1, spaceAfter=1, allowWidows=0, allowOrphans=0,
 )
 
 LABEL_RE = re.compile(r"^\*\*[^*]+:\*\*$")
@@ -106,8 +107,8 @@ def esc(text: str) -> str:
 def section_header(title: str):
     """h2 + border-bottom (0.5pt #999999, 2pt padding), margin 14pt/4pt."""
     return [
-        CondPageBreak(4 * cm),
-        Spacer(1, 14),
+        CondPageBreak(3.5 * cm),
+        Spacer(1, 7),
         KeepTogether([
             Paragraph(f"<b>{esc(title)}</b>", section_title_style),
             Spacer(1, 2),
@@ -181,7 +182,7 @@ def main():
         story.append(pending_label)
 
     doc = BaseDocTemplate(
-        PDF_PATH, pagesize=A4,
+        TMP_PATH, pagesize=A4,
         leftMargin=1.6 * cm, rightMargin=1.6 * cm,
         topMargin=1.6 * cm, bottomMargin=1.6 * cm,
         title="Guilhermino Lucas — CV — Forward Deployed AI Engineer",
@@ -194,6 +195,16 @@ def main():
                   topPadding=0, bottomPadding=0)
     doc.addPageTemplates([PageTemplate(id="page", frames=[frame])])
     doc.build(story)
+    import os, time
+    for attempt in range(5):
+        try:
+            os.replace(TMP_PATH, PDF_PATH)
+            break
+        except OSError:
+            time.sleep(1.5)
+    else:
+        print(f"WARNING: {PDF_PATH} locked; left {TMP_PATH}")
+        sys.exit(2)
     print(f"OK {PDF_PATH}")
 
 

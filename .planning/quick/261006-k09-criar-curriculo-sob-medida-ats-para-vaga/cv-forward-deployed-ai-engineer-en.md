@@ -1,6 +1,6 @@
 # Guilhermino Lucas
 
-guilherminolucasc@gmail.com · Belo Horizonte, Minas Gerais, Brazil · +55 (37) 99928-1391 · linkedin.com/in/guilherminolucas
+guilherminolucasc@gmail.com · Belo Horizonte, Brazil · +55 (37) 99928-1391 · linkedin.com/in/guilherminolucas
 
 ## Summary
 
@@ -12,20 +12,15 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 
 > June 2025 – Present
 
-- Built the Group Verifica solution end to end (frontend, backend, AI, and database) for the condominium and HR markets, shipped with generative AI: under 30 seconds per criminal-background and lawsuit analysis (vs. nearly 1 manual day, ~90% reduction); 53 clients tested within 20 days; 72% demonstrated purchase interest; 196+ queries in production; R$4,750 MRR in the first 45 days
-- Architected a document-ingestion platform with a two-layer pipeline (summary + raw text), overlapping chunking, semantic search, and re-ranking: residents consult condo documents uploaded to the RAG via WhatsApp and via site/app, and support teams adopted the platform as their central knowledge base, delivering up to 80% reduction in support response time
-- Designed Group Verifica's configurable risk engine with LangGraph agent flows and tools querying real-time background-check APIs. The engine is configurable in 3 risk levels (Brando/Normal/Rigoroso) with fallback logic and full traceability of every decision, integrating legacy systems and production databases
-- Implemented AI-based transcription and automatic generation of assembly minutes and call notices: 482 meeting minutes generated in 49 days of production; 68.1% organic adoption among eligible assemblies (peak 77.3%); 1,446 specialist hours eliminated (482 × 3h per manual minute); 135 management companies adopted the feature
-- Built a smart lead-generation engine that spots cross-selling opportunities (insurance, financial, energy) from meeting transcripts: 239 leads generated in 78 days (3.1 leads/day, autonomous and continuous, no dedicated team); total AI cost of ~R$107 for the 239 leads vs. R$597–R$1,434 on market platforms (~93% savings)
-- Co-architected and developed GIA, the central AI platform that orchestrates multiple MCP (Model Context Protocol) servers: 3 Group Software products integrated simultaneously via 3 centralized MCP servers with ~20 AI tools exposed; dynamic tool routing by client entitlement and conversational context; JWT auth with a per-product flow; document chat in production via RAG over pgvector (thousands of documents indexed, adopted by internal support as the central knowledge base); recently evolved to a multi-tenant layer with per-tenant isolation and plug-and-play onboarding
-- Contributed to Group Software's multichannel conversational platform: the team delivered 6 input channels (3 WhatsApp paths, Telegram, an internal chat API, and human handoff), 21 domain entities, and 120 database migrations in ~3 months of active development (408 commits), with long-term memory between conversations, canonical identity across accounts, and a delivery pipeline to 3 AWS ECS environments provisioned via Terraform
-- Developed the production MCP tool set for the condominium-management ecosystem, consumed by the company's conversational AI platform: 19 MCP tools in production with strict Zod schemas for structured outputs, consistent across both transports (local stdio and stateless remote HTTP); two-layer authentication (MCP client API key + end-user JWT per call); RSA-SHA256 request signing reimplemented in TypeScript with byte-for-byte compatibility with the legacy Java protocol
-- Upheld the team's engineering quality bar: 2,870 automated tests across 290 files with a minimum 90% coverage gate in CI, hexagonal architecture with LangGraph/LangChain confined to the infrastructure layer, and 28 versioned formal specifications
+- Built and shipped Group Verifica end to end (frontend, backend, AI, and database) for the condominium and HR markets: a LangGraph-powered risk engine with tools querying real-time background-check APIs, configurable in 3 risk levels with full decision traceability, cutting criminal-background and lawsuit analysis from nearly 1 manual day to **under 30 seconds (~90% reduction)**, reaching 53 clients within 20 days, 72% purchase interest, and **R$4,750 MRR in the first 45 days**
+- Architected a production RAG platform (two-layer ingestion, overlapping chunking, semantic search, re-ranking) for condo documents, consulted by residents via WhatsApp and site/app and adopted by support as the central knowledge base, delivering **up to 80% support response-time reduction**
+- Shipped AI transcription with auto-generation of assembly minutes plus a transcript-mining lead-generation engine: **482 minutes generated in 49 days** (68.1% organic adoption, peak 77.3%), eliminating **1,446 specialist hours across 135 management companies**, and 239 cross-sell leads in 78 days at ~R$107 total AI cost (~93% below market platforms)
+- Co-architected GIA, the central AI platform orchestrating multiple MCP servers (~20 AI tools across 3 products, dynamic routing by client entitlement and conversational context, JWT per-product auth, document chat via RAG over pgvector, multi-tenant plug-and-play layer), and built the **production MCP tool set (19 tools with strict Zod structured outputs)** with two-layer authentication, consistent across stdio and HTTP transports
+- Ran LLMOps for the AI platform: multi-model orchestration via OpenRouter with systematic model comparison (GPT-5-mini, GPT-4.1-mini, Claude 3 Haiku, Gemini, Gemma), per-conversation, per-client, and per-model **cost auditing**, automated red teaming with promptfoo (client isolation, auth bypass, instruction injection), and end-to-end LLM observability (OpenTelemetry to Datadog, self-hosted Langfuse)
+- Worked AI-first daily: used Claude Code, Cursor, GitHub Copilot, and Codex across design, implementation, testing, and code review, and **built custom Claude Code agents and skills for the development team**, raising the quality of AI-generated code and keeping it consistent across everyone working on the project
+- Upheld the engineering bar behind these systems: **2,870 automated tests with a 90% coverage gate in CI**, hexagonal architecture with LangGraph/LangChain confined to the infrastructure layer, deployed to Azure and 3 AWS ECS environments via Terraform and Docker
 
-> **Tech stack:** Python, FastAPI, TypeScript, React, Node.js, Fastify, LangChain, LangGraph, MCP (Model Context Protocol), OpenRouter, OpenAI GPT-4o, Azure OpenAI, Claude API, pgvector, Qdrant, Redis, PostgreSQL, Azure (containers + managed PostgreSQL), AWS ECS, Terraform, Docker, OpenTelemetry, Datadog, Langfuse, promptfoo, pytest, Vitest, Zod
-
-- Owned LLMOps for the AI platform: multi-model orchestration via OpenRouter with systematic model comparison (GPT-5-mini, GPT-4.1-mini, Claude 3 Haiku, Gemini, Gemma), per-conversation, per-client, and per-model cost auditing, automated red teaming with promptfoo (client isolation, auth bypass, instruction injection), and end-to-end LLM observability (OpenTelemetry to Datadog, self-hosted Langfuse)
-- Worked AI-first daily: used Claude Code, Cursor, GitHub Copilot, and Codex across design, implementation, testing, and code review, and built custom Claude Code agents and skills for the development team, raising the quality of AI-generated code and keeping it consistent across everyone working on the project
+> **Tech stack:** Python, FastAPI, TypeScript, React, LangChain, LangGraph, MCP (Model Context Protocol), OpenRouter, OpenAI GPT-4o, Azure OpenAI, Claude API, pgvector, Qdrant, Azure (containers + managed PostgreSQL), AWS ECS, Terraform, Docker, OpenTelemetry, Datadog, Langfuse, promptfoo, Zod
 
 ### H&P · Data Scientist / AI Engineer
 
@@ -54,7 +49,6 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 > August 2021 – February 2022
 
 - Coached 100 students on React, CSS, and HTML (Virtual DOM, styled-components) and versioning with Git/GitHub, who raised the quality of their projects
-- Clarified Context API, Redux, API consumption, and unit-testing questions, enabling more effective problem-solving among students
 
 > **Tech stack:** React, CSS, HTML, Git/GitHub, Context API, Redux
 
@@ -64,8 +58,6 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 > March 2020 – May 2020
 
 - Taught English to students of all age groups, creating didactic materials and interactive activities and tracking progress with tests and constructive feedback
-
-> **Tech stack:** None (classroom teaching role)
 
 
 ## Core Skills
@@ -81,13 +73,7 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 
 Model Context Protocol (MCP) Professional Certification · Anthropic (certificate of completion), 2026
 
-Model Context Protocol: Advanced Topics · Anthropic (certificate of completion)
-
-Introduction to Model Context Protocol · Anthropic (certificate of completion)
-
-Introduction to Subagents · Anthropic (certificate of completion)
-
-Introduction to Agent Skills · Anthropic (certificate of completion)
+Additional Anthropic certifications: MCP: Advanced Topics · Introduction to MCP · Introduction to Subagents · Introduction to Agent Skills
 
 ## Languages
 

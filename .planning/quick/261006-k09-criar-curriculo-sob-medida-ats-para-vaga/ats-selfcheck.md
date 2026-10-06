@@ -64,6 +64,11 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 > 4th revision (same day): Education and Projects sections removed at owner request — the
 > CV now ends at Languages; ML-fundamentals evidence remains via the Summary degree line and
 > Core Skills only.
+> 5th revision (same day): Group Software condensed from 11 to 7 bullets targeting the FDE JD —
+> AI-first emphasis with key metrics bolded; conversational-platform team bullet and minor details
+> (RSA-SHA256, 196+ queries, risk-level names) dropped; GS tech stack trimmed to distinctive items
+> (duplicates of Core Skills removed); Certifications compressed to 2 lines (all 5 names kept);
+> Kenzie reduced to 1 bullet; Red Lion tech line dropped; document is now a 2-pager.
 
 - [x] Single column layout
 - [x] Section headers follow the app D-05 montage (Summary, Experience, Core Skills, Certifications, Languages; Education and Projects removed at owner request, 4th revision — the degree stays signaled in the Summary)
