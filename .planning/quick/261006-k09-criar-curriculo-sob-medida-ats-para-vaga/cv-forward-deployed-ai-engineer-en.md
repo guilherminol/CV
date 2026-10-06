@@ -31,7 +31,7 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 - Ran internal AI study groups on RAG, chunks, embeddings, and LLM selection: 12 professionals upskilled during the program
 - Owned governance and integrity of the Fundão dam breach (Mariana/MG) registration databases: absolute data accuracy for strategic decisions and high-impact reports, serving 1,200 people
 
-> **Tech stack:** Relational database architecture and governance; generative-AI (LLM) solutions; RAG, chunking, embeddings, and LLM selection (internal AI study program)
+> **Tech stack:** Python, pandas, SQL, PostgreSQL, FastAPI, SQLAlchemy, LangChain, LangGraph, OpenAI API, Power BI
 
 
 ### The Brooklyn Brothers · Mid-Level Front-End Developer
