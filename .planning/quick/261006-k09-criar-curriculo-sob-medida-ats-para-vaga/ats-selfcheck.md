@@ -73,6 +73,8 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 > (Guilhermino Lucas | Forward Deployed AI Engineer); Summary trimmed at owner request —
 > "(since November 2023)", "(from nearly a manual day to under 30 seconds)" and the PUC Minas
 > degree sentence removed.
+> 7th revision (same day): H&P entry pushed to start page 2 via an explicit pagebreak marker;
+> Red Lion removed at owner authorization (4 experiences now) — CV back to a clean 2 pages.
 
 - [x] Single column layout
 - [x] Section headers follow the app D-05 montage (Summary, Experience, Core Skills, Certifications, Languages; Education and Projects removed at owner request, 4th revision — the degree stays signaled in the Summary)
@@ -81,7 +83,7 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 - [x] Action-verb-first bullets (Built, Architected, Designed, Implemented, Co-architected, Contributed, Developed, Upheld, Redesigned, Pioneered, Ran, Owned, Worked, Coached, Clarified, Taught)
 - [x] Contact info complete in the header as one line (email · location · phone · LinkedIn; languages have their own section)
 - [x] File is plain markdown that parses cleanly (no broken bold/heading syntax, no tabs, no HTML)
-- [x] Recruiter-required per-experience fields preserved in app-native format (all 5 experiences): entry heading = **Company · Position/Role** (`Company · Role`, dates on the meta line) / tasks and responsibilities = entry bullets / **Tech stack and tools used** = "Tech stack:" meta line / **Use of AI** = woven into the responsibility bullets (LLMOps bullet + AI-first work bullet at Group Software; generative-AI pioneering bullets at H&P)
+- [x] Recruiter-required per-experience fields preserved in app-native format (4 experiences after Red Lion removal): entry heading = **Company · Position/Role** (`Company · Role`, dates on the meta line) / tasks and responsibilities = entry bullets / **Tech stack and tools used** = "Tech stack:" meta line / **Use of AI** = woven into the responsibility bullets (LLMOps bullet + AI-first work bullet at Group Software; generative-AI pioneering bullets at H&P)
 
 ## 3. Fixes applied
 

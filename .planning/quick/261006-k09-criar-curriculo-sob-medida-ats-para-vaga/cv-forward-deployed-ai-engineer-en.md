@@ -22,6 +22,8 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 
 > **Tech stack:** Python, FastAPI, TypeScript, React, LangChain, LangGraph, MCP (Model Context Protocol), OpenRouter, OpenAI GPT-4o, Azure OpenAI, Claude API, pgvector, Qdrant, Azure (containers + managed PostgreSQL), AWS ECS, Terraform, Docker, OpenTelemetry, Datadog, Langfuse, promptfoo, Zod
 
+\pagebreak
+
 ### H&P · Data Scientist / AI Engineer
 
 > November 2023 – June 2025
@@ -52,12 +54,6 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 
 > **Tech stack:** React, CSS, HTML, Git/GitHub, Context API, Redux
 
-
-### Red Lion Inglês Britânico · English Instructor
-
-> March 2020 – May 2020
-
-- Taught English to students of all age groups, creating didactic materials and interactive activities and tracking progress with tests and constructive feedback
 
 
 ## Core Skills

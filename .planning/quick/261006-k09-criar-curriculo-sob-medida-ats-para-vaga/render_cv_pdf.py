@@ -25,7 +25,7 @@ from reportlab.lib.enums import TA_LEFT
 from reportlab.lib import colors
 from reportlab.platypus import (
     BaseDocTemplate, Frame, PageTemplate, Paragraph, Spacer, HRFlowable,
-    KeepTogether, CondPageBreak,
+    KeepTogether, CondPageBreak, PageBreak,
 )
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -178,6 +178,8 @@ def main():
                 pending_blocks.append(meta)
             else:
                 flush(meta)
+        elif line.strip() == r"\pagebreak":
+            story.append(PageBreak())
         elif line.startswith("- "):
             style = bullet_spaced_style if current_section == "experience" else bullet_style
             flush(Paragraph("• " + esc(line[2:]), style))
