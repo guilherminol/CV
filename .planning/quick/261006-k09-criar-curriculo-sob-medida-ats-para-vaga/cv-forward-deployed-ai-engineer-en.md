@@ -68,16 +68,6 @@ Forward Deployed AI Engineer profile: full-stack engineer who ships production g
 > **Tech stack:** None (classroom teaching role)
 
 
-## Education
-
-### Bachelor's degree in Data Science and Artificial Intelligence · PUC Minas
-
-> August 2023 – July 2027 (in progress)
-
-### Web Development · Kenzie Academy Brazil
-
-> May 2021 – May 2022
-
 ## Core Skills
 
 - **GenAI (Generative AI) and LLMs:** OpenAI, OpenRouter, Azure OpenAI, Claude API, GPT, Gemini, Anthropic, prompt engineering, LLM deployment, speech-to-text, text-to-speech, voice AI
@@ -104,25 +94,3 @@ Introduction to Agent Skills · Anthropic (certificate of completion)
 Portuguese (native)
 
 English (full professional)
-
-## Projects
-
-#### Personal projects
-
-### Nexus Agent
-
-WhatsApp AI agent for appointment scheduling in the health and beauty sectors (AI Appointment Setter), live at AgendaFacilitada.com on a self-hosted VPS; integrates LLMs (LangChain/LangGraph) with calendar APIs and natural-language processing for fluid WhatsApp conversations (Evolution API).
-
-> Python · LangChain · LangGraph · WhatsApp Business API · Google Calendar API · Evolution API
-
-### Financeiro
-
-Personal finance and investment platform in daily use by my family, in production on a self-hosted VPS (Docker Compose + Caddy + PostgreSQL with automated backups; 1.3k+ commits since 2026-08); exposes 35 MCP tools in production (bearer-authenticated) so AI clients operate the finances in natural language; 667 automated tests (pytest/asyncio) covering finance rules, authentication, and MCP tools.
-
-> Python · FastAPI · NiceGUI · SQLAlchemy · PostgreSQL · MCP (Model Context Protocol) · Docker Compose · Caddy · pytest
-
-### Termômetro da Massa
-
-PUC Minas academic project (text-mining coursework): an ABSA (aspect-based sentiment analysis) pipeline measuring Atlético Mineiro fans' perception of each player from public X (Twitter) and Instagram comments; raw, silver, and gold data layers with dedup; LLM-based aspect extraction (OpenAI); gold dataset with inter-annotator kappa (Streamlit annotation app); 453 automated tests. This project is my machine-learning fundamentals and evaluation evidence.
-
-> Python · Apify · OpenAI · pandas · scikit-learn · PyArrow (Parquet) · Streamlit · pytest

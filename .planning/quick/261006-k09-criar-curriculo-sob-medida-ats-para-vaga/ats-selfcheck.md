@@ -8,27 +8,27 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 
 | JD term | Verdict | Where in the CV |
 |---|---|---|
-| Python | Covered | Core Skills (Languages and Frameworks); Group Software tech stack; all three Selected Projects |
+| Python | Covered | Core Skills (Languages and Frameworks); Group Software tech stack and bullets |
 | Agile Methods | Covered | Core Skills (Ways of Working: Agile methodologies, Scrum); Group Software ("highly autonomous agile squad"); The Brooklyn Brothers ("agile (Scrum) environment") |
 | Snowflake | Gap (honest) | Kept out of the CV — no Snowflake (or comparable enterprise data warehouse) experience in the profile; the data-ecosystem requirement is covered by production vector databases instead |
 | CI/CD | Covered | Core Skills; Group Software (90% minimum coverage gate in CI); condominium MCP server (self-hosted CI/CD with SonarQube) |
-| Machine Learning | Covered | Core Skills (Data and Machine Learning); H&P title "Data Scientist \| AI Engineer"; PUC Minas Data Science and AI degree; Termômetro da Massa ML fundamentals |
+| Machine Learning | Covered | Core Skills (Data and Machine Learning); H&P title "Data Scientist \| AI Engineer"; PUC Minas Data Science and AI degree (Summary) |
 | AI Agents | Covered | Core Skills (Agentic AI — AI agents, multi-agent systems); Group Software (autonomous LangGraph agents, agent tool integration) |
 | MLOps | Partial — see Gaps | CV claims the LLMOps practices the profile supports (AI evaluations, promptfoo red teaming, Langfuse/OpenTelemetry/Datadog observability, per-conversation cost auditing, CI/CD) but makes no formal MLOps-platform claim |
 | GenAI – Generative AI | Covered | Professional Summary; Core Skills ("GenAI — Generative AI and LLMs"); every Group Software bullet and Use of AI field |
-| LangChain | Covered | Professional Summary; Core Skills; Group Software stack and hexagonal-architecture bullet; Nexus Agent project |
-| LangGraph | Covered | Professional Summary; Core Skills; Group Software (risk engine agent flows, conversational platform); Nexus Agent project |
+| LangChain | Covered | Professional Summary; Core Skills; Group Software stack and hexagonal-architecture bullet |
+| LangGraph | Covered | Professional Summary; Core Skills; Group Software (risk engine agent flows, conversational platform) |
 
 ### JD requirements
 
 | JD requirement | Verdict | Where in the CV |
 |---|---|---|
 | 3+ years in ML / AI engineering roles | Covered | Professional Summary ("Three years of AI and data engineering work (since November 2023)"); H&P (Data Scientist \| AI Engineer, Nov 2023 – Jun 2025) + Group Software (AI Engineer, Jun 2025 – Present) |
-| Hands-on ML (1+ year): training, fine-tuning, evaluating models, solid ML fundamentals | Partial — see Gaps | Evaluating models and ML fundamentals are covered (PUC Minas degree; Termômetro da Massa gold dataset with inter-annotator kappa; LLM evaluation and model selection). Training/fine-tuning depth is NOT claimed — flagged as Gap (honest) below |
+| Hands-on ML (1+ year): training, fine-tuning, evaluating models, solid ML fundamentals | Partial — see Gaps | Evaluating models and ML fundamentals are covered (PUC Minas degree in the Summary; LLM evaluation and model selection in Core Skills). Training/fine-tuning depth is NOT claimed — flagged as Gap (honest) below |
 | Production AI/ML systems, not just prototypes, incl. generative/agentic AI | Covered | Professional Summary ("production systems, not prototypes"); Group Software (Group Verifica: 196+ queries in production, R$4,750 MRR; 482 AI minutes; 135 management companies; GIA ~2 months serving clients) |
 | Strong Python + agentic tooling (Claude Code, Cursor, Codex, GitHub Copilot) + agentic architecture patterns | Covered | Core Skills (Python; Claude Code, Cursor, GitHub Copilot, Codex); Group Software Use of AI ("Uses agentic coding tools daily"); agentic architecture (dynamic tool routing by entitlement/conversational context, hexagonal architecture with LangGraph/LangChain confined to infrastructure) |
 | Modern GenAI patterns: RAG, embeddings, vector search, tool/function calling, structured outputs | Covered | Core Skills (Agentic AI, Agents and RAG group lists all five); Group Software (two-layer RAG ingestion; 19 MCP tools with strict Zod schemas for structured outputs) |
-| One AI engineering framework (LangChain, LangGraph, LlamaIndex, or comparable) | Covered | LangChain + LangGraph in production (Group Software; Nexus Agent); custom MCP implementations as the "comparable custom" evidence |
+| One AI engineering framework (LangChain, LangGraph, LlamaIndex, or comparable) | Covered | LangChain + LangGraph in production (Group Software); custom MCP implementations as the "comparable custom" evidence |
 | One cloud AI/ML platform + enterprise data ecosystem (Bedrock / Azure AI Foundry / Vertex AI; Snowflake / Databricks / vector databases) | Partial — see Gaps | Cloud AI: Azure OpenAI / Azure (containers + managed PostgreSQL), Azure AI Foundry + Vertex AI in Core Skills; AWS ECS + Terraform. Data ecosystem: production vector databases (pgvector, Qdrant, Chroma, Pinecone). Snowflake/Databricks/Bedrock = Gap (honest) below |
 | Architecture tradeoffs explained plainly to technical and non-technical stakeholders | Covered | Group Software ("influences architectural decisions, stack choices (OpenRouter, LLMs), and sets engineering standards for the team"; 3-level configurable risk engine with full decision traceability) |
 | Comfortable engaging with executives and frontline users | Covered | Client-facing adoption evidence: 53 clients tested, 72% purchase interest; residents + support teams as frontline users; 135 management companies adopted the minutes feature; 12 professionals upskilled (internal enablement) |
@@ -61,9 +61,12 @@ Scope: `cv-forward-deployed-ai-engineer-en.md` audited against `job-context.md` 
 > longer a standalone block — AI usage is woven into the experience bullets
 > (owner decision), with AI-as-work-tool highlighted via the custom Claude Code
 > agents and skills bullet (quality + consistency of AI-generated code).
+> 4th revision (same day): Education and Projects sections removed at owner request — the
+> CV now ends at Languages; ML-fundamentals evidence remains via the Summary degree line and
+> Core Skills only.
 
 - [x] Single column layout
-- [x] Section headers follow the app D-05 montage (Summary, Experience, Education, Core Skills, Certifications, Languages, Projects)
+- [x] Section headers follow the app D-05 montage (Summary, Experience, Core Skills, Certifications, Languages; Education and Projects removed at owner request, 4th revision — the degree stays signaled in the Summary)
 - [x] No tables, graphics, images, or text boxes
 - [x] Consistent Month YYYY date format on every experience (June 2025 – Present; November 2023 – June 2025; March 2022 – January 2023; August 2021 – February 2022; March 2020 – May 2020) and education
 - [x] Action-verb-first bullets (Built, Architected, Designed, Implemented, Co-architected, Contributed, Developed, Upheld, Redesigned, Pioneered, Ran, Owned, Worked, Coached, Clarified, Taught)
