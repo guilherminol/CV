@@ -6,6 +6,7 @@ export const NAV_ITEMS = [
   { id: 'curriculo', label: 'Currículo', enabled: true },
   { id: 'perfil', label: 'Perfil', enabled: true },
   { id: 'linkedin', label: 'LinkedIn', enabled: true },
+  { id: 'candidatura', label: 'Candidatura', enabled: true },
 ] as const
 
 export const PERFIL_SECTION_TITLE = 'Perfil'
@@ -138,8 +139,7 @@ export const CURRICULO_EPHEMERAL_NOTICE =
   'Este resultado existe apenas nesta página — atualizar ou fechar o navegador perde o conteúdo. Copie o que quiser guardar.'
 export const CURRICULO_REGENERAR = 'Gerar novamente'
 
-export const CURRICULO_KEYWORDS_TITLE = 'Keywords da vaga e cobertura'
-// {covered}/{total} interpolation slots — plain factual tally ONLY:
+export const CURRICULO_KEYWORDS_TITLE = 'Keywords da vaga e cobertura'// {covered}/{total} interpolation slots — plain factual tally ONLY:
 // never a percentage, score, or progress meter (RESUME-04; REQUIREMENTS Out of Scope).
 export const CURRICULO_COBERTURA_SINGULAR =
   '{covered} de {total} keyword da vaga aparece no currículo.'
@@ -148,6 +148,15 @@ export const CURRICULO_COBERTURA_PLURAL =
 export const CURRICULO_KEYWORD_COBERTO = 'no currículo'
 export const CURRICULO_KEYWORD_AUSENTE = 'ausente'
 export const CURRICULO_KEYWORDS_EMPTY = 'Nenhuma keyword foi extraída desta vaga.'
+
+// Vaga → perfil (keyword acceptance): the chip button adds the keyword to the
+// owner's profile via POST /api/profile/adicionar; titles have no profile home.
+export const CURRICULO_KEYWORD_ADD_LABEL = '+ Perfil'
+export const CURRICULO_KEYWORD_ADD_ARIA = 'Adicionar ao meu perfil'
+export const CURRICULO_KEYWORD_NO_PERFIL = 'Já está no seu perfil'
+export const CURRICULO_KEYWORD_ADICIONANDO = 'Adicionando…'
+export const CURRICULO_KEYWORD_ADD_ERRO =
+  'Não foi possível adicionar ao perfil — tente novamente; o detalhe técnico aparece no terminal.'
 
 // Category labels are UI-only renderings of the schema tokens (Phase 2 D-10);
 // CATEGORY_ORDER pins the display order — empty categories are skipped, not shown.
@@ -221,6 +230,41 @@ export const SELFCHECK_KEYWORDS_ZERO =
   'Nenhuma keyword foi extraída nesta execução — nada para verificar no PDF.'
 export const SELFCHECK_GATE_FOOTER =
   'Antes do download, o gate automático também provou empresa, cargo e datas juntos em cada experiência e acentos intactos na camada de texto.'
+
+// --- export content selection (quick task 261006-oy9, D-01/D-02): the
+// presentational PDF filter on the result screen — nothing here changes the
+// generated text. Section labels keyed by run language: pt-BR values match
+// PREVIEW_SECTIONS exactly; en values match render.py HEADINGS['en'] (the
+// PDF's own heading map) so the panel names sections the way the document
+// prints them. ---
+export const SELECAO_TITLE = 'Seleção do conteúdo do PDF'
+export const SELECAO_CAPTION =
+  'Escolha o que entra na versão final em PDF — nada aqui altera o texto gerado.'
+export const SELECAO_SECOES = {
+  'pt-BR': {
+    resumo: 'Resumo',
+    experiencias: 'Experiência',
+    formacao: 'Formação',
+    habilidades: 'Habilidades',
+    certificacoes: 'Certificações',
+    idiomas: 'Idiomas',
+    projetos: 'Projetos',
+  },
+  en: {
+    resumo: 'Summary',
+    experiencias: 'Experience',
+    formacao: 'Education',
+    habilidades: 'Skills',
+    certificacoes: 'Certifications',
+    idiomas: 'Languages',
+    projetos: 'Projects',
+  },
+} as const
+// WR-01 client mirror: with every section unchecked the backend answers 422
+// (SelecaoExportacao's all-false validator) — the export CTA is disabled at
+// the source with this hint instead of ever reaching that dead end.
+export const SELECAO_SEM_SECAO =
+  'Selecione ao menos uma seção para exportar o PDF.'
 
 // --- per-section regeneration (UI-SPEC Copywriting Contract, plan 05-01) ---
 // {secao} interpolation slots — plain template replace, never a formatter
@@ -441,3 +485,19 @@ export const QA_LEGENDA =
 // EN-run neutral note (qa === null — the 06-04 language gate).
 export const QA_EN_NOTE =
   'A verificação de idioma se aplica às saídas em PT-BR — esta execução gerou conteúdo em inglês.'
+
+// --- Candidatura (perguntas abertas de formulário de candidatura) ---
+export const CANDIDATURA_PAGE_TITLE = 'Resposta de candidatura'
+export const CANDIDATURA_HINT =
+  'Cole a pergunta aberta do formulário — a resposta é gerada a partir do seu perfil, no idioma escolhido. Revise antes de usar: só o que está no seu perfil pode aparecer.'
+export const CANDIDATURA_PERGUNTA_LABEL = 'Pergunta da candidatura'
+export const CANDIDATURA_PERGUNTA_PLACEHOLDER =
+  'Ex.: Descreva sua última experiência e o principal resultado que você entregou.'
+export const CANDIDATURA_VAGA_LABEL = 'Descrição da vaga (opcional)'
+export const CANDIDATURA_VAGA_PLACEHOLDER =
+  'Cole a descrição da vaga para alinhar a resposta — pode deixar vazio.'
+export const CANDIDATURA_CTA = 'Gerar resposta'
+export const CANDIDATURA_CTA_INFLIGHT = 'Gerando resposta…'
+export const CANDIDATURA_RESULT_TITLE = 'Resposta gerada'
+export const CANDIDATURA_EPHEMERAL_NOTICE =
+  'Esta resposta existe apenas nesta página — copie o que quiser guardar.'

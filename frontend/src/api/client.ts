@@ -14,8 +14,8 @@ export interface ImpactDTO {
 
 export interface ContactDTO {
   email: string
-  location?: string | null
-  phone?: string | null
+  location?: LocalizedText | null // D-02 pattern: localized ("Brasil"/"Brazil")
+  phone?: LocalizedText | null // D-02 pattern: localized (local vs +55 format)
   linkedin?: string | null
 }
 
@@ -27,11 +27,12 @@ export interface ExperienceDTO {
   end_date?: string | null
   description: LocalizedText
   impacts: ImpactDTO[] // D-08: embedded per experience
+  skills?: string[] // per-experience tech names (quick task 261006-oy9, D-03/D-04)
 }
 
 export interface EducationEntryDTO {
   institution: string
-  degree: string
+  degree: LocalizedText // D-02 pattern: the degree IS localized (renders on sendable docs)
   start_date?: string | null
   end_date?: string | null
 }
@@ -43,17 +44,20 @@ export interface SkillGroupDTO {
 
 export interface CertificationEntryDTO {
   name: string
-  issuer?: string | null
+  issuer?: LocalizedText | null // D-02 pattern: localized (may carry the cert's nature per language)
   year?: string | null
 }
 
 export interface LanguageEntryDTO {
-  name: string
-  level: string
+  name: LocalizedText // D-02 pattern: name and proficiency ARE localized
+  level: LocalizedText
 }
 
 export interface ProjectDTO {
-  name: string
+  // str (brand) OR localized map — a title may carry a per-language descriptor.
+  name: string | LocalizedText
+  // 'profissional' (in-company) vs 'pessoal' — the document groups by it.
+  scope: 'profissional' | 'pessoal'
   description: LocalizedText
   technologies: string[]
   impacts: ImpactDTO[]
@@ -107,6 +111,68 @@ export async function fetchProfile(): Promise<ProfileResponse> {
   return (await resp.json()) as ProfileResponse
 }
 
+// --- profile adicionar (vaga → perfil) — accepts extracted keywords the owner
+// confirms they actually have; the backend appends them to content/profile.md.
+
+/** Keyword categories with a profile home — job titles have none (D-07 set). */
+export type AdicaoCategoria = Exclude<KeywordCategory, 'titulos_de_vaga'>
+
+export interface AdicaoKeywordDTO {
+  canonical: string
+  pt: string | null
+  en: string | null
+  categoria: AdicaoCategoria
+}
+
+/** Same ok envelope as the GET + the addition report (stored names, PT-BR base). */
+export type AdicionarPerfilResponse =
+  | {
+      status: 'ok'
+      adicionado: string[]
+      ja_existentes: string[]
+      exemplo: boolean
+      perfil: PerfilDTO
+      completude: CompletudeDTO
+    }
+  | { status: 'erro'; erros: string[] }
+
+export async function adicionarAoPerfil(
+  adicoes: AdicaoKeywordDTO[],
+): Promise<AdicionarPerfilResponse> {
+  const resp = await fetch('/api/profile/adicionar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ adicoes }),
+  })
+  if (!resp.ok) {
+    throw new Error(`POST /api/profile/adicionar falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as AdicionarPerfilResponse
+}
+
+// --- candidatura endpoints — answers open application-form questions from the
+// profile facts (vaga → perfil module). Same 200-envelope contract.
+
+export type CandidaturaRespostaResponse =
+  | { status: 'ok'; resposta: string }
+  | { status: 'erro'; erros: string[] }
+
+export async function responderCandidatura(payload: {
+  pergunta: string
+  vaga_texto?: string | null
+  language: ResumeLanguage
+}): Promise<CandidaturaRespostaResponse> {
+  const resp = await fetch('/api/candidatura/responder', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!resp.ok) {
+    throw new Error(`POST /api/candidatura/responder falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as CandidaturaRespostaResponse
+}
+
 // --- resume endpoints (plan 03-04) — mirrors the NORMATIVE response contract
 // in .planning/phases/03-resume-vertical-slice/03-03-PLAN.md, implemented by
 // backend/app/routes/resume.py. Change BOTH together; tsc -b is the drift gate.
@@ -145,8 +211,18 @@ export interface CoberturaItemDTO {
   status: 'coberto' | 'ausente'
 }
 
+/** One profile-gap keyword (lint): the acceptance payload + the verbatim
+ * backend-owned aviso line (D-13 — the UI never rebuilds the string). */
+export interface LintGapDTO {
+  canonical: string
+  pt: string | null
+  en: string | null
+  categoria: AdicaoCategoria
+  aviso: string
+}
+
 export type LintResponse =
-  | { status: 'ok'; keywords: KeywordDTO[]; avisos: string[] }
+  | { status: 'ok'; keywords: KeywordDTO[]; avisos: string[]; gaps: LintGapDTO[] }
   | { status: 'erro'; erros: string[] }
 
 export type GerarResponse =
@@ -213,6 +289,25 @@ export type ExportarResponse =
   | { status: 'ok'; filename: string; pdf_base64: string; selfcheck: SelfCheckDTO }
   | { status: 'erro'; erros: string[] }
 
+/** Presentational export selection (quick task 261006-oy9, D-01/D-02) —
+ *  mirror of the backend SelecaoExportacao (routes/export.py). All seven
+ *  flags default True backend-side; an omitted selecao exports everything.
+ *  The index lists select item subsets for the two item-granular sections
+ *  (None/undefined = ALL items); out-of-range/negative indices are ignored
+ *  server-side, never a crash. Change BOTH together; tsc -b is the drift
+ *  gate. */
+export interface SelecaoExportacaoDTO {
+  resumo: boolean
+  experiencias: boolean
+  formacao: boolean
+  habilidades: boolean
+  certificacoes: boolean
+  idiomas: boolean
+  projetos: boolean
+  experiencias_indices?: number[] | null
+  projetos_indices?: number[] | null
+}
+
 /** The displayed mounted state (D-10) travels verbatim to the export — field
  *  names lifted from GerarResponse + the perfilQuery payload so the caller
  *  passes exactly what the screen shows, with no refetch or recomputation. */
@@ -221,6 +316,7 @@ export interface ExportarRequest {
   secoes: SecoesDTO
   keywords: KeywordDTO[] // may be [] — zero-keyword runs are legitimate
   idioma: ResumeLanguage // REQUIRED — the PDF follows the run language (D-12)
+  selecao?: SelecaoExportacaoDTO // presentational PDF filter — generation is untouched (D-02)
 }
 
 /** One-shot export: render → PDF → parse-back gate → self-check in ONE request. */

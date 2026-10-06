@@ -1,21 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
+  adicionarAoPerfil,
   downloadPdf,
   exportarCurriculo,
   fetchProfile,
   fetchResumeLint,
   gerarCurriculo,
   regenerarSecao,
+  type AdicaoCategoria,
   type ExperienciaGeradaDTO,
   type GerarResponse,
+  type KeywordDTO,
+  type LintGapDTO,
   type ResumeLanguage,
   type SecaoId,
   type SecoesDTO,
+  type SelecaoExportacaoDTO,
   type SelfCheckDTO,
 } from '../api/client'
 import { ErrorPanel } from '../components/ErrorPanel'
+import { ExportSelection } from '../components/ExportSelection'
 import { ExportZone } from '../components/ExportZone'
 import { KeywordsPanel } from '../components/KeywordsPanel'
 import { LintPanel, type LintOk } from '../components/LintPanel'
@@ -36,6 +42,7 @@ import {
   CURRICULO_IDIOMA_LABEL,
   CURRICULO_IDIOMA_OPTIONS,
   CURRICULO_INFLIGHT_HINT,
+  CURRICULO_KEYWORD_ADD_ERRO,
   CURRICULO_LINT_FETCH_ERRO,
   CURRICULO_JD_LABEL,
   CURRICULO_JD_PLACEHOLDER,
@@ -46,6 +53,7 @@ import {
   PERFIL_ERROR_TITLE,
   PERFIL_LOADING,
   PRIMARY_BUTTON_CLASSES,
+  SELECAO_SEM_SECAO,
   TEXTAREA_CLASSES,
 } from '../constants/ui'
 
@@ -65,6 +73,21 @@ const DEBOUNCE_MS = 800 // one lint call per settled typing state (T-03-10 bound
 // The three generated section ids — iteration order for the regen-success
 // wholesale-swap defense (CR-01 stack-before-mutate covers EVERY section).
 const SECOES_IDS: SecaoId[] = ['resumo', 'experiencias', 'habilidades']
+
+// Export selection default (quick task 261006-oy9, D-02): everything selected,
+// no index lists — the wire shape for "export all", byte-identical to omitting
+// selecao. The selection RESETS here on every wholesale secoes swap (full
+// gerar AND per-section regen — a regen can change the experiencias array
+// length, which would silently re-point the indices).
+const SELECAO_TODOS: SelecaoExportacaoDTO = {
+  resumo: true,
+  experiencias: true,
+  formacao: true,
+  habilidades: true,
+  certificacoes: true,
+  idiomas: true,
+  projetos: true,
+}
 
 // Pinned class strings from the UI-SPEC Component conventions (plan 03-04).
 // PRIMARY_BUTTON_CLASSES + TEXTAREA_CLASSES live in constants/ui.ts — single
@@ -122,6 +145,47 @@ function secoesComValor(secoes: SecoesDTO, secao: SecaoId, valor: SectionValor):
 export default function CurriculoHome() {
   // Profile gate — the SAME ['perfil'] query PerfilHome uses; React Query dedupes.
   const perfilQuery = useQuery({ queryKey: ['perfil'], queryFn: fetchProfile })
+  const queryClient = useQueryClient()
+
+  // Vaga → perfil (keyword acceptance): one add at a time (the pending canonical
+  // drives the chip spinner); success invalidates the shared ['perfil'] query so
+  // PerfilHome and the next export pick up the new skill fresh (D-15 read).
+  const [adicaoPendente, setAdicaoPendente] = useState<string | null>(null)
+  const [adicaoErros, setAdicaoErros] = useState<string[] | null>(null)
+  const adicionarPerfil = useMutation({
+    mutationFn: adicionarAoPerfil,
+    onSuccess: (data) => {
+      setAdicaoPendente(null)
+      if (data.status === 'ok') {
+        setAdicaoErros(null)
+        queryClient.invalidateQueries({ queryKey: ['perfil'] })
+      } else {
+        setAdicaoErros(data.erros)
+      }
+    },
+    onError: () => {
+      setAdicaoPendente(null)
+      setAdicaoErros([CURRICULO_KEYWORD_ADD_ERRO])
+    },
+  })
+
+  const adicionarKeywordAoPerfil = (kw: KeywordDTO, categoria: AdicaoCategoria) => {
+    setAdicaoPendente(kw.canonical)
+    setAdicaoErros(null)
+    adicionarPerfil.mutate([
+      { canonical: kw.canonical, pt: kw.pt, en: kw.en, categoria },
+    ])
+  }
+
+  // Same mutation from the lint panel's gap rows — the gap already carries
+  // the acceptance payload in the backend's own shape (categoria included).
+  const adicionarGapAoPerfil = (gap: LintGapDTO) => {
+    setAdicaoPendente(gap.canonical)
+    setAdicaoErros(null)
+    adicionarPerfil.mutate([
+      { canonical: gap.canonical, pt: gap.pt, en: gap.en, categoria: gap.categoria },
+    ])
+  }
 
   // Zone 1 inputs: raw JD + run language. The debounced copy drives the lint query.
   const [jdText, setJdText] = useState('')
@@ -137,6 +201,11 @@ export default function CurriculoHome() {
   const [selfcheck, setSelfcheck] = useState<SelfCheckDTO | null>(null)
   // Export failure (backend PT-BR lines, or [] for a thrown fetch failure).
   const [exportarErros, setExportarErros] = useState<string[] | null>(null)
+  // Export content selection (quick task 261006-oy9, D-01/D-02): presentational
+  // PDF filter held in React state, initialized all-selected. Changing it never
+  // clears or touches receipt/error state — only gerar/regen success (which
+  // wholesale-replace secoes) reset it to SELECAO_TODOS.
+  const [selecao, setSelecao] = useState<SelecaoExportacaoDTO>(SELECAO_TODOS)
   // Zone 4 per-section regen state (plan 05-01, session-only like D-06):
   // the steering hint (D-05) + its on-demand toggle live per section and
   // persist across that section's regens until the result is replaced.
@@ -230,6 +299,10 @@ export default function CurriculoHome() {
         setReceiptFilename(null)
         setSelfcheck(null)
         setExportarErros(null)
+        // The wholesale secoes swap invalidates the selection too (quick task
+        // 261006-oy9): the new experiencias array would silently re-point the
+        // stored indices.
+        setSelecao(SELECAO_TODOS)
         setResultado(data)
         setGerarErros(null)
         // A replaced result invalidates the per-section regen state (UI-SPEC
@@ -302,6 +375,9 @@ export default function CurriculoHome() {
         setReceiptFilename(null)
         setSelfcheck(null)
         setExportarErros(null)
+        // A regen can change the experiencias array length — the selection's
+        // stored indices would silently re-point. Reset to all-selected.
+        setSelecao(SELECAO_TODOS)
         setResultado((prev) =>
           prev
             ? {
@@ -608,6 +684,17 @@ export default function CurriculoHome() {
   //    mid-flight save would be silently destroyed by it).
   const operacaoLongaPendente = gerar.isPending || exportar.isPending || regenerar.isPending
   const locksEdicao = editor !== null || operacaoLongaPendente
+  // WR-01 client mirror of SelecaoExportacao's all-false validator (routes/
+  // export.py): the all-unchecked state would be a loud 422 — the export CTA
+  // disables at the source instead (SELECAO_SEM_SECAO names the reason).
+  const nenhumaSecaoSelecionada =
+    !selecao.resumo &&
+    !selecao.experiencias &&
+    !selecao.formacao &&
+    !selecao.habilidades &&
+    !selecao.certificacoes &&
+    !selecao.idiomas &&
+    !selecao.projetos
 
   return (
     <div className="space-y-6">
@@ -684,7 +771,14 @@ export default function CurriculoHome() {
       </form>
 
       {/* Zone 2 — lint panel: pending renders nothing (the form stays primary). */}
-      {lintReady && lintQuery.data && lintQuery.data.status === 'ok' && <LintPanel resultado={lintOk} />}
+      {lintReady && lintQuery.data && lintQuery.data.status === 'ok' && (
+        <LintPanel
+          resultado={lintOk}
+          perfil={perfilOk.perfil}
+          onAdicionar={adicionarGapAoPerfil}
+          adicaoPendente={adicaoPendente}
+        />
+      )}
       {lintReady && lintQuery.data && lintQuery.data.status === 'erro' && (
         <div className="rounded-md border border-red-300 bg-red-50 px-4 py-3">
           <ul className="list-disc pl-5 text-sm text-red-700">
@@ -777,6 +871,17 @@ export default function CurriculoHome() {
               onCancelarEdicao={fecharEditor}
               onDescartarEdicao={descartarEdicao}
             />
+            {/* Export content selection (quick task 261006-oy9, D-01/D-02):
+                render-only panel between the artifact and its export control;
+                changes never touch receipt/error state. */}
+            <ExportSelection
+              perfil={perfilQuery.data.perfil}
+              secoes={resultado.secoes}
+              idioma={resultado.idioma}
+              selecao={selecao}
+              onChange={setSelecao}
+              disabled={locksEdicao}
+            />
             <ExportZone
               onExportar={() =>
                 exportar.mutate({
@@ -784,13 +889,20 @@ export default function CurriculoHome() {
                   secoes: resultado.secoes,
                   keywords: resultado.keywords,
                   idioma: resultado.idioma,
+                  selecao,
                 })
               }
               exporting={exportar.isPending}
-              ctaDisabled={locksEdicao}
+              ctaDisabled={locksEdicao || nenhumaSecaoSelecionada}
               receiptFilename={receiptFilename}
               erros={exportarErros}
             />
+            {/* WR-01 client mirror: zero sections selected would be a dead-end
+                422 backend-side — the CTA is disabled at the source and the
+                hint states why. */}
+            {nenhumaSecaoSelecionada && (
+              <p className="text-xs font-medium text-amber-600">{SELECAO_SEM_SECAO}</p>
+            )}
             {selfcheck && (
               <SelfCheckPanel
                 selfcheck={selfcheck}
@@ -803,6 +915,10 @@ export default function CurriculoHome() {
               cobertura={resultado.cobertura}
               cobertura_resumo={resultado.cobertura_resumo}
               idioma={resultado.idioma}
+              perfil={perfilOk.perfil}
+              onAdicionar={adicionarKeywordAoPerfil}
+              adicaoPendente={adicaoPendente}
+              adicaoErros={adicaoErros}
             />
           </>
         )}
