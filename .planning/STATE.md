@@ -71,7 +71,7 @@ Phase: 6 (LinkedIn Module + Bilingual Hardening) — EXECUTED, verification huma
 ( bloqueio: créditos OpenRouter esgotados — 402; geração ao vivo impossível até top-up)
 Plan: 6 of 6 executed (26/26 phase plans across the milestone)
 Status: Awaiting human verification (phases 1 and 6) — milestone completion gate refuses until both pass
-Last activity: 2026-10-06 - Completed quick task 261006-k09: tailored ATS English CV for BEON Forward Deployed AI Engineer role — recruiter 5-field format, honest self-check, recruiter reply
+Last activity: 2026-10-06 - Completed quick task 261006-oy9: selectable resume sections at export + per-experience skills in profile facts
 
 Progress: [███████░░░] 67% (4 of 6 phases verified complete; all 6 executed)
 
@@ -208,6 +208,7 @@ None yet.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 261006-oy9 | Selectable resume content at export — 7 section toggles + per-item experience/project checkboxes on the result screen (SelecaoExportacao applied pre-render so the parse-back gate verifies exactly the filtered doc; omitted selecao = byte-identical to today) + per-experience skills in profile YAML feeding the LLM facts as a tecnologias line (PDF layout unchanged, no profile-editor UI) | 2026-10-06 | 38f7f37, 1894178, be0c9cf | [261006-oy9-quero-que-seja-selecionavel-quais-partes](./quick/261006-oy9-quero-que-seja-selecionavel-quais-partes/) |
 | 261006-k09 | Tailored ATS English CV for BEON Forward Deployed AI Engineer role — recruiter 5-field format on all 5 experiences, honest ATS self-check with flagged gaps (Snowflake/Databricks/Bedrock/fine-tuning kept out of CV), 130-word recruiter reply; 100% grounded in content/profile.md (checksum-verified untouched) | 2026-10-06 | 7118fea, b09f927, 4c3754c | [261006-k09-criar-curriculo-sob-medida-ats-para-vaga](./quick/261006-k09-criar-curriculo-sob-medida-ats-para-vaga/) |
 | 261001-o9w | Deep-dive profile enrichment from projects — dual-adoption Group Software metric, GIA Redis/Azure, H&P estimate, Brooklyn performance, honest Nexus, Financeiro impacts, Termômetro da Massa, 10 skills | 2026-10-01 | 4efcb1e, 68b4820, 71b0e99 | [261001-o9w-quero-melhorar-o-meu-profile-com-oq-eu-j](./quick/261001-o9w-quero-melhorar-o-meu-profile-com-oq-eu-j/) |
 | 261001-q9v | Add two Group Software projects — Plataforma Conversacional (GIA IEBT, team framing, renamed to avoid GIA collision) and Servidor MCP do Ecossistema Condominial (mcp-com, direct work); professional projects grouped first; no skills changes | 2026-10-01 | d80bbbc | [261001-q9v-add-two-group-software-projects-to-maste](./quick/261001-q9v-add-two-group-software-projects-to-maste/) |
