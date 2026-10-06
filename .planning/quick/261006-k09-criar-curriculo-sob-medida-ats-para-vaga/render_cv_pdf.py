@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """Render the tailored CV markdown master to an ATS-safe PDF (ReportLab).
 
-Layout mirrors the app's D-05 montage (backend/app/export/render.py):
-name + one-line contact, then Summary / Experience / Education / Core
-Skills / Certifications / Languages / Projects. Visual design kept from the
-previous iteration: Times New Roman, slate-blue section titles, A4.
+Visual design replicates the app's export CSS (backend/app/export/render.py
+_CSS): Segoe UI 10.5pt body in #111111 on A4 with 1.6cm margins, h1 20pt
+left-aligned, h2 11.5pt bold with a 0.5pt #999999 bottom rule, h3 10.5pt bold
+entry headings, h4 9.5pt #444444 group labels, gray (#555555) meta lines,
+#444444 contact line. Structure mirrors the app's D-05 montage: Summary /
+Experience / Education / Core Skills / Certifications / Languages / Projects.
 
 Markdown vocabulary:
     #  name            ##  section title     ###  entry heading
@@ -19,7 +21,7 @@ import sys
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.enums import TA_LEFT
 from reportlab.lib import colors
 from reportlab.platypus import (
     BaseDocTemplate, Frame, PageTemplate, Paragraph, Spacer, HRFlowable,
@@ -33,60 +35,64 @@ HERE = __file__.replace("\\", "/").rsplit("/", 1)[0]
 MD_PATH = f"{HERE}/cv-forward-deployed-ai-engineer-en.md"
 PDF_PATH = f"{HERE}/Guilhermino-Lucas-CV-Forward-Deployed-AI-Engineer.pdf"
 
-# ── Fonts (Windows Times New Roman) ──
+# ── Fonts (Windows Segoe UI — the app's export font stack) ──
 FONTS = "C:/Windows/Fonts"
-pdfmetrics.registerFont(TTFont("TimesNewRoman", f"{FONTS}/times.ttf"))
-pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", f"{FONTS}/timesbd.ttf"))
-pdfmetrics.registerFont(TTFont("TimesNewRoman-Italic", f"{FONTS}/timesi.ttf"))
-pdfmetrics.registerFont(TTFont("TimesNewRoman-BoldItalic", f"{FONTS}/timesbi.ttf"))
+pdfmetrics.registerFont(TTFont("SegoeUI", f"{FONTS}/segoeui.ttf"))
+pdfmetrics.registerFont(TTFont("SegoeUI-Bold", f"{FONTS}/segoeuib.ttf"))
+pdfmetrics.registerFont(TTFont("SegoeUI-Italic", f"{FONTS}/segoeuii.ttf"))
+pdfmetrics.registerFont(TTFont("SegoeUI-BoldItalic", f"{FONTS}/segoeuiz.ttf"))
 registerFontFamily(
-    "TimesNewRoman",
-    normal="TimesNewRoman",
-    bold="TimesNewRoman-Bold",
-    italic="TimesNewRoman-Italic",
-    boldItalic="TimesNewRoman-BoldItalic",
+    "SegoeUI",
+    normal="SegoeUI",
+    bold="SegoeUI-Bold",
+    italic="SegoeUI-Italic",
+    boldItalic="SegoeUI-BoldItalic",
 )
 
-# ── Palette (from pdf.py palette.cascade --mode minimal) ──
-HEADER_FILL = colors.HexColor("#445c68")   # M tier — section titles + rules
-TEXT_PRIMARY = colors.HexColor("#181a1b")
-TEXT_MUTED = colors.HexColor("#6d7376")    # darkened from #848a8d for print contrast
+# ── Palette — the app's _CSS values, verbatim ──
+BODY = colors.HexColor("#111111")     # body text
+CONTACT = colors.HexColor("#444444")  # .contact / h4
+META = colors.HexColor("#555555")     # .meta (dates, tech lines)
+RULE = colors.HexColor("#999999")     # h2 border-bottom
+
+# browser-normal line height for Segoe UI ≈ 1.36em → ~14.3pt at 10.5pt
+LEAD = 14
 
 name_style = ParagraphStyle(
-    "ResumeName", fontName="TimesNewRoman", fontSize=24, leading=28,
-    alignment=TA_CENTER, textColor=TEXT_PRIMARY, spaceAfter=2,
+    "ResumeName", fontName="SegoeUI", fontSize=20, leading=26,
+    alignment=TA_LEFT, textColor=BODY, spaceBefore=0, spaceAfter=2,
 )
 contact_style = ParagraphStyle(
-    "ResumeContact", fontName="TimesNewRoman", fontSize=10, leading=13.5,
-    alignment=TA_CENTER, textColor=TEXT_MUTED, spaceAfter=0,
+    "ResumeContact", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
+    alignment=TA_LEFT, textColor=CONTACT, spaceBefore=0, spaceAfter=4,
 )
 section_title_style = ParagraphStyle(
-    "ResumeSectionTitle", fontName="TimesNewRoman", fontSize=13.5, leading=17,
-    spaceBefore=0, spaceAfter=0, textColor=HEADER_FILL,
+    "ResumeSectionTitle", fontName="SegoeUI", fontSize=11.5, leading=15,
+    spaceBefore=0, spaceAfter=0, textColor=BODY,
 )
 entry_title_style = ParagraphStyle(
-    "ResumeEntryTitle", fontName="TimesNewRoman", fontSize=11.5, leading=15,
-    textColor=TEXT_PRIMARY, spaceBefore=9, spaceAfter=1,
+    "ResumeEntryTitle", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
+    textColor=BODY, spaceBefore=8, spaceAfter=2,
     allowWidows=0, allowOrphans=0,
 )
 group_label_style = ParagraphStyle(
-    "ResumeGroupLabel", fontName="TimesNewRoman", fontSize=10.5, leading=14,
-    textColor=TEXT_MUTED, spaceBefore=7, spaceAfter=2,
+    "ResumeGroupLabel", fontName="SegoeUI", fontSize=9.5, leading=13,
+    textColor=CONTACT, spaceBefore=10, spaceAfter=2,
 )
 meta_style = ParagraphStyle(
-    "ResumeMeta", fontName="TimesNewRoman-Italic", fontSize=10, leading=13,
-    textColor=TEXT_MUTED, spaceBefore=0, spaceAfter=3,
+    "ResumeMeta", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
+    textColor=META, spaceBefore=0, spaceAfter=2,
     allowWidows=0, allowOrphans=0,
 )
 body_style = ParagraphStyle(
-    "ResumeBody", fontName="TimesNewRoman", fontSize=11, leading=15.2,
-    textColor=TEXT_PRIMARY, spaceBefore=2.5, spaceAfter=2.5,
+    "ResumeBody", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
+    textColor=BODY, spaceBefore=2, spaceAfter=2,
     allowWidows=0, allowOrphans=0,
 )
 bullet_style = ParagraphStyle(
-    "ResumeBullet", fontName="TimesNewRoman", fontSize=11, leading=14.8,
-    leftIndent=14, bulletIndent=2, textColor=TEXT_PRIMARY,
-    spaceBefore=2.5, spaceAfter=2.5, allowWidows=0, allowOrphans=0,
+    "ResumeBullet", fontName="SegoeUI", fontSize=10.5, leading=LEAD,
+    leftIndent=14, bulletIndent=2, textColor=BODY,
+    spaceBefore=1, spaceAfter=1, allowWidows=0, allowOrphans=0,
 )
 
 LABEL_RE = re.compile(r"^\*\*[^*]+:\*\*$")
@@ -98,13 +104,15 @@ def esc(text: str) -> str:
 
 
 def section_header(title: str):
+    """h2 + border-bottom (0.5pt #999999, 2pt padding), margin 14pt/4pt."""
     return [
         CondPageBreak(4 * cm),
         Spacer(1, 14),
         KeepTogether([
             Paragraph(f"<b>{esc(title)}</b>", section_title_style),
-            HRFlowable(width="100%", thickness=0.8, color=HEADER_FILL,
-                       spaceBefore=3, spaceAfter=7),
+            Spacer(1, 2),
+            HRFlowable(width="100%", thickness=0.5, color=RULE,
+                       spaceBefore=0, spaceAfter=4),
         ]),
     ]
 
@@ -151,7 +159,6 @@ def main():
             story.extend(section_header(line[3:]))
         elif line.startswith("# "):
             story.append(Paragraph(esc(line[2:]), name_style))
-            story.append(Spacer(1, 4))
             in_contact = True
         elif line.startswith("> "):
             meta = Paragraph(esc(line[2:]), meta_style)
@@ -175,8 +182,8 @@ def main():
 
     doc = BaseDocTemplate(
         PDF_PATH, pagesize=A4,
-        leftMargin=1.5 * cm, rightMargin=1.5 * cm,
-        topMargin=1.5 * cm, bottomMargin=1.5 * cm,
+        leftMargin=1.6 * cm, rightMargin=1.6 * cm,
+        topMargin=1.6 * cm, bottomMargin=1.6 * cm,
         title="Guilhermino Lucas — CV — Forward Deployed AI Engineer",
         author="Guilhermino Lucas",
         subject="Tailored CV — Forward Deployed AI Engineer",
