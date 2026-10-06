@@ -115,6 +115,12 @@ class Experience(_BaseLanguageMixin, _Strict):
     start_date: str
     end_date: str | None = None
     description: LocalizedText
+    # Per-experience technologies (quick task 261006-oy9, D-03/D-04): plain
+    # single-value tech names, unsorted, first-appearance order — the
+    # Project.technologies precedent. Grounded strictly in THIS entry's own
+    # description/impact text; feeds the facts blob's per-experience
+    # `tecnologias:` line at generation time ONLY (never rendered in the PDF).
+    skills: list[str] = []
     impacts: list[Impact] = []  # D-08: embedded per experience
     _norm_dates = field_validator("start_date", "end_date", mode="before")(_date_to_str)
 

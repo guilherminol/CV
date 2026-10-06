@@ -137,6 +137,41 @@ def test_facts_blob_never_contains_absent_probes(language: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Per-experience skills (quick task 261006-oy9, D-03): the technologies line
+# inside the EXPERIÊNCIAS block — the LLM learns which stack belongs to which
+# company. Emitted ONLY for entries that carry skills (byte-stable blocks for
+# skill-less profiles), mirroring the project block's label convention.
+# ---------------------------------------------------------------------------
+
+
+def test_facts_blob_emits_tecnologias_line_for_experience_with_skills() -> None:
+    profile_data = full_profile()
+    profile_data["experiences"][0]["skills"] = ["LangGraph", "RAG avançado"]
+    blob = serialize_profile_facts(Profile.model_validate(profile_data), "pt-BR")
+
+    exp_section = blob.split("EXPERIÊNCIAS:\n", 1)[1].split("\n\n", 1)[0]
+    assert "tecnologias: LangGraph, RAG avançado" in exp_section, (
+        "linha tecnologias ausente do bloco da experiência que carrega skills"
+    )
+    # Block order (project-block convention): descrição → tecnologias → impacts.
+    assert (
+        exp_section.index("descrição: ")
+        < exp_section.index("tecnologias: ")
+        < exp_section.index("Implementou um pipeline RAG")
+    )
+
+
+def test_facts_blob_omits_tecnologias_line_for_experience_without_skills() -> None:
+    profile_data = full_profile()  # no experience carries skills by default
+    blob = serialize_profile_facts(Profile.model_validate(profile_data), "pt-BR")
+    exp_section = blob.split("EXPERIÊNCIAS:\n", 1)[1].split("\n\n", 1)[0]
+    assert "tecnologias:" not in exp_section, (
+        "bloco de experiência sem skills ganhou linha tecnologias — forma "
+        "do bloco deixou de ser byte-estável"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Group 3 — the invention detector (the OUTPUT side of grounding)
 # ---------------------------------------------------------------------------
 

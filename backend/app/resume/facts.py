@@ -16,14 +16,19 @@ by the schema), else the first non-empty value; an empty/None map renders "".
 from app.profile.models import Impact, Profile
 
 
-def resolve_loc(values: dict[str, str] | None, language: str) -> str:
+def resolve_loc(values: dict[str, str] | str | None, language: str) -> str:
     """Run-language value with pt-BR fallback, else the first non-empty value.
 
-    Empty strings never win; an empty/None map returns "" (the profile schema
-    guarantees pt-BR exists, so this is defensive for partial dicts in tests).
+    Plain-str fields (schema `str | LocalizedText` unions — e.g. project
+    names that are brands) pass through untouched; a str is never fed to
+    dict access. Empty strings never win; an empty/None map returns "" (the
+    profile schema guarantees pt-BR exists, so this is defensive for partial
+    dicts in tests).
     """
     if not values:
         return ""
+    if isinstance(values, str):
+        return values
     candidate = values.get(language)
     if isinstance(candidate, str) and candidate.strip():
         return candidate
@@ -67,9 +72,9 @@ def serialize_profile_facts(profile: Profile, language: str) -> str:
         f"EMAIL: {profile.contact.email}",
     ]
     if profile.contact.location:
-        contact_lines.append(f"LOCAL: {profile.contact.location}")
+        contact_lines.append(f"LOCAL: {resolve_loc(profile.contact.location, language)}")
     if profile.contact.phone:
-        contact_lines.append(f"TELEFONE: {profile.contact.phone}")
+        contact_lines.append(f"TELEFONE: {resolve_loc(profile.contact.phone, language)}")
     if profile.contact.linkedin:
         contact_lines.append(f"LINKEDIN: {profile.contact.linkedin}")
     sections.append(_section("DADOS DE CONTATO", contact_lines))
@@ -92,6 +97,13 @@ def serialize_profile_facts(profile: Profile, language: str) -> str:
             lines.append(f"local: {exp.location}")
         lines.append(f"período: {period}")
         lines.append(f"descrição: {resolve_loc(exp.description, language)}")
+        # Per-experience skills (quick task 261006-oy9, D-03): the SAME label
+        # convention the project blocks use — emitted ONLY when the entry
+        # carries skills, so skill-less profiles keep today's exact block
+        # shape. Placed after descrição and before the impact lines, mirroring
+        # the project block order (descrição → tecnologias → impacts).
+        if exp.skills:
+            lines.append(f"tecnologias: {', '.join(exp.skills)}")
         for impact in exp.impacts:
             lines.append(_impact_line(impact, language))
         experience_blocks.append("\n".join(lines))
@@ -101,7 +113,7 @@ def serialize_profile_facts(profile: Profile, language: str) -> str:
     for edu in profile.education:
         lines = [
             f"instituição: {edu.institution}",
-            f"grau: {edu.degree}",
+            f"grau: {resolve_loc(edu.degree, language)}",
         ]
         if edu.start_date:
             end = edu.end_date if edu.end_date else "atual"
@@ -121,16 +133,23 @@ def serialize_profile_facts(profile: Profile, language: str) -> str:
     certification_blocks: list[str] = []
     for cert in profile.certifications:
         line = cert.name
-        detail = " — ".join(part for part in (cert.issuer, cert.year) if part)
+        issuer = resolve_loc(cert.issuer, language)
+        detail = " — ".join(part for part in (issuer, cert.year) if part)
         certification_blocks.append(f"{line} — {detail}" if detail else line)
     sections.append(_section("CERTIFICAÇÕES", certification_blocks))
 
-    language_blocks = [f"{entry.name}: {entry.level}" for entry in profile.languages]
+    language_blocks = [
+        f"{resolve_loc(entry.name, language)}: {resolve_loc(entry.level, language)}"
+        for entry in profile.languages
+    ]
     sections.append(_section("IDIOMAS", language_blocks))
 
     project_blocks: list[str] = []
     for project in profile.projects:
-        lines = [f"nome: {project.name}"]
+        lines = [
+            f"nome: {resolve_loc(project.name, language)}",
+            f"escopo: {project.scope}",
+        ]
         description = resolve_loc(project.description, language)
         if description:
             lines.append(f"descrição: {description}")

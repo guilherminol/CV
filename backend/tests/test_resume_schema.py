@@ -17,6 +17,7 @@ from pydantic import ValidationError
 
 import app.llm.schemas as schemas
 from app.llm.schemas import KEYWORD_STRICT_SCHEMA
+from app.profile.models import Experience
 
 # The four wire schemas under drift-lock: (wire-dict attr, model attr).
 WIRES_AND_MODELS = [
@@ -149,3 +150,36 @@ def test_resume_skills_accepts_list() -> None:
     ResumeSkills = _sym("ResumeSkills")
     parsed = ResumeSkills.model_validate({"habilidades": ["Python", "FastAPI"]})
     assert parsed.habilidades == ["Python", "FastAPI"]
+
+
+# ---------------------------------------------------------------------------
+# Experience.skills (quick task 261006-oy9, D-03/D-04): per-experience tech
+# names feeding the facts serializer — plain single-value strings, default [],
+# strict against unknown keys like every other profile model.
+# ---------------------------------------------------------------------------
+
+
+def _experience_mapping() -> dict:
+    """A minimal valid Experience mapping (conftest full_profile shape)."""
+    return {
+        "company": "Exemplo IA",
+        "title": {"pt-BR": "Engenheira", "en": "Engineer"},
+        "start_date": "2022-03",
+        "description": {"pt-BR": "Descrição.", "en": "Description."},
+        "impacts": [],
+    }
+
+
+def test_experience_skills_round_trip_and_default_empty() -> None:
+    base = _experience_mapping()
+    without = Experience.model_validate(base)
+    assert without.skills == []  # default: an entry without skills stays valid
+
+    with_skills = Experience.model_validate({**base, "skills": ["RAG", "LangGraph"]})
+    assert with_skills.skills == ["RAG", "LangGraph"]  # plain strings, given order
+
+
+def test_experience_rejects_unknown_key_still_fails_with_skills_declared() -> None:
+    with pytest.raises(ValidationError) as excinfo:
+        Experience.model_validate({**_experience_mapping(), "salario": "1.000.000"})
+    assert "salario" in str(excinfo.value)  # extra="forbid" holds (D-10)
