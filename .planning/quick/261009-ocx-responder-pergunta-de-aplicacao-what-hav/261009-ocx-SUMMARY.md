@@ -74,3 +74,10 @@ None — no new security surface; content-only deliverable. Threat register miti
 - FOUND: .planning/quick/261009-ocx-responder-pergunta-de-aplicacao-what-hav/261009-ocx-SUMMARY.md
 - content/profile.md byte-unchanged (git status clean for the file)
 - Commits: none by design (doc commits deferred to orchestrator)
+
+## Revision 1 — 2026-10-09 (PT-BR, less technical)
+
+- Added `answer-pt-BR.md`: Portuguese rewrite of the same evidence, rendered for a non-specialist reader — jargon replaced by plain-language framing (MCP server → "servidor que expõe as funções do sistema como ferramentas que agentes usam com segurança"; promptfoo red team → "testes automatizados de segurança que tentam burlar isolamento e injetar instruções"; observability → "rastreabilidade completa das execuções"; pgvector/dual-transport details dropped).
+- All facts unchanged and still traceable to `content/profile.md`: 19 tools, two-layer auth, Java→TypeScript byte-for-byte signing, 3 products centralized, entitlement+context routing, multi-tenant evolution, canonical identity, per-conversation/client/model cost audit, 80% support response-time cut, 90 tables / 70% performance.
+- Attribution unchanged: solo work (mcp-com, ingestion platform) in first person singular; GIA "co-arquitetei"; conversational platform team-framed.
+- `answer-en.md` (technical, English) kept as-is pending user approval of the PT framing.
