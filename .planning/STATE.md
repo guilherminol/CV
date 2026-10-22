@@ -71,7 +71,7 @@ Phase: 6 (LinkedIn Module + Bilingual Hardening) — EXECUTED, verification huma
 ( bloqueio: créditos OpenRouter esgotados — 402; geração ao vivo impossível até top-up)
 Plan: 6 of 6 executed (26/26 phase plans across the milestone)
 Status: Awaiting human verification (phases 1 and 6) — milestone completion gate refuses until both pass
-Last activity: 2026-10-09 - Completed quick task 261009-ocx: paste-ready answer to "deeper than the harness/application layer" application question
+Last activity: 2026-10-22 - Completed quick task 261022-kv1: Factored talent interview kit (elevator pitch, CAR story, tech Q&A)
 
 Progress: [███████░░░] 67% (4 of 6 phases verified complete; all 6 executed)
 
@@ -208,6 +208,7 @@ None yet.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 261022-kv1 | Factored talent interview kit (English) — 2-min elevator pitch script (281 words, deck 5-part structure, calm-pace timing), 3-min Group Verifica CAR story (C78/A206/R134 word budgets + grounded follow-up Q&A), tech Q&A + English delivery cheat sheet (9 grounded Q&As, honest no-fine-tuning boundary, paraphrase-back and powerful-verbs tactics); 100% grounded in content/profile.md with honest team-vs-I attribution, every headline metric double-verified in profile | 2026-10-22 | 429b5e9, c237570, 521d6d9, e9394ea | [261022-kv1-prepare-factored-talent-interview-kit-el](./quick/261022-kv1-prepare-factored-talent-interview-kit-el/) |
 | 261009-ocx | Paste-ready English answer to "what have you built that has gone deeper than the harness/application layer" — 320 words, 3 paragraphs, deepest-first (MCP server with dual transport + reverse-engineered RSA-SHA256 byte-for-byte signing, multi-MCP entitlement-routed gateway, server-side multi-tenancy + LLM ops, two-layer RAG ingestion + 90-table redesign); 100% grounded in content/profile.md with honest attribution (untouched, gate-verified) | 2026-10-09 | 618fd2a, f2316cb | [261009-ocx-responder-pergunta-de-aplicacao-what-hav](./quick/261009-ocx-responder-pergunta-de-aplicacao-what-hav/) |
 | 261006-oy9 | Selectable resume content at export — 7 section toggles + per-item experience/project checkboxes on the result screen (SelecaoExportacao applied pre-render so the parse-back gate verifies exactly the filtered doc; omitted selecao = byte-identical to today) + per-experience skills in profile YAML feeding the LLM facts as a tecnologias line (PDF layout unchanged, no profile-editor UI) | 2026-10-06 | 38f7f37, 1894178, be0c9cf | [261006-oy9-quero-que-seja-selecionavel-quais-partes](./quick/261006-oy9-quero-que-seja-selecionavel-quais-partes/) |
 | 261006-k09 | Tailored ATS English CV for BEON Forward Deployed AI Engineer role — recruiter 5-field format on all 5 experiences, honest ATS self-check with flagged gaps (Snowflake/Databricks/Bedrock/fine-tuning kept out of CV), 130-word recruiter reply; 100% grounded in content/profile.md (checksum-verified untouched) | 2026-10-06 | 7118fea, b09f927, 4c3754c | [261006-k09-criar-curriculo-sob-medida-ats-para-vaga](./quick/261006-k09-criar-curriculo-sob-medida-ats-para-vaga/) |
