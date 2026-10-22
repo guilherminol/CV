@@ -1,0 +1,228 @@
+--- SLIDE 1 ---
+Let Your Soft-Skills Shine 
+--- SLIDE 2 ---
+Table of
+ Contents
+Key Pillars
+02Communication/
+Experience Pillar
+03 Business Acumen Pillar
+04 English Pillar
+01
+--- SLIDE 3 ---
+01
+1. Key Pillars
+--- SLIDE 4 ---
+Key Pillars
+Understanding of coding 
+or business-case 
+problems. 
+Thinking outside the box 
+and interacting with the 
+interviewer to overcome 
+challenges related to 
+limited information.
+Technical Coding Business Acumen Communication English
+Grasping the big 
+picture, business 
+impact, and alignment 
+with business needs.
+Demonstrating ﬂuency, 
+speech coherence, and 
+effective body 
+language.
+Presenting technical 
+knowledge and 
+elevator pitch clearly 
+and conﬁdently.
+Practicing active 
+listening.
+Maintaining 
+grammatical accuracy.
+Speaking ﬂuently and 
+conﬁdently.
+--- SLIDE 5 ---
+01
+2. Experience/ 
+Communication Pillar
+--- SLIDE 6 ---
+Experience / Communication Pillar
+Strong communication is essential for successful collaboration, inﬂuence, and execution across cross-functional teams. 
+It reﬂects not just what a candidate knows, but how they convey and apply that knowledge. This pillar includes:
+Verbal Communication
+ Non-Verbal Communication
+
+--- SLIDE 7 ---
+Highlight Your Experience With 
+The Elevator Pitch
+The introduction is your chance to highlight your skills and experience while aligning them with our current open opportunities. Follow these 
+recommendations to make your pitch more compelling:
+Summarized 
+Background
+Main 
+Tech-Stack
+1 Project 
+Example
+ Motivation
+Quick 
+Introduction
+--- SLIDE 8 ---
+Maximum 2 minutes.Length
+Content Highlight relevant and speciﬁc experience that aligns with the job. 
+Business impact Use numbers and data (e.g., net revenue, number of users, cost reduction, time 
+eﬃciency) to demonstrate the business impact of past projects.
+Non-verbal communication Express ideas conﬁdently using hand gestures while maintaining eye contact with 
+the camera.
+Elevator Pitch
+
+--- SLIDE 9 ---
+Elevator Pitch Example
+Summary of key 
+expertise
+Main tech-stack
+Most relevant project 
+with business results
+Motivation
+My name is ... and as a Machine Learning engineer, my career is driven by a passion for 
+harnessing the power of data and cutting-edge algorithms to drive tangible business results. 
+With a deep understanding of both the technical and business aspects, I have experience with 
+Machine Learning techniques, such as Supervised and Unsupervised Learning, Time Series 
+Forecasting, Deep Learning others, and also with Optimization, using both heuristics and 
+mathematical solvers.
+Leveraging my expertise in tools like Python, TensorFlow, and PyTorch, I have built and 
+deployed scalable machine learning systems, resulting in signiﬁcant cost savings, improved 
+eﬃciency, and enhanced customer experiences.
+For example, one of my most relevant projects involved developing a predictive maintenance 
+model for a manufacturing company. By analysing real-time sensor data, I designed an 
+algorithm that accurately predicted equipment failures, allowing the company to proactively 
+schedule maintenance, minimize downtime by 20%, and save millions in repair costs.
+My main motivation lies in my passion for applying advanced analytics and machine learning 
+techniques to drive innovation, improve decision-making, and positively transform businesses 
+and society as a whole.
+That’s why in my spare time,  I have completed 3 courses recently about Advanced Machine 
+Learning, Computer Vision and Machine Learning with Python: From Linear Models to Deep 
+Learning while acting as a volunteer mentor. 
+--- SLIDE 10 ---
+01
+3. Business Acumen 
+Pillar
+--- SLIDE 11 ---
+Business Acumen Pillar
+It includes having a fundamental understanding of 
+how a business operates, then using that knowledge 
+effectively to make logical business decisions. 
+Business acumen is a portfolio of knowledge, 
+technical skills, and soft skills, used to positively 
+impact an organization in beneﬁt of career growth
+More Senior = More business knowledge 
+and contribution to the organization.
+--- SLIDE 12 ---
+Project Examples: CAR Framework
+Share the impact of your past work and show how it connects with Factored needs:
+● Choose a project that might be aligned with Factored requirements.
+● Follow the CAR framework and present it in 5 minutes.
+💡
+PRO TIP! 
+Implement the “CAR framework”
+C: Context
+A: Action
+R: Result
+
+--- SLIDE 13 ---
+Project Examples: CAR Framework
+C: Context
+30 seconds
+Providing information about the 
+previous company, project 
+and/or main issue to solve.
+A: Action
+1.5 minutes
+Describing main contributions, 
+tech-stack and how you solved the 
+problem.
+R: Result
+1 minute
+Validating your approach with results 
+and business impact: Increased net 
+revenue, number of users or reduce time 
+and costs.
+
+--- SLIDE 14 ---
+Project Examples: CAR Framework
+C: Context
+Providing information about:
+● The business problem you solved.
+● The business situation that led to 
+the project.
+● Your main stakeholders.
+● How and to whom you 
+communicated changes and 
+progress.
+A: Action
+Providing information about:
+● Your main responsibilities.
+● Techniques, tools, or frameworks you used 
+and learned to successfully complete the 
+project.
+● How you handled deadlines and priorities.
+● Initiatives you proposed to ensure the 
+project’s success.
+R: Result
+Providing information about: 
+How you validated your approach with results 
+and business impact, such as increasing net 
+revenue, growing the number of users, or 
+reducing time and costs.
+Please ﬁnd below a guide on the type of project content you should share with the recruiter during the interview:
+--- SLIDE 15 ---
+CAR Framework: Example For a DE Project
+C: Context
+XYZ Corporation faced critical 
+roadblocks with its ETL process, 
+causing delays in reporting and 
+scalability issues. Manual 
+processes resulted in bottlenecks, 
+impacting data reliability and 
+hindering business growth.
+A: Action
+As the lead data engineer, I initiated a 
+comprehensive assessment. Recognizing the 
+need for a scalable solution, I redesigned the 
+ETL architecture using Apache Spark, enabling 
+parallel processing and optimized partitioning. 
+Simultaneously, I introduced stringent data 
+quality measures and automated workﬂows 
+with Apache Airﬂow.
+R: Result
+The ETL process time was cut by 40%, 
+overcoming delays. Scalability 
+improvements allowed seamless handling 
+of a 50% increase in data volume. Data 
+quality enhancements reduced errors by 
+20%, ensuring more accurate insights. 
+Automation led to a 30% cut in 
+infrastructure costs.
+
+--- SLIDE 16 ---
+01
+4. English Pillar
+--- SLIDE 17 ---
+Listening
+Make sure you accurately understood the interviewer’s 
+message by paraphrasing the question (repeating the 
+idea with your words) or asking a follow up question.
+Vocabulary
+Use “I” when describing your actions. Expand your 
+vocabulary when explaining your professional 
+experience by incorporating powerful verbs such as: 
+“I strongly contributed, managed, led, implemented, 
+resolved”.
+Fluency
+Maintain a calm speaking pace and pay attention to 
+your pronunciation.
+Grammar
+Ensure you follow sentence structure while correctly 
+using verb tenses and connectors.
+English Skills - Key Metrics
+--- SLIDE 18 ---
+Thank you!
