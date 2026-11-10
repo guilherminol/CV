@@ -19,7 +19,8 @@ Pins recorded in 07-01 (Phase planning):
 - A2: archive is the candidaturas.arquivada FLAG (+ arquivada_em date), not a
   "estágio final" stage — a flag survives user-edited stage vocabularies (D-05).
 - A3: a pending follow-up is data-INFERRED (a followup event with a future
-  date) — NO executada column; the eventos DDL below is final.
+  date) — NO executed-flag column exists to drift; the eventos DDL below is
+  final.
 """
 
 import sqlite3
