@@ -241,3 +241,13 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 4. PDF Export + ATS Self-Check | 3/3 | Complete    | 2026-09-27 |
 | 5. Review Flow + Fact Safety | 4/4 | Complete    | 2026-09-29 |
 | 6. LinkedIn Module + Bilingual Hardening | 6/6 | In Progress|  |
+
+### Phase 7: Application Tracker — Pipeline & Follow-up
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 6
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 7 to break down)
