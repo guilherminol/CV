@@ -12,3 +12,7 @@ outputs/
 
 # LLM run logs (runs.jsonl metadata — never commit)
 logs/
+
+# Tracker SQLite DB (D-01/D-02 — personal job-search history stays local;
+# the homelab bind mount targets this directory in the container)
+data/

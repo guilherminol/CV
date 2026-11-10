@@ -55,3 +55,18 @@ LINKEDIN_SKILLS_MAX_COUNT = 100  # HIGH confidence — officially verified
 # post-generation only (D-07) — never in the LLM-layer models.
 LINKEDIN_OBJETIVO_MIN_LENGTH = 80
 LINKEDIN_OBJETIVO_MAX_LENGTH = 2000
+
+# --- Phase 7: Tracker ---
+
+# Tracker SQLite store (D-01 — the deliberate point reversal of the
+# file-based constraint for the tracker ONLY; master profile stays
+# Markdown/YAML in git). Env-overridable so the homelab compose bind mount
+# targets the same path inside the container (D-02); default keeps local dev
+# data in the gitignored data/ dir.
+TRACKER_DB = Path(os.environ.get("TRACKER_DB", str(REPO_ROOT / "data" / "tracker.db")))
+TRACKER_DB.parent.mkdir(parents=True, exist_ok=True)
+
+# Mechanical follow-up suggestion threshold (D-12): "considerar follow-up"
+# badge when a candidatura goes N days without a non-future event. Pinned at
+# 7 (research recommendation; env-overridable for ops tuning).
+TRACKER_FOLLOWUP_SUGGEST_DAYS = int(os.environ.get("TRACKER_FOLLOWUP_SUGGEST_DAYS", "7"))
