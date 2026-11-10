@@ -70,6 +70,7 @@ Paste a job description (or state a career objective for LinkedIn) and get polis
 | LinkedIn module driven by career objective, not vacancy | A LinkedIn profile targets a direction, not one specific posting | — Pending |
 | ATS-friendly Google-format PDF as the only resume output | ATS parsing reliability beats visual flair for job applications | — Pending |
 | Local web app with simple routes + meta-prompts | Matches the "meta prompts and simple routes" vision; personal use | — Pending |
+| SQLite local store for the tracker ONLY (point reversal of "file-based, not a database" — D-01); master profile stays Markdown/YAML in git; .db in a gitignored, env-overridable path (TRACKER_DB) targeted by the homelab bind mount (D-02) | Tracker data is relational CRUD (stages, events, deadlines), not versioned content; reversibility: costly (storage-layer rewrite if undone) | ✓ Phase 7 |
 
 ## Evolution
 

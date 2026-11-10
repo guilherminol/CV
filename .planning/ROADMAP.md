@@ -244,10 +244,38 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ### Phase 7: Application Tracker — Pipeline & Follow-up
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** The user tracks real job applications end-to-end — creates candidaturas (one application = one job posting), moves them through a personal kanban of customizable stages, records dated metadata-only events whose counters (currículos enviados, entrevistas, ativas) are derived mechanically from those events, sees return deadlines sorted by proximity with amber/red day-delta highlights, and schedules/executes/postpones follow-ups — all persisted in a local SQLite store, 100% deterministic with zero LLM calls, reachable from three doors (tracker form, Currículo result prefill, Respostas association).
+**Mode:** mvp
 **Depends on:** Phase 6
-**Plans:** 0 plans
+**Requirements**: TRK-01, TRK-02, TRK-03, TRK-04, TRK-05, TRK-06
+**Success Criteria** (what must be TRUE):
+
+  1. User creates/edits candidaturas with the essential + detail fields (empresa, cargo, fonte, link, estágio, datas, notas, JD opcional, faixa salarial, contato do recrutador, modalidade) and can only archive — no destructive path exists (D-04).
+  2. User manages their personal stage vocabulary (add/rename/reorder; removal refused while referenced) and drags candidaturas between stage columns in a ready-made @dnd-kit kanban (D-05/D-14).
+  3. Contadores (enviados, entrevistas, ativas) are computed server-side from dated events only — never typed numbers (D-07) — and events store only metadata (data, tipo, idioma, observação), never resume content (D-08).
+  4. The overview sorts by prazo proximity and renders "vence em X dias" (amber) / "venceu há X dias" (red); follow-ups dated in the future stay pending until executed or postponed; a deterministic badge suggests follow-up after exactly N=7 days without events (D-09..D-12).
+  5. The user exports everything as JSON + spreadsheet-friendly CSV (utf-8-sig BOM, semicolon delimiter) from the UI, and the .db lives in a gitignored, env-overridable path ready for the homelab bind mount (D-01/D-02/D-03).
+  6. Three doors feed the tracker: the manual form, "Registrar candidatura" on the Currículo result (prefills JD text + language; company/role stay user-typed), and the Respostas association (metadata-only event) — behind a fifth "Rastreador" nav item, with no LLM anywhere in the module (D-13/D-15/D-16).
+
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 7 to break down)
+**Wave 1**
+
+- [ ] 07-01-PLAN.md — Tracer: SQLite persistence + resumo/create routes + "Rastreador" nav skeleton end-to-end (config TRACKER_DB, PRAGMA user_version migrations + seed stages, strict DTOs, envelope routes before SPA mount, typed client, minimal creation form) + Wave-0 test files (TRK-01, TRK-02, TRK-04)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 07-02-PLAN.md — Backend expansion: full CRUD + events + stage management with removal blocking + derived fields (dias_para_prazo, sugerir_followup N=7) + follow-up pending/execute/postpone + JSON/CSV export envelope (TRK-02..TRK-06)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 07-03-PLAN.md — Frontend expansion: kanban (@dnd-kit sortable preset), full candidatura form, events panel with follow-up actions, stage manager, prazo overview with amber/red chips, export buttons (TRK-02..TRK-06)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 07-04-PLAN.md — Entry doors: "Registrar candidatura" prefill from the Currículo result + Respostas association as a metadata-only 'resposta' event (TRK-03, TRK-04)
+
+**Wave 5** *(blocked on Waves 1-4; end-of-phase gate — autonomous:false)*
+
+- [ ] 07-05-PLAN.md — Checkpoint: full suite + build gate + kanban drag/keyboard DnD + prazo highlights + counters UAT (TRK-01..TRK-06)
