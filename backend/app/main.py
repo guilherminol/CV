@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.config import FRONTEND_DIST
+from app.routes.candidatura import router as candidatura_router
 from app.routes.export import router as export_router
 from app.routes.linkedin import router as linkedin_router
 from app.routes.profile import router as profile_router
@@ -19,6 +20,7 @@ app = FastAPI(title="Career Tailor")
 app.include_router(profile_router)
 app.include_router(resume_router)
 app.include_router(linkedin_router)  # before the SPA mount (research Pitfall 8)
+app.include_router(candidatura_router)  # before the SPA mount (Pitfall 5)
 app.include_router(export_router)  # before the SPA mount (Pitfall 3/5/6)
 
 # Daily-use single process: serve the built SPA (frontend/dist) at "/".
