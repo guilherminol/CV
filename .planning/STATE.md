@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 07
 current_phase_name: Application Tracker — Pipeline & Follow-up
 status: executing
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-11-10T22:57:08.912Z"
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-11-10T23:39:37.972Z"
 last_activity: 2026-11-10
 last_activity_desc: Phase 07 execution started
-state_head: 012f814db5d35e6402f33057e918378599fec552
+state_head: f3f20e185cd023039f9df6b1b71c375a8b29383f
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 31
-  completed_plans: 27
+  completed_plans: 28
   percent: 57
 ---
 
@@ -69,7 +69,7 @@ action in 06-06-SUMMARY.md, Deferred Human Verification table; WINDOWS.md entry 
 
 Phase: 07 (Application Tracker — Pipeline & Follow-up) — EXECUTING
 ( bloqueio: créditos OpenRouter esgotados — 402; geração ao vivo impossível até top-up)
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-11-10 — Phase 07 execution started
 
@@ -131,6 +131,7 @@ Progress: [██████░░░░] 57% (4 of 6 phases verified complete;
 | Phase 06 P05 | 21 min | 2 tasks | 5 files |
 | Phase 6 P06-06 | 6 min | 1 tasks | 1 files |
 | Phase 07-01 P07-01 | 16min | 3 tasks | 16 files |
+| Phase 07 P07-02 | 14min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -199,6 +200,8 @@ Recent decisions affecting current work:
 - [Phase 1]: 06-06: end-of-phase checkpoint resolved [deferred — run convention] — copy-paste UX, counters/over-limit path, QA panel framing, max-volume backstop NOT browser-run; automation green stands (403 tests + build + the 06-05 dedicated bilingual DoD run); /gsd-verify-work 6 re-surfaces as human_needed UAT (06-06-SUMMARY Deferred table); full-file -m llm DoD pending OpenRouter credit top-up (WINDOWS entry 10)
 - [Phase 07]: 07-01 tracer: archive = arquivada flag (A2); follow-up pending data-inferred, no executada column (A3); estagio_id optional on create with server-side default to first stage by ordem (D-05-safe minimal UI contract) — Flag survives user-edited stage vocabularies; data-inference cannot drift from reality; hardcoding seed id 1 at call sites would break every create after a first-stage deletion
 - [Phase 07]: 07-01: TRACKER_FOLLOWUP_SUGGEST_DAYS pinned at 7 (D-12); TRACKER_DB env-overridable for homelab bind mount (D-02); @dnd-kit trio installed as the single D-14 exception — tsc -b green settles A1 (React 19 typings via skipLibCheck) — Discretion areas closed at planning per 07-RESEARCH open-question resolutions; kanban lib user-locked to a ready component
+- [Phase 07]: 07-02: follow-up executar/adiar selector pinned at data_evento >= hoje (a today-dated followup stays executable/postponable; UI flags stay strict future/past-only) — required by the plan's own pendente→executar→adiar vector — Strict > would make adiar-after-executar raise Nenhum follow-up pendente; data-inference (Pattern 4b) keeps truthfulness while the selector covers the due day
+- [Phase 07]: 07-02: stage reorder covers EXACTLY all stages (contiguity by construction); removal blocked via explicit reference COUNT with PT-BR envelope — no cascade ever touches candidaturas (D-05/D-04) — FK pragma alone would only raise IntegrityError; the explicit COUNT is what produces the friendly erro envelope (Pitfall 2 posture)
 
 ### Pending Todos
 
@@ -236,6 +239,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-10T22:56:53.645Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-11-10T23:39:36.755Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
