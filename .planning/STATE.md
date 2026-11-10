@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 07
 current_phase_name: Application Tracker — Pipeline & Follow-up
-status: verifying
-stopped_at: Phase 7 context gathered
-last_updated: "2026-11-10T22:30:37.101Z"
-last_activity: 2026-10-22
-last_activity_desc: Phase 6 execution started
-state_head: 3f9296f9e017f855f8ca98b75c6b329b74eee181
+status: executing
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-11-10T22:57:08.912Z"
+last_activity: 2026-11-10
+last_activity_desc: Phase 07 execution started
+state_head: 012f814db5d35e6402f33057e918378599fec552
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 31
-  completed_plans: 26
+  completed_plans: 27
   percent: 57
 ---
 
@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-25)
 
 **Core value:** Paste a job description (or state a career objective for LinkedIn) and get polished, ATS-optimized, keyword-targeted output in English or Portuguese that the user would actually send or post — without manual rewriting from scratch.
-**Current focus:** Phase 6 — LinkedIn Module + Bilingual Hardening
+**Current focus:** Phase 07 — Application Tracker — Pipeline & Follow-up
 
 ## Deferred Verification
 
@@ -67,11 +67,11 @@ action in 06-06-SUMMARY.md, Deferred Human Verification table; WINDOWS.md entry 
 
 ## Current Position
 
-Phase: 07 (Application Tracker — Pipeline & Follow-up) — READY TO EXECUTE
+Phase: 07 (Application Tracker — Pipeline & Follow-up) — EXECUTING
 ( bloqueio: créditos OpenRouter esgotados — 402; geração ao vivo impossível até top-up)
-Plan: 6 of 6 executed (26/26 phase plans across the milestone)
-Status: Awaiting human verification (phases 1 and 6) — milestone completion gate refuses until both pass
-Last activity: 2026-10-22 - Completed quick task 261022-kv1: Factored talent interview kit (elevator pitch, CAR story, tech Q&A)
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-11-10 — Phase 07 execution started
 
 Progress: [██████░░░░] 57% (4 of 6 phases verified complete; all 6 executed)
 
@@ -130,6 +130,7 @@ Progress: [██████░░░░] 57% (4 of 6 phases verified complete;
 | Phase 6 P4 | 11 min | 2 tasks | 8 files |
 | Phase 06 P05 | 21 min | 2 tasks | 5 files |
 | Phase 6 P06-06 | 6 min | 1 tasks | 1 files |
+| Phase 07-01 P07-01 | 16min | 3 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -196,6 +197,8 @@ Recent decisions affecting current work:
 - [Phase 1]: 06-05: QA panel renders the 06-04 payload verbatim below the result card; qa swaps wholesale in exactly the two mutation onSuccess paths, edits/restores never touch it
 - [Phase 1]: 06-05: DoD harness asserts the direct-pipeline envelope shape (no status key on run_linkedin_pipeline — the route adds it); optional duplicate glossary real-API test deliberately skipped (spend discipline)
 - [Phase 1]: 06-06: end-of-phase checkpoint resolved [deferred — run convention] — copy-paste UX, counters/over-limit path, QA panel framing, max-volume backstop NOT browser-run; automation green stands (403 tests + build + the 06-05 dedicated bilingual DoD run); /gsd-verify-work 6 re-surfaces as human_needed UAT (06-06-SUMMARY Deferred table); full-file -m llm DoD pending OpenRouter credit top-up (WINDOWS entry 10)
+- [Phase 07]: 07-01 tracer: archive = arquivada flag (A2); follow-up pending data-inferred, no executada column (A3); estagio_id optional on create with server-side default to first stage by ordem (D-05-safe minimal UI contract) — Flag survives user-edited stage vocabularies; data-inference cannot drift from reality; hardcoding seed id 1 at call sites would break every create after a first-stage deletion
+- [Phase 07]: 07-01: TRACKER_FOLLOWUP_SUGGEST_DAYS pinned at 7 (D-12); TRACKER_DB env-overridable for homelab bind mount (D-02); @dnd-kit trio installed as the single D-14 exception — tsc -b green settles A1 (React 19 typings via skipLibCheck) — Discretion areas closed at planning per 07-RESEARCH open-question resolutions; kanban lib user-locked to a ready component
 
 ### Pending Todos
 
@@ -233,6 +236,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-10T21:27:40.710Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-application-tracker-pipeline-follow-up/07-CONTEXT.md
+Last session: 2026-11-10T22:56:53.645Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: None
