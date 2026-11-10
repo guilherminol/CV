@@ -566,21 +566,16 @@ const prazoClasses =
 | A8 | One `POST /mover` per drop (no optimistic update) is fine at personal scale | Pattern 5 | Slight flicker on slow homelab links; acceptable, reversible |
 | A9 | Association on CandidaturaHome = recording a metadata-only event (never the answer text, per D-08 ephemerality) | TRK-03 | If the user intended stronger linking (e.g. storing answer), that would contradict D-08 — needs planner/user pin |
 
-## Open Questions
+## Open Questions (RESOLVED — all six pinned during phase planning)
 
-1. **Follow-up suggestion threshold N (D-12) — exact value**
-   - What we know: constant in `app/config.py`, env-overridable; "valor exato pinado no planejamento".
-   - Recommendation: default `TRACKER_FOLLOWUP_SUGGEST_DAYS = 7`, planner confirms with user.
-2. **Seed stage set (D-05)**
-   - What we know: stages are user data; the v1 DB needs initial rows.
-   - Recommendation: seed `Pesquisando / Enviado / Entrevista / Oferta / Encerrado` (PT-BR), editable via UI; planner confirms names.
-3. **Counter semantics + event-type list (Discretion)**
-   - What we know: D-07 requires mechanical derivation; STATE description names "currículos enviados e entrevistas feitas".
-   - Recommendation: pin the four event types in Pattern 4 (`envio_curriculo`, `entrevista`, `retorno`, `followup`); confirm "ativas" excludes archived (A4).
-4. **CSV delimiter for PT-BR Excel (Discretion: "encoding, colunas")**
-   - Recommendation: `;` delimiter + `utf-8-sig` (A6); column list = candidatura fields + derived counters.
-5. **Archive: flag vs final stage (A2)** — recommend flag; confirm with user if "estágio final" was meant literally.
-6. **Candidatura association semantics (A9)** — recommend metadata-only event (`retorno`? dedicated `resposta` type?); planner pins the type name with the user.
+Every question below was closed by the planner while writing the phase plans, exercising the discretion areas CONTEXT.md grants the planner (this is an unattended run — no interactive confirmation step exists; CONTEXT.md remains the sole authority for anything user-locked). One-line resolutions, each naming the plan that pins the value:
+
+1. **Follow-up suggestion threshold N (D-12) — exact value** — RESOLVED: `TRACKER_FOLLOWUP_SUGGEST_DAYS = 7` (env-overridable), pinned in 07-01 Task 1 (config.py Phase 7 section); the 7/6-day boundary vectors live in 07-02 Task 1 (test_tracker_service.py).
+2. **Seed stage set (D-05)** — RESOLVED: v1 seeds exactly `Pesquisando / Enviado / Entrevista / Oferta / Encerrado` in ordem 1..5, fully editable afterwards via the 07-02 stage endpoints and the 07-03 EstagioManager UI; pinned in 07-01 Task 1 (db.py seed INSERTs + test_tracker_db.py seed pin).
+3. **Counter semantics + event-type list (Discretion)** — RESOLVED: five event-type literals `envio_curriculo | entrevista | retorno | followup | resposta` pinned in 07-01 Task 1 (models.py); contadores = enviados (COUNT tipo='envio_curriculo'), entrevistas (COUNT tipo='entrevista'), ativas (COUNT arquivada=0 — A4 accepted), all derived from persisted events and counting history regardless of archive status (D-04/D-07); pinned in 07-01 Task 2 (obter_resumo), vectorized in 07-02 Task 1.
+4. **CSV delimiter for PT-BR Excel (Discretion: "encoding, colunas")** — RESOLVED: `;` delimiter + `utf-8-sig` BOM (A6 accepted), one row per candidatura with the D-06 fields + per-candidatura counters; pinned in 07-02 Task 1 (exportar_csv + BOM/delimiter/sanitization vectors).
+5. **Archive: flag vs final stage (A2)** — RESOLVED: archive is the `arquivada` flag + `arquivada_em` date, NOT a final stage (a flag survives user-edited stage vocabularies); pinned in 07-01 Task 1 (candidaturas DDL + explicit pin note) and 07-02 Task 1 (editar_candidatura semantics).
+6. **Candidatura association semantics (A9)** — RESOLVED: dedicated `resposta` event type, metadata-only (date + idioma + the fixed observacao "Resposta registrada via módulo Respostas" — never question/answer text, per D-08); the type literal is pinned in 07-01 Task 1 (models.py), the association flow in 07-04 Task 2.
 
 ## Environment Availability
 
