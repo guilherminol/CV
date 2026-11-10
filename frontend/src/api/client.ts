@@ -173,6 +173,108 @@ export async function responderCandidatura(payload: {
   return (await resp.json()) as CandidaturaRespostaResponse
 }
 
+// --- tracker endpoints (plan 07-01) — mirrors backend/app/routes/tracker.py
+// (request DTOs in backend/app/tracker/models.py). Change BOTH together;
+// tsc -b is the drift gate.
+
+export type TrackerModalidade = 'remoto' | 'hibrido' | 'presencial'
+
+export type TrackerTipoEvento =
+  | 'envio_curriculo'
+  | 'entrevista'
+  | 'retorno'
+  | 'followup'
+  | 'resposta'
+
+export interface EstagioDTO {
+  id: number
+  nome: string
+  ordem: number
+}
+
+export interface EventoDTO {
+  id: number
+  candidatura_id: number
+  tipo: TrackerTipoEvento
+  data_evento: string // ISO 'YYYY-MM-DD' — date-only; the server owns the math
+  idioma: ResumeLanguage | null
+  observacao: string | null
+}
+
+export interface CandidaturaDTO {
+  id: number
+  empresa: string
+  cargo: string
+  fonte: string | null
+  link_vaga: string | null
+  estagio_id: number
+  estagio_nome: string | null
+  data_aplicacao: string | null
+  prazo_retorno: string | null
+  notas: string | null
+  jd_texto: string | null
+  faixa_salarial: string | null
+  contato_recrutador: string | null
+  modalidade: TrackerModalidade | null
+  arquivada: boolean
+  arquivada_em: string | null
+  criada_em: string
+  eventos: EventoDTO[]
+  // Server-computed derived fields — the UI never recomputes these
+  // (D-07/D-09/D-11/D-12); it renders the numbers verbatim.
+  dias_para_prazo: number | null
+  sugerir_followup: boolean
+  atrasado_prazo: boolean
+  followup_pendente: boolean
+  followup_vencido: boolean
+}
+
+export type TrackerResumoResponse =
+  | {
+      status: 'ok'
+      contadores: { enviados: number; entrevistas: number; ativas: number }
+      candidaturas: CandidaturaDTO[]
+      estagios: EstagioDTO[]
+    }
+  | { status: 'erro'; erros: string[] }
+
+export type TrackerCriacaoResponse =
+  | { status: 'ok'; candidatura: CandidaturaDTO }
+  | { status: 'erro'; erros: string[] }
+
+export async function fetchTrackerResumo(): Promise<TrackerResumoResponse> {
+  const resp = await fetch('/api/tracker/resumo')
+  if (!resp.ok) {
+    throw new Error(`GET /api/tracker/resumo falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as TrackerResumoResponse
+}
+
+export async function criarCandidatura(payload: {
+  empresa: string
+  cargo: string
+  estagio_id?: number | null
+  fonte?: string | null
+  link_vaga?: string | null
+  faixa_salarial?: string | null
+  contato_recrutador?: string | null
+  data_aplicacao?: string | null
+  prazo_retorno?: string | null
+  notas?: string | null
+  jd_texto?: string | null
+  modalidade?: TrackerModalidade | null
+}): Promise<TrackerCriacaoResponse> {
+  const resp = await fetch('/api/tracker/candidaturas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!resp.ok) {
+    throw new Error(`POST /api/tracker/candidaturas falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as TrackerCriacaoResponse
+}
+
 // --- resume endpoints (plan 03-04) — mirrors the NORMATIVE response contract
 // in .planning/phases/03-resume-vertical-slice/03-03-PLAN.md, implemented by
 // backend/app/routes/resume.py. Change BOTH together; tsc -b is the drift gate.

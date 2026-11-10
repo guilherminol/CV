@@ -10,6 +10,7 @@ import { StatusLine } from './components/StatusLine'
 import CandidaturaHome from './pages/CandidaturaHome'
 import CurriculoHome from './pages/CurriculoHome'
 import LinkedInHome from './pages/LinkedInHome'
+import TrackerHome, { type TrackerPrefill } from './pages/TrackerHome'
 import {
   APP_TITLE,
   NAV_ITEMS,
@@ -66,7 +67,16 @@ export default function App() {
   // Phase 6 (D-01): the LinkedIn placeholder becomes the third view.
   // Candidatura: the fourth — open application-form questions answered from
   // the profile facts (vaga → perfil module).
-  const [view, setView] = useState<'curriculo' | 'perfil' | 'linkedin' | 'candidatura'>('curriculo')
+  // Rastreador: the fifth — the tracker (D-16; the first persistent view).
+  const [view, setView] = useState<
+    'curriculo' | 'perfil' | 'linkedin' | 'candidatura' | 'rastreador'
+  >('curriculo')
+
+  // D-13 prefill seam (plan 07-01; consumed by 07-04): the Currículo result's
+  // "Registrar candidatura" button will set this and switch to 'rastreador'.
+  // Declared here because the hand-off crosses views — App owns it, the
+  // Rastreador view consumes it once and clears it via the callback.
+  const [trackerPrefill, setTrackerPrefill] = useState<TrackerPrefill | null>(null)
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -109,6 +119,11 @@ export default function App() {
           <LinkedInHome />
         ) : view === 'candidatura' ? (
           <CandidaturaHome />
+        ) : view === 'rastreador' ? (
+          <TrackerHome
+            prefill={trackerPrefill}
+            onPrefillConsumida={() => setTrackerPrefill(null)}
+          />
         ) : (
           <CurriculoHome />
         )}

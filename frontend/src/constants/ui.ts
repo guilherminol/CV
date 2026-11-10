@@ -7,6 +7,7 @@ export const NAV_ITEMS = [
   { id: 'perfil', label: 'Perfil', enabled: true },
   { id: 'linkedin', label: 'LinkedIn', enabled: true },
   { id: 'candidatura', label: 'Candidatura', enabled: true },
+  { id: 'rastreador', label: 'Rastreador', enabled: true },
 ] as const
 
 export const PERFIL_SECTION_TITLE = 'Perfil'
@@ -501,3 +502,24 @@ export const CANDIDATURA_CTA_INFLIGHT = 'Gerando resposta…'
 export const CANDIDATURA_RESULT_TITLE = 'Resposta gerada'
 export const CANDIDATURA_EPHEMERAL_NOTICE =
   'Esta resposta existe apenas nesta página — copie o que quiser guardar.'
+
+// --- Rastreador (tracker — plan 07-01; D-16 fifth nav entry above) ---
+export const RASTREADOR_PAGE_TITLE = 'Rastreador de candidaturas'
+export const RASTREADOR_LOADING = 'Carregando candidaturas…'
+export const RASTREADOR_FETCH_ERRO =
+  'Não foi possível carregar o rastreador — o detalhe técnico completo aparece no terminal onde o servidor está rodando.'
+export const RASTREADOR_CONTADORES_LABELS = {
+  enviados: 'Enviadas',
+  entrevistas: 'Entrevistas',
+  ativas: 'Ativas',
+} as const
+export const RASTREADOR_CANDIDATURAS_TITLE = 'Candidaturas'
+export const RASTREADOR_SEM_CANDIDATURAS = 'Nenhuma candidatura registrada ainda.'
+export const RASTREADOR_SEM_ESTAGIO = 'Estágio removido'
+export const RASTREADOR_FORM_TITLE = 'Nova candidatura'
+export const RASTREADOR_LABEL_EMPRESA = 'Empresa'
+export const RASTREADOR_PLACEHOLDER_EMPRESA = 'Nome da empresa'
+export const RASTREADOR_LABEL_CARGO = 'Cargo'
+export const RASTREADOR_PLACEHOLDER_CARGO = 'Cargo ou título da vaga'
+export const RASTREADOR_CTA = 'Criar candidatura'
+export const RASTREADOR_CTA_INFLIGHT = 'Criando…'
