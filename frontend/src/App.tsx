@@ -7,6 +7,7 @@ import { ErrorPanel } from './components/ErrorPanel'
 import { PlaceholderBanner } from './components/PlaceholderBanner'
 import { ProfilePreview } from './components/ProfilePreview'
 import { StatusLine } from './components/StatusLine'
+import CandidaturaHome from './pages/CandidaturaHome'
 import CurriculoHome from './pages/CurriculoHome'
 import LinkedInHome from './pages/LinkedInHome'
 import {
@@ -63,7 +64,9 @@ export default function App() {
   // Plan 03-04: minimal view switch — no router dependency (STACK.md lean stack).
   // Currículo is the default landing view (the phase's core flow; planner decision).
   // Phase 6 (D-01): the LinkedIn placeholder becomes the third view.
-  const [view, setView] = useState<'curriculo' | 'perfil' | 'linkedin'>('curriculo')
+  // Candidatura: the fourth — open application-form questions answered from
+  // the profile facts (vaga → perfil module).
+  const [view, setView] = useState<'curriculo' | 'perfil' | 'linkedin' | 'candidatura'>('curriculo')
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -100,7 +103,15 @@ export default function App() {
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 py-6">
-        {view === 'perfil' ? <PerfilHome /> : view === 'linkedin' ? <LinkedInHome /> : <CurriculoHome />}
+        {view === 'perfil' ? (
+          <PerfilHome />
+        ) : view === 'linkedin' ? (
+          <LinkedInHome />
+        ) : view === 'candidatura' ? (
+          <CandidaturaHome />
+        ) : (
+          <CurriculoHome />
+        )}
       </main>
     </div>
   )
