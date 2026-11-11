@@ -70,17 +70,34 @@ const DICA_MAX_CHARS = 500
  * (schema-guaranteed); PT-BR runs keep the pt-BR-first convention. The final
  * fallback to any other available value is purely defensive.
  */
-function tLang(map: LocalizedText | null | undefined, language: ResumeLanguage): string {
+function tLang(
+  map: LocalizedText | string | null | undefined,
+  language: ResumeLanguage,
+): string {
   if (!map) return ''
+  if (typeof map === 'string') return map
   if (language === 'en') {
     return map.en ?? map['pt-BR'] ?? (Object.values(map).find(Boolean) ?? '')
   }
   return map['pt-BR'] ?? (Object.values(map).find(Boolean) ?? '')
 }
 
-/** Open date ranges show "atual" (ProfilePreview convention). */
-function dateRange(start: string, end: string | null | undefined): string {
-  return end ? `${start} – ${end}` : `${start} – ${PREVIEW_PRESENT}`
+/** Group labels for Project.scope — the result card renders the DOCUMENT in
+ * the run language (the same grouping the PDF template uses). */
+const SCOPE_LABELS: Record<'profissional' | 'pessoal', Record<ResumeLanguage, string>> = {
+  profissional: { 'pt-BR': 'Projetos profissionais', en: 'Professional projects' },
+  pessoal: { 'pt-BR': 'Projetos pessoais', en: 'Personal projects' },
+}
+
+/** Open date ranges show the run-language word ("atual"/"present") — the
+ * rendered document localizes as a whole, never mixing languages. */
+function dateRange(
+  start: string,
+  end: string | null | undefined,
+  language: ResumeLanguage,
+): string {
+  const present = language === 'en' ? 'present' : PREVIEW_PRESENT
+  return end ? `${start} – ${end}` : `${start} – ${present}`
 }
 
 type BadgeKind = 'gerado' | 'perfil' | 'editado'
@@ -534,8 +551,8 @@ export function ResumeResult({
   const headings = CURRICULO_GENERATED_SECTIONS[idioma]
   const contactLine = [
     perfil.contact.email,
-    perfil.contact.location,
-    perfil.contact.phone,
+    perfil.contact.location && tLang(perfil.contact.location, idioma),
+    perfil.contact.phone && tLang(perfil.contact.phone, idioma),
     perfil.contact.linkedin,
   ]
     .filter(Boolean)
@@ -701,7 +718,7 @@ export function ResumeResult({
                 <article key={`${i}-${ed.institution}`} className="break-inside-avoid">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3">
                     <h5 className="text-sm font-semibold text-gray-900">
-                      {ed.degree}
+                      {tLang(ed.degree, idioma)}
                       {PREVIEW_CONTACT_SEPARATOR}
                       {ed.institution}
                     </h5>
@@ -711,7 +728,7 @@ export function ResumeResult({
                             present, render just the end (never a malformed
                             " – 2019" from an empty start placeholder). */}
                         {ed.start_date
-                          ? dateRange(ed.start_date, ed.end_date)
+                          ? dateRange(ed.start_date, ed.end_date, idioma)
                           : (ed.end_date ?? '')}
                       </p>
                     )}
@@ -777,7 +794,7 @@ export function ResumeResult({
               {perfil.certifications.map((cert, i) => (
                 <p key={`${i}-${cert.name}`} className="text-sm text-gray-700">
                   <span className="font-medium">{cert.name}</span>
-                  {cert.issuer && ` — ${cert.issuer}`}
+                  {cert.issuer && ` — ${tLang(cert.issuer, idioma)}`}
                   {cert.year && ` (${cert.year})`}
                 </p>
               ))}
@@ -787,8 +804,9 @@ export function ResumeResult({
           {perfil.languages.length > 0 && (
             <Section title={PREVIEW_SECTIONS.idiomas} badge="perfil">
               {perfil.languages.map((lang, i) => (
-                <p key={`${i}-${lang.name}`} className="text-sm text-gray-700">
-                  <span className="font-medium">{lang.name}</span> — {lang.level}
+                <p key={`${i}-${tLang(lang.name, idioma)}`} className="text-sm text-gray-700">
+                  <span className="font-medium">{tLang(lang.name, idioma)}</span> —{' '}
+                  {tLang(lang.level, idioma)}
                 </p>
               ))}
             </Section>
@@ -796,18 +814,31 @@ export function ResumeResult({
 
           {perfil.projects.length > 0 && (
             <Section title={PREVIEW_SECTIONS.projetos} badge="perfil">
-              {perfil.projects.map((proj, i) => (
-                <article key={`${i}-${proj.name}`} className="break-inside-avoid">
-                  <h5 className="text-sm font-semibold text-gray-900">{proj.name}</h5>
-                  <p className="mt-1 text-sm text-gray-700">{tLang(proj.description, idioma)}</p>
-                  {proj.technologies.length > 0 && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      {proj.technologies.join(PREVIEW_CONTACT_SEPARATOR)}
+              {(['profissional', 'pessoal'] as const).map((scope) => {
+                const group = perfil.projects.filter((proj) => proj.scope === scope)
+                if (group.length === 0) return null
+                return (
+                  <div key={scope} className={scope === 'pessoal' ? 'mt-4' : ''}>
+                    <p className="text-xs font-semibold text-gray-500">
+                      {SCOPE_LABELS[scope][idioma]}
                     </p>
-                  )}
-                  <ImpactBullets impacts={proj.impacts} idioma={idioma} />
-                </article>
-              ))}
+                    {group.map((proj, i) => (
+                      <article key={`${i}-${tLang(proj.name, idioma)}`} className="break-inside-avoid">
+                        <h5 className="text-sm font-semibold text-gray-900">
+                          {tLang(proj.name, idioma)}
+                        </h5>
+                        <p className="mt-1 text-sm text-gray-700">{tLang(proj.description, idioma)}</p>
+                        {proj.technologies.length > 0 && (
+                          <p className="mt-1 text-xs text-gray-500">
+                            {proj.technologies.join(PREVIEW_CONTACT_SEPARATOR)}
+                          </p>
+                        )}
+                        <ImpactBullets impacts={proj.impacts} idioma={idioma} />
+                      </article>
+                    ))}
+                  </div>
+                )
+              })}
             </Section>
           )}
         </div>
