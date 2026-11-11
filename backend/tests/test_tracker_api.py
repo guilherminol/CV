@@ -7,7 +7,7 @@ Pitfall 5) with PUT /estagios/reordenar BEFORE the {estagio_id} route; every
 handler a plain sync `def` (threadpool dispatch contract) across the WHOLE
 surface; the resumo ZERO state on a fresh DB (auto-migration via the yield
 dependency); the create roundtrip; 422 vectors (unknown key — extra=forbid;
-literal misses; bounds; bad date patterns); not-found envelopes for the
+literal misses; bounds; bad date patterns; calendar-invalid dates — CR-02); not-found envelopes for the
 edit/move/events/followups paths (200 + status erro + PT-BR line, raw detail
 terminal-only via caplog — NEVER a bare 404); the stage-removal blocking
 envelope; reorder persistence; the export pins (base64 transport,
@@ -311,6 +311,72 @@ def test_422_reordenar_lista_vazia() -> None:
 
 def test_422_formato_fora_do_literal_exportar() -> None:
     resp = client.post("/api/tracker/exportar", json={"formato": "xml"})
+    assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# (g2) CR-02 vectors: calendar-INVALID dates (regex-VALID) are rejected 422 —
+# never an unhandled ValueError (HTTP 500) in derivar_campos/adiar_followup
+# and never a poisoned persisted row breaking GET /resumo permanently
+# ---------------------------------------------------------------------------
+
+
+def test_422_prazo_retorno_calendario_invalido_na_criacao() -> None:
+    """CR-02: '2026-02-30' matches _PADRAO_DATA but is not a real date —
+    rejected at the DTO boundary as 422, NOT an HTTP 500 from the unguarded
+    date.fromisoformat projection."""
+    resp = client.post(
+        "/api/tracker/candidaturas",
+        json={**CRIACAO_MINIMA, "prazo_retorno": "2026-02-30"},
+    )
+    assert resp.status_code == 422
+    # Nothing persisted for the rejected create.
+    resumo = client.get("/api/tracker/resumo").json()
+    assert resumo["status"] == "ok"
+    assert resumo["contadores"]["ativas"] == 0
+
+
+def test_422_data_evento_calendario_invalido_no_registro() -> None:
+    """CR-02: '2026-13-05' is regex-valid and month-impossible — rejected
+    422. Before the fix it was accepted (200 ok), poisoning the eventos table
+    and breaking GET /resumo with HTTP 500 on every later call."""
+    resp = client.post("/api/tracker/candidaturas", json=CRIACAO_MINIMA)
+    assert resp.status_code == 200
+    resp = client.post(
+        "/api/tracker/candidaturas/1/eventos",
+        json={"tipo": "retorno", "data_evento": "2026-13-05"},
+    )
+    assert resp.status_code == 422
+    # The poisoned row never reached storage — resumo stays healthy.
+    resumo = client.get("/api/tracker/resumo")
+    assert resumo.status_code == 200
+    assert resumo.json()["status"] == "ok"
+
+
+def test_422_nova_data_calendario_invalida_no_adiar() -> None:
+    """CR-02: the adiar target '2027-02-30' is day-impossible — rejected 422
+    at the DTO boundary, not a ValueError/HTTP 500 inside adiar_followup."""
+    resp = client.post("/api/tracker/candidaturas", json=CRIACAO_MINIMA)
+    assert resp.status_code == 200
+    resp = client.post(
+        "/api/tracker/candidaturas/1/followups/adiar",
+        json={"nova_data": "2027-02-30"},
+    )
+    assert resp.status_code == 422
+
+
+def test_422_datas_calendario_invalidas_na_edicao() -> None:
+    """CR-02: the edit DTO's date fields carry the same calendar-validity
+    gate as the create DTO (one wire contract, both request models)."""
+    resp = client.put(
+        "/api/tracker/candidaturas/1",
+        json={"data_aplicacao": "2026-02-30"},
+    )
+    assert resp.status_code == 422
+    resp = client.put(
+        "/api/tracker/candidaturas/1",
+        json={"prazo_retorno": "2027-04-31"},
+    )
     assert resp.status_code == 422
 
 

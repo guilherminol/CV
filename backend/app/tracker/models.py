@@ -14,9 +14,10 @@ D-06 field set; `modalidade` constrained to the D-06 trio; event `tipo` to
 the five pinned literals ('resposta' is the D-13 Respostas-association type).
 """
 
-from typing import Literal
+from datetime import date
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 
 TrackerModalidade = Literal["remoto", "hibrido", "presencial"]
 
@@ -32,6 +33,21 @@ TrackerIdioma = Literal["pt-BR", "en"]
 
 # Date-only ISO 'YYYY-MM-DD' — no timezone-bearing timestamps (Pitfall 7).
 _PADRAO_DATA = r"^\d{4}-\d{2}-\d{2}$"
+
+
+def _data_iso_valida(valor: str) -> str:
+    """Calendar-validity gate (CR-02): the regex checks FORMAT only — an
+    impossible date like '2026-02-30' must fail HERE, as a pydantic 422 at
+    the DTO boundary, never as an unhandled ValueError (HTTP 500) deep in
+    the service or, worse, as a poisoned persisted row that breaks
+    GET /api/tracker/resumo permanently."""
+    date.fromisoformat(valor)  # raises ValueError → pydantic 422
+    return valor
+
+
+# str kept on purpose (not a date type): rows and JSON carry ISO strings
+# end-to-end; only calendar VALIDITY is pinned at the boundary.
+DataISO = Annotated[str, AfterValidator(_data_iso_valida)]
 
 
 class CandidaturaCriacaoRequest(BaseModel):
@@ -51,8 +67,8 @@ class CandidaturaCriacaoRequest(BaseModel):
     link_vaga: str | None = Field(default=None, max_length=2000)
     faixa_salarial: str | None = Field(default=None, max_length=100)
     contato_recrutador: str | None = Field(default=None, max_length=200)
-    data_aplicacao: str | None = Field(default=None, pattern=_PADRAO_DATA)
-    prazo_retorno: str | None = Field(default=None, pattern=_PADRAO_DATA)
+    data_aplicacao: DataISO | None = Field(default=None, pattern=_PADRAO_DATA)
+    prazo_retorno: DataISO | None = Field(default=None, pattern=_PADRAO_DATA)
     notas: str | None = Field(default=None, max_length=5000)
     jd_texto: str | None = Field(default=None, max_length=20000)
     modalidade: TrackerModalidade | None = None
@@ -70,8 +86,8 @@ class CandidaturaEdicaoRequest(BaseModel):
     faixa_salarial: str | None = Field(default=None, max_length=100)
     contato_recrutador: str | None = Field(default=None, max_length=200)
     estagio_id: int | None = None
-    data_aplicacao: str | None = Field(default=None, pattern=_PADRAO_DATA)
-    prazo_retorno: str | None = Field(default=None, pattern=_PADRAO_DATA)
+    data_aplicacao: DataISO | None = Field(default=None, pattern=_PADRAO_DATA)
+    prazo_retorno: DataISO | None = Field(default=None, pattern=_PADRAO_DATA)
     notas: str | None = Field(default=None, max_length=5000)
     jd_texto: str | None = Field(default=None, max_length=20000)
     modalidade: TrackerModalidade | None = None
@@ -84,7 +100,7 @@ class EventoRegistroRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     tipo: TipoEvento
-    data_evento: str = Field(pattern=_PADRAO_DATA)
+    data_evento: DataISO = Field(pattern=_PADRAO_DATA)
     idioma: TrackerIdioma | None = None
     observacao: str | None = Field(default=None, max_length=2000)
 
@@ -102,7 +118,7 @@ class FollowupAdiamentoRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    nova_data: str = Field(pattern=_PADRAO_DATA)
+    nova_data: DataISO = Field(pattern=_PADRAO_DATA)
 
 
 class EstagioCriacaoRequest(BaseModel):
