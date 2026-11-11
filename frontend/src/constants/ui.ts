@@ -529,6 +529,12 @@ export const RASTREADOR_PLACEHOLDER_CARGO = 'Cargo ou título da vaga'
 export const RASTREADOR_CTA = 'Criar candidatura'
 export const RASTREADOR_CTA_INFLIGHT = 'Criando…'
 
+// D-13 door 2 (plan 07-04, UI-SPEC copy table): the "Registrar candidatura"
+// CTA on the Currículo result card — hands the JD text + generation language
+// to the Rastreador form via App state (Pattern 9). Hidden entirely when the
+// callback prop is absent.
+export const RASTREADOR_REGISTRAR_CTA = 'Registrar candidatura'
+
 // --- Rastreador full assembly (plan 07-03): D-06 form, eventos panel, detail,
 // kanban, estágios, export. Strings/classes all centralized here (S6). ---
 

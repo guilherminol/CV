@@ -30,6 +30,7 @@ import { ResumeResult } from '../components/ResumeResult'
 import { SelfCheckPanel } from '../components/SelfCheckPanel'
 import { StatusLine } from '../components/StatusLine'
 import type { OrigemBadge, SectionVersion } from '../components/SectionVersionsPanel'
+import type { TrackerPrefill } from './TrackerHome'
 import { dividirLinhas, textoEditorValido, type SecaoEditorState } from '../components/SectionEditor'
 import {
   CURRICULO_CTA,
@@ -142,7 +143,16 @@ function secoesComValor(secoes: SecoesDTO, secao: SecaoId, valor: SectionValor):
  * state only (D-06/D-16 ephemeral); a refresh returns to idle/unexported. All
  * renders are JSX text children — no raw-HTML path (T-03-08 posture).
  */
-export default function CurriculoHome() {
+interface CurriculoHomeProps {
+  /** D-13 door 2 (plan 07-04, Pattern 9): optional hand-off into the
+   *  Rastreador. App supplies it; the values read the SAME state variables
+   *  the gerar mutation consumed (jdText/idioma — captured at call time, no
+   *  refs into mutation internals). Absent = the ResumeResult button never
+   *  renders. */
+  onRegistrarCandidatura?: (prefill: TrackerPrefill) => void
+}
+
+export default function CurriculoHome({ onRegistrarCandidatura }: CurriculoHomeProps) {
   // Profile gate — the SAME ['perfil'] query PerfilHome uses; React Query dedupes.
   const perfilQuery = useQuery({ queryKey: ['perfil'], queryFn: fetchProfile })
   const queryClient = useQueryClient()
@@ -870,6 +880,18 @@ export default function CurriculoHome() {
               onSalvarEdicao={salvarEdicao}
               onCancelarEdicao={fecharEditor}
               onDescartarEdicao={descartarEdicao}
+              onRegistrarCandidatura={
+                onRegistrarCandidatura
+                  ? () =>
+                      onRegistrarCandidatura({
+                        // D-13: prefill = the JD text + the generation language
+                        // of THIS run (the exact values gerarAgora consumed) —
+                        // nothing derived; empresa/cargo stay user-typed.
+                        jd_texto: trimmed,
+                        language: idioma,
+                      })
+                  : undefined
+              }
             />
             {/* Export content selection (quick task 261006-oy9, D-01/D-02):
                 render-only panel between the artifact and its export control;

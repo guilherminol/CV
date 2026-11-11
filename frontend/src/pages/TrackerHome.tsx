@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
@@ -124,6 +124,24 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
     setEditarErros(null)
   }
 
+  // D-13 prefill consume-once (plan 07-04): the pending prefill is read into
+  // the create-form seed EXACTLY ONCE — this effect clears the App-level
+  // prefill in the same pass that reads it, so reopening the Rastreador
+  // through the nav never re-sees a stale JD. The formKey bump remounts
+  // CandidaturaForm so its local state initializes from the seed. NOTE: the
+  // prefill's language part has NO landing field — the D-06 create contract
+  // (CandidaturaCriacaoRequest, extra=forbid) carries no idioma key and the
+  // form has no idioma field (idioma is EVENT metadata per D-08), so only
+  // jd_texto is consumed here; extending the schema is out of this plan's
+  // no-new-backend-surface scope.
+  const [jdSemente, setJdSemente] = useState('')
+  useEffect(() => {
+    if (!prefill) return
+    setJdSemente(prefill.jd_texto)
+    setFormKey((chave) => chave + 1)
+    onPrefillConsumida()
+  }, [prefill, onPrefillConsumida])
+
   // First persistent view in the app — ephemeral-state pages never needed
   // this (Pitfall 6): the shared ['tracker'] cache must refresh after EVERY
   // successful mutation or kanban/overview/contadores desynchronize.
@@ -135,9 +153,9 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
       if (resultado.status === 'ok') {
         setCriarErros(null)
         setFormKey((chave) => chave + 1) // fresh form for the next entry
-        if (prefill) {
-          onPrefillConsumida() // D-13: the JD went into the created candidatura
-        }
+        // D-13: the seed (prefilled or typed JD) went into the created
+        // candidatura — the fresh form must not re-seed from it.
+        setJdSemente('')
         invalidar()
       } else {
         // Backend PT-BR lines verbatim; the form stays mounted.
@@ -527,7 +545,7 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
           titulo={RASTREADOR_FORM_TITLE}
           pendente={criar.isPending}
           erros={criarErros}
-          valoresIniciais={{ jd_texto: prefill?.jd_texto ?? '' }}
+          valoresIniciais={jdSemente ? { jd_texto: jdSemente } : undefined}
           onSubmit={(payload: CandidaturaFormPayload) => criar.mutate(payload)}
         />
       )}

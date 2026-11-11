@@ -46,6 +46,7 @@ import {
   REGEN_SOBE_EDICAO_MESSAGE,
   REGEN_SOBE_EDICAO_NOTE,
   REGEN_MESMO_ASSIM_CTA,
+  RASTREADOR_REGISTRAR_CTA,
   VERSOES_TOGGLE,
   VERSOES_TOGGLE_COUNT,
 } from '../constants/ui'
@@ -491,6 +492,14 @@ interface ResumeResultProps {
    *  onDescartarEdicao, which stacks the draft before closing (WR-02). */
   onCancelarEdicao: () => void
   onDescartarEdicao: () => void
+  // --- D-13 door 2 (plan 07-04, Pattern 9) — BOTH optional: every existing
+  // call site compiles untouched; the button renders only when the callback
+  // is present. ---
+  /** Hands the run's JD text + generation language to App's trackerPrefill
+   *  and switches to the Rastreador view. Absent = no button. */
+  onRegistrarCandidatura?: () => void
+  /** Shared lock passthrough (long op in flight) for the registrar button. */
+  registrarDesabilitado?: boolean
 }
 
 /**
@@ -547,6 +556,8 @@ export function ResumeResult({
   onSalvarEdicao,
   onCancelarEdicao,
   onDescartarEdicao,
+  onRegistrarCandidatura,
+  registrarDesabilitado,
 }: ResumeResultProps) {
   const headings = CURRICULO_GENERATED_SECTIONS[idioma]
   const contactLine = [
@@ -842,6 +853,24 @@ export function ResumeResult({
             </Section>
           )}
         </div>
+
+        {/* D-13 door 2 (plan 07-04): "Registrar candidatura" below the
+            generated sections — hands {jd_texto, language} to the Rastreador
+            form via App state (Pattern 9; the callback carries the values,
+            this card stays stateless). Hidden entirely when the callback
+            prop is absent — no existing call site shows it. */}
+        {onRegistrarCandidatura && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={onRegistrarCandidatura}
+              disabled={registrarDesabilitado}
+              className={COMPACT_SECONDARY_BUTTON_CLASSES}
+            >
+              {RASTREADOR_REGISTRAR_CTA}
+            </button>
+          </div>
+        )}
       </article>
     </div>
   )

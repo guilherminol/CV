@@ -125,7 +125,17 @@ export default function App() {
             onPrefillConsumida={() => setTrackerPrefill(null)}
           />
         ) : (
-          <CurriculoHome />
+          <CurriculoHome
+            onRegistrarCandidatura={(prefill) => {
+              // D-13 door 2 (plan 07-04, Pattern 9): the Currículo result's
+              // "Registrar candidatura" click lands here — App owns the
+              // hand-off state and the view switch; the JD/language values
+              // themselves are read in CurriculoHome (same state the gerar
+              // run consumed).
+              setTrackerPrefill(prefill)
+              setView('rastreador')
+            }}
+          />
         )}
       </main>
     </div>
