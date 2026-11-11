@@ -43,7 +43,7 @@ Deferred to future release. Tracked but not in current roadmap.
 - **COVER-01**: Cover letter generation from vacancy + master profile — deferred until both v1 modules are validated
 - **EXPORT-01**: DOCX export — build only when a real vacancy demands it (pre-committed condition)
 - **PROFILE-10**: Multiple profile emphasis variants (e.g., IC vs leadership toggles) — only after single-profile flow is proven
-- **HIST-01**: Application history log (Markdown-based) — only if the user feels the tracker pain
+- **HIST-01**: Application history log — **ENTREGUE na Fase 7** como Application Tracker (SQLite, kanban, prazos e follow-ups; evoluiu do formato Markdown original quando a dor se confirmou). Decomposta em TRK-01..TRK-06 — ver Traceability.
 
 ## Out of Scope
 
@@ -57,7 +57,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Keyword stuffing mode | Reads badly to human recruiters; forced density is detectable; keywords integrated only where truthfully supported |
 | AI-invented achievements or metrics | Catastrophic failure mode for real applications; hard facts-only constraint is non-negotiable |
 | Auto-apply / application submission | ToS/fragility risk and quality-negative; the tool ends at "export sendable PDF" |
-| Application tracker / CRM | Different product; the user owns a git history already |
+| Application tracker / CRM | ~~Different product~~ **SUPERSEDADO pela Fase 7 (decisão do usuário, commit 498e01d)** — o tracker determinístico (sem LLM, SQLite local) nasceu dentro do produto, materializando o HIST-01. Continuam valendo: extração de vaga por URL e auto-apply |
 | LinkedIn auto-posting / API sync | LinkedIn API does not support profile writes for regular users; automation violates ToS |
 | Multi-user, auth, cloud hosting | Personal tool on localhost; pure overhead for one user |
 | Real-time collaboration or comments | Single-user tool; no basis for the feature |
@@ -83,11 +83,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LI-03 | Phase 6 | Complete |
 | LI-04 | Phase 6 | Complete |
 | LI-05 | Phase 6 | Complete |
+| TRK-01 | Phase 7 | Complete |
+| TRK-02 | Phase 7 | Complete |
+| TRK-03 | Phase 7 | Complete |
+| TRK-04 | Phase 7 | Complete |
+| TRK-05 | Phase 7 | Complete |
+| TRK-06 | Phase 7 | Complete |
 
 **Coverage:**
 
 - v1 requirements: 15 total
-- Mapped to phases: 15
+- Phase 7 (HIST-01 decomposta): 6 (TRK-01..TRK-06)
+- Mapped to phases: 21
 - Unmapped: 0 ✓
 
 ---

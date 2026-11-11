@@ -257,7 +257,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
   5. The user exports everything as JSON + spreadsheet-friendly CSV (utf-8-sig BOM, semicolon delimiter) from the UI, and the .db lives in a gitignored, env-overridable path ready for the homelab bind mount (D-01/D-02/D-03).
   6. Three doors feed the tracker: the manual form, "Registrar candidatura" on the Currículo result (prefills JD text + language; company/role stay user-typed), and the Respostas association (metadata-only event) — behind a fifth "Rastreador" nav item, with no LLM anywhere in the module (D-13/D-15/D-16).
 
-**Plans:** 5/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 1**
