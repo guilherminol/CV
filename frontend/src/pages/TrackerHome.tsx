@@ -6,6 +6,7 @@ import {
   criarCandidatura,
   executarFollowup,
   fetchTrackerResumo,
+  moverCandidatura,
   registrarEvento,
   type CandidaturaDTO,
   type EventoRegistroPayload,
@@ -15,6 +16,7 @@ import { ErrorPanel } from '../components/ErrorPanel'
 import { CandidaturaForm, type CandidaturaFormPayload } from '../components/tracker/CandidaturaForm'
 import { ContadoresGrid } from '../components/tracker/ContadoresGrid'
 import { EventosPanel } from '../components/tracker/EventosPanel'
+import { KanbanBoard } from '../components/tracker/KanbanBoard'
 import {
   RASTREADOR_ARQUIVADA_SUFIXO,
   RASTREADOR_DETALHE_VAZIO,
@@ -33,6 +35,7 @@ import {
   RASTREADOR_MODALIDADE_LABELS,
   RASTREADOR_OPERACAO_ERRO,
   RASTREADOR_PAGE_TITLE,
+  RASTREADOR_PIPELINE_TITLE,
   RASTREADOR_SEM_CANDIDATURAS,
   RASTREADOR_SEM_ESTAGIO,
   RASTREADOR_VISAO_GERAL_TITLE,
@@ -80,6 +83,7 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
   const [formKey, setFormKey] = useState(0)
   const [criarErros, setCriarErros] = useState<string[] | null>(null)
   const [eventosErros, setEventosErros] = useState<string[] | null>(null)
+  const [moverErros, setMoverErros] = useState<string[] | null>(null)
   const [registroReset, setRegistroReset] = useState(0)
 
   // First persistent view in the app — ephemeral-state pages never needed
@@ -103,6 +107,20 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
       }
     },
     onError: () => setCriarErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
+  const mover = useMutation({
+    mutationFn: ({ id, estagioId }: { id: number; estagioId: number }) =>
+      moverCandidatura(id, estagioId),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setMoverErros(null)
+        invalidar()
+      } else {
+        setMoverErros(resultado.erros)
+      }
+    },
+    onError: () => setMoverErros([RASTREADOR_OPERACAO_ERRO]),
   })
 
   const registrar = useMutation({
@@ -219,8 +237,31 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
         )}
       </section>
 
-      {/* Pipeline — plan 07-03 Task 2 mounts the KanbanBoard here (one
-          DndContext, one SortableContext per column, D-14). */}
+      {/* Pipeline — the D-14 board: one column per stage in estagios ordem.
+          The board is the ACTIVE pipeline: archived candidaturas stay out of
+          the columns (archive is the closure path, D-04 — the overview above
+          keeps the full history and the export carries it). Drops resolve
+          through the mover mutation + ['tracker'] invalidation — no
+          optimistic update (A8: the refetch is the truth). */}
+      <section aria-labelledby="rastreador-pipeline-title">
+        <h3 id="rastreador-pipeline-title" className="text-base font-semibold text-gray-900">
+          {RASTREADOR_PIPELINE_TITLE}
+        </h3>
+        <div className="mt-2">
+          <KanbanBoard
+            estagios={data.estagios}
+            candidaturas={data.candidaturas.filter((candidatura) => !candidatura.arquivada)}
+            abertaId={abertaId}
+            onAbrir={setAbertaId}
+            onMover={(id, estagioId) => mover.mutate({ id, estagioId })}
+          />
+        </div>
+        {moverErros && (
+          <div className="mt-2">
+            <ErrorPanel erros={moverErros} />
+          </div>
+        )}
+      </section>
 
       {/* Detail region — exactly ONE candidatura open at a time: the aligned
           field grid with loud nulls (A-UI-2), link_vaga as the ONLY anchor

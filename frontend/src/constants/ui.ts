@@ -620,3 +620,52 @@ export function formatarFollowupVencido(dias: number): string {
     ? RASTREADOR_FOLLOWUP_VENCIDO_SINGULAR
     : RASTREADOR_FOLLOWUP_VENCIDO_PLURAL.replace('{X}', String(dias))
 }
+
+// --- Rastreador kanban + prazo chips (plan 07-03 Task 2; D-14 board, D-09
+// color family) ---
+
+// D-09 approved family — classes chosen PURELY from the payload's
+// dias_para_prazo (the client renders the server delta, never recomputes,
+// Pitfall 7); null prazo renders no chip at all.
+export const RASTREADOR_PRAZO_NEUTRO_CLASSES =
+  'rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-600' // dias > 3
+export const RASTREADOR_PRAZO_AMBAR_CLASSES =
+  'rounded border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700' // 0..3
+export const RASTREADOR_PRAZO_VERMELHO_CLASSES =
+  'rounded border border-red-300 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700' // < 0
+export const RASTREADOR_FOLLOWUP_BADGE_CLASSES =
+  'rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700'
+// Same shape as every house card (RASTREADOR_CARD_CLASSES == CARD_CLASSES precedent).
+export const RASTREADOR_CARD_CLASSES = 'rounded-md border border-gray-200 bg-white shadow-sm p-4'
+
+// Board/column chrome (A-UI-1: horizontal-scroll row of fixed w-48 columns
+// inside the unchanged max-w-3xl shell).
+export const RASTREADOR_PIPELINE_TITLE = 'Pipeline'
+export const RASTREADOR_COLUNA_CLASSES =
+  'flex w-48 shrink-0 flex-col rounded-md border border-gray-200 bg-white shadow-sm'
+export const RASTREADOR_COLUNA_HEADER_CLASSES =
+  'border-b border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700'
+export const RASTREADOR_COLUNA_CORPO_CLASSES = 'flex flex-1 flex-col gap-2 p-2'
+export const RASTREADOR_CARD_HANDLE_CLASSES = 'cursor-grab active:cursor-grabbing'
+// Empty column hint — inside the droppable body so the column is never blank.
+export const RASTREADOR_COLUNA_VAZIA = 'Arraste uma candidatura para cá.'
+
+// Prazo chip copy (A-UI-3): dias 0 reads "Vence hoje"; singular/plural via a
+// pure formatter (formatarSkillsContagem precedent). Negative = venceu.
+export const RASTREADOR_PRAZO_HOJE = 'Vence hoje'
+export const RASTREADOR_PRAZO_EM_SINGULAR = 'Vence em 1 dia'
+export const RASTREADOR_PRAZO_EM_PLURAL = 'Vence em {X} dias'
+export const RASTREADOR_PRAZO_HA_SINGULAR = 'Venceu há 1 dia'
+export const RASTREADOR_PRAZO_HA_PLURAL = 'Venceu há {X} dias'
+// sr-only suffixes — status is never conveyed by color alone (S6/UI-SPEC).
+export const RASTREADOR_PRAZO_SR_PROXIMO = ' (próximo do prazo)'
+export const RASTREADOR_PRAZO_SR_VENCIDO = ' (vencido)'
+
+/** Prazo chip text — pure formatter over the server-computed delta. */
+export function formatarPrazoContagem(dias: number): string {
+  if (dias === 0) return RASTREADOR_PRAZO_HOJE
+  if (dias === 1) return RASTREADOR_PRAZO_EM_SINGULAR
+  if (dias === -1) return RASTREADOR_PRAZO_HA_SINGULAR
+  if (dias > 1) return RASTREADOR_PRAZO_EM_PLURAL.replace('{X}', String(dias))
+  return RASTREADOR_PRAZO_HA_PLURAL.replace('{X}', String(-dias))
+}
