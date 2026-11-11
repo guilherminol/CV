@@ -535,6 +535,21 @@ export const RASTREADOR_CTA_INFLIGHT = 'Criando…'
 // callback prop is absent.
 export const RASTREADOR_REGISTRAR_CTA = 'Registrar candidatura'
 
+// D-13 door 3 (plan 07-04, UI-SPEC copy table): the Respostas association.
+// RASTREADOR_RESPOSTA_OBSERVACAO is the FIXED metadata-only note (A9/D-08):
+// the question and the generated answer text never leave the page's ephemeral
+// state — ONLY this constant reaches the eventos table.
+export const RASTREADOR_ASSOCIACAO_LABEL = 'Associar à candidatura'
+export const RASTREADOR_ASSOCIACAO_PLACEHOLDER = 'Selecione a candidatura…'
+export const RASTREADOR_ASSOCIACAO_CTA = 'Associar'
+export const RASTREADOR_ASSOCIACAO_INFLIGHT = 'Associando…'
+export const RASTREADOR_ASSOCIACAO_OK = 'Resposta registrada na candidatura.'
+export const RASTREADOR_ASSOCIACAO_ERRO =
+  'Não foi possível associar a resposta — o detalhe técnico completo aparece no terminal onde o servidor está rodando.'
+export const RASTREADOR_ASSOCIACAO_SEM_CANDIDATURAS =
+  'Nenhuma candidatura registrada — crie uma no Rastreador antes de associar.'
+export const RASTREADOR_RESPOSTA_OBSERVACAO = 'Resposta registrada via módulo Respostas'
+
 // --- Rastreador full assembly (plan 07-03): D-06 form, eventos panel, detail,
 // kanban, estágios, export. Strings/classes all centralized here (S6). ---
 

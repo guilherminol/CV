@@ -1,7 +1,13 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { responderCandidatura, type CandidaturaRespostaResponse, type ResumeLanguage } from '../api/client'
+import {
+  fetchTrackerResumo,
+  registrarEvento,
+  responderCandidatura,
+  type CandidaturaRespostaResponse,
+  type ResumeLanguage,
+} from '../api/client'
 import { CopiarButton } from '../components/CopiarButton'
 import { ErrorPanel } from '../components/ErrorPanel'
 import { StatusLine } from '../components/StatusLine'
@@ -16,9 +22,22 @@ import {
   CANDIDATURA_RESULT_TITLE,
   CANDIDATURA_VAGA_LABEL,
   CANDIDATURA_VAGA_PLACEHOLDER,
+  COMPACT_SECONDARY_BUTTON_CLASSES,
   CURRICULO_IDIOMA_LABEL,
   CURRICULO_IDIOMA_OPTIONS,
+  HINT_INPUT_CLASSES,
   PRIMARY_BUTTON_CLASSES,
+  RASTREADOR_ARQUIVADA_SUFIXO,
+  RASTREADOR_ASSOCIACAO_CTA,
+  RASTREADOR_ASSOCIACAO_ERRO,
+  RASTREADOR_ASSOCIACAO_INFLIGHT,
+  RASTREADOR_ASSOCIACAO_LABEL,
+  RASTREADOR_ASSOCIACAO_OK,
+  RASTREADOR_ASSOCIACAO_PLACEHOLDER,
+  RASTREADOR_ASSOCIACAO_SEM_CANDIDATURAS,
+  RASTREADOR_FETCH_ERRO,
+  RASTREADOR_LOADING,
+  RASTREADOR_RESPOSTA_OBSERVACAO,
   TEXTAREA_CLASSES,
 } from '../constants/ui'
 
@@ -33,6 +52,17 @@ const VAGA_MAX_CHARS = 20000
 
 type RespostaOk = Extract<CandidaturaRespostaResponse, { status: 'ok' }>
 
+/** Today as a zero-padded LOCAL-parts string (UI-SPEC / Pitfall 7 posture):
+ * the association's data_evento is assembled from getFullYear/getMonth/
+ * getDate — NEVER toISOString(), which would UTC-shift the date for
+ * non-UTC machines. */
+function hojeLocalIso(): string {
+  const agora = new Date()
+  const mes = String(agora.getMonth() + 1).padStart(2, '0')
+  const dia = String(agora.getDate()).padStart(2, '0')
+  return `${agora.getFullYear()}-${mes}-${dia}`
+}
+
 /**
  * The Candidatura screen (vaga → perfil follow-on): paste ONE open
  * application-form question (+ optional job description) → one grounded
@@ -44,18 +74,39 @@ type RespostaOk = Extract<CandidaturaRespostaResponse, { status: 'ok' }>
  * form; the copy affordance is what carries the text away.
  */
 export default function CandidaturaHome() {
+  const queryClient = useQueryClient()
   const [pergunta, setPergunta] = useState('')
   const [vagaTexto, setVagaTexto] = useState('')
   const [idioma, setIdioma] = useState<ResumeLanguage>('pt-BR')
   const [resultado, setResultado] = useState<RespostaOk | null>(null)
   const [erros, setErros] = useState<string[] | null>(null)
 
+  // D-13 door 3 (plan 07-04): the association picker SHARES the ['tracker']
+  // cache with the Rastreador view — same query key, so a candidatura created
+  // there appears here without a remount, and an association registered here
+  // invalidates what the board/contadores see.
+  const resumo = useQuery({ queryKey: ['tracker'], queryFn: fetchTrackerResumo })
+
+  // Association state — session-only like the answer itself. idiomaResposta
+  // pins THE ANSWER'S generation language (captured from the submitted
+  // payload, not the live selector, which the user may change afterwards).
+  const [candidaturaSelecionada, setCandidaturaSelecionada] = useState('')
+  const [idiomaResposta, setIdiomaResposta] = useState<ResumeLanguage>('pt-BR')
+  const [associacaoOk, setAssociacaoOk] = useState(false)
+  const [associacaoErros, setAssociacaoErros] = useState<string[] | null>(null)
+
   const responder = useMutation({
     mutationFn: responderCandidatura,
-    onSuccess: (data) => {
+    onSuccess: (data, variaveis) => {
       if (data.status === 'ok') {
         setResultado(data)
         setErros(null)
+        // A NEW answer is a fresh association opportunity: reset the control
+        // and pin this answer's generation language from the submitted payload.
+        setIdiomaResposta(variaveis.language)
+        setCandidaturaSelecionada('')
+        setAssociacaoOk(false)
+        setAssociacaoErros(null)
       } else {
         // Backend PT-BR lines verbatim; the prior answer stays mounted.
         setErros(data.erros)
@@ -66,6 +117,40 @@ export default function CandidaturaHome() {
       setErros([
         'Não foi possível gerar a resposta — o detalhe técnico completo aparece no terminal onde o servidor está rodando.',
       ])
+    },
+  })
+
+  // D-08/A9 metadata-only association: the ONLY fields sent are tipo,
+  // data_evento (today, local parts), idioma (the answer's generation
+  // language) and observacao bound to the FIXED constant — the question and
+  // the answer text never leave this page's ephemeral state (no schema
+  // column exists to receive them).
+  const associar = useMutation({
+    mutationFn: ({ candidaturaId, idiomaEvento }: { candidaturaId: number; idiomaEvento: ResumeLanguage }) =>
+      registrarEvento(candidaturaId, {
+        tipo: 'resposta',
+        data_evento: hojeLocalIso(),
+        idioma: idiomaEvento,
+        observacao: RASTREADOR_RESPOSTA_OBSERVACAO,
+      }),
+    onSuccess: (resultadoAssociacao) => {
+      if (resultadoAssociacao.status === 'ok') {
+        setAssociacaoOk(true)
+        setAssociacaoErros(null)
+        // The 'resposta' event feeds the contadores and the follow-up
+        // suggestion anchor server-side — the shared ['tracker'] cache must
+        // refresh or kanban/contadores desynchronize (Pitfall 6).
+        queryClient.invalidateQueries({ queryKey: ['tracker'] })
+      } else {
+        // Backend PT-BR lines verbatim; the answer + picker stay mounted.
+        setAssociacaoOk(false)
+        setAssociacaoErros(resultadoAssociacao.erros)
+      }
+    },
+    onError: () => {
+      // Fetch-level failure (server down) — generic PT-BR hint path.
+      setAssociacaoOk(false)
+      setAssociacaoErros([RASTREADOR_ASSOCIACAO_ERRO])
     },
   })
 
@@ -162,6 +247,74 @@ export default function CandidaturaHome() {
           </div>
           <p className="mt-3 whitespace-pre-wrap text-sm text-gray-700">{resultado.resposta}</p>
           <p className="mt-3 text-xs text-gray-500">{CANDIDATURA_EPHEMERAL_NOTICE}</p>
+
+          {/* D-13 door 3 (plan 07-04): associate the answer with a candidatura
+              — a metadata-only 'resposta' event (D-08/A9). Zero candidaturas
+              renders the loud-empty line instead of an empty select; erro
+              envelopes render verbatim through ErrorPanel, fetch-level
+              failures take the generic PT-BR hint. */}
+          <div className="mt-4 space-y-2 border-t border-gray-200 pt-4">
+            <label
+              htmlFor="associar-candidatura"
+              className="block text-sm font-medium text-gray-800"
+            >
+              {RASTREADOR_ASSOCIACAO_LABEL}
+            </label>
+            {resumo.isPending ? (
+              <p className="text-sm text-gray-500">{RASTREADOR_LOADING}</p>
+            ) : resumo.isError ? (
+              <p className="text-sm text-red-600">{RASTREADOR_FETCH_ERRO}</p>
+            ) : resumo.data && resumo.data.status === 'erro' ? (
+              <ErrorPanel erros={resumo.data.erros} />
+            ) : resumo.data &&
+              resumo.data.status === 'ok' &&
+              resumo.data.candidaturas.length === 0 ? (
+              <p className="text-sm text-gray-600">{RASTREADOR_ASSOCIACAO_SEM_CANDIDATURAS}</p>
+            ) : (
+              resumo.data &&
+              resumo.data.status === 'ok' && (
+                <div className="space-y-2">
+                  <select
+                    id="associar-candidatura"
+                    value={candidaturaSelecionada}
+                    onChange={(event) => setCandidaturaSelecionada(event.target.value)}
+                    className={`mt-1 ${HINT_INPUT_CLASSES}`}
+                  >
+                    <option value="">{RASTREADOR_ASSOCIACAO_PLACEHOLDER}</option>
+                    {resumo.data.candidaturas.map((candidatura) => (
+                      <option key={candidatura.id} value={candidatura.id}>
+                        {candidatura.empresa} — {candidatura.cargo}
+                        {candidatura.arquivada ? RASTREADOR_ARQUIVADA_SUFIXO : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        associar.mutate({
+                          candidaturaId: Number(candidaturaSelecionada),
+                          idiomaEvento: idiomaResposta,
+                        })
+                      }
+                      disabled={!candidaturaSelecionada || associar.isPending}
+                      className={COMPACT_SECONDARY_BUTTON_CLASSES}
+                    >
+                      {associar.isPending ? RASTREADOR_ASSOCIACAO_INFLIGHT : RASTREADOR_ASSOCIACAO_CTA}
+                    </button>
+                  </div>
+                  {associacaoOk && (
+                    <p className="text-sm text-gray-700" role="status">
+                      {RASTREADOR_ASSOCIACAO_OK}
+                    </p>
+                  )}
+                  {associacaoErros && associacaoErros.length > 0 && (
+                    <ErrorPanel erros={associacaoErros} />
+                  )}
+                </div>
+              )
+            )}
+          </div>
         </section>
       )}
     </div>
