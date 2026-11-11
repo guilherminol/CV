@@ -468,9 +468,11 @@ def test_run_lint_only_returns_keywords_verbatim_and_avisos(
         runs_log=tmp_path / "runs.jsonl",
         client=FakeClient(KEYWORDS_CONTENT),
     )
-    assert set(result) == {"keywords", "avisos"}
+    assert set(result) == {"keywords", "avisos", "gaps"}
     assert result["keywords"] == json.loads(KEYWORDS_CONTENT)["keywords"]
     assert result["avisos"] == []
+    # The inventory covers the JD's keywords — no structured gap rows either.
+    assert result["gaps"] == []
 
 
 def test_run_lint_only_loads_profile_before_the_paid_call(

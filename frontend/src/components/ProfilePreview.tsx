@@ -10,10 +10,18 @@ import {
  * D-04 display convention: every localized map renders its pt-BR value (the
  * declared base language). The fallback to any other available value is
  * purely defensive — the schema already requires pt-BR to be present.
+ * `str | LocalizedText` union fields (project names) pass through as-is.
  */
-function t(map: LocalizedText | null | undefined): string {
+function t(map: LocalizedText | string | null | undefined): string {
   if (!map) return ''
+  if (typeof map === 'string') return map
   return map['pt-BR'] ?? (Object.values(map).find(Boolean) ?? '')
+}
+
+/** Group labels for Project.scope — preview is the PT-BR Perfil view. */
+const SCOPE_LABELS: Record<'profissional' | 'pessoal', string> = {
+  profissional: 'Projetos profissionais',
+  pessoal: 'Projetos pessoais',
 }
 
 /** Single-value date fields render as-is (D-02); open ranges show "atual". */
@@ -75,8 +83,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function ProfilePreview({ perfil }: { perfil: PerfilDTO }) {
   const contactLine = [
     perfil.contact.email,
-    perfil.contact.location,
-    perfil.contact.phone,
+    perfil.contact.location && t(perfil.contact.location),
+    perfil.contact.phone && t(perfil.contact.phone),
     perfil.contact.linkedin,
   ]
     .filter(Boolean)
@@ -114,7 +122,7 @@ export function ProfilePreview({ perfil }: { perfil: PerfilDTO }) {
               <article key={`${i}-${ed.institution}`} className="break-inside-avoid">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3">
                   <h4 className="text-sm font-semibold text-gray-900">
-                    {ed.degree}
+                    {t(ed.degree)}
                     {PREVIEW_CONTACT_SEPARATOR}
                     {ed.institution}
                   </h4>
@@ -142,7 +150,7 @@ export function ProfilePreview({ perfil }: { perfil: PerfilDTO }) {
             {perfil.certifications.map((cert, i) => (
               <p key={`${i}-${cert.name}`} className="text-sm text-gray-700">
                 <span className="font-medium">{cert.name}</span>
-                {cert.issuer && ` — ${cert.issuer}`}
+                {cert.issuer && ` — ${t(cert.issuer)}`}
                 {cert.year && ` (${cert.year})`}
               </p>
             ))}
@@ -152,8 +160,8 @@ export function ProfilePreview({ perfil }: { perfil: PerfilDTO }) {
         {perfil.languages.length > 0 && (
           <Section title={PREVIEW_SECTIONS.idiomas}>
             {perfil.languages.map((lang, i) => (
-              <p key={`${i}-${lang.name}`} className="text-sm text-gray-700">
-                <span className="font-medium">{lang.name}</span> — {lang.level}
+              <p key={`${i}-${t(lang.name)}`} className="text-sm text-gray-700">
+                <span className="font-medium">{t(lang.name)}</span> — {t(lang.level)}
               </p>
             ))}
           </Section>
@@ -161,16 +169,25 @@ export function ProfilePreview({ perfil }: { perfil: PerfilDTO }) {
 
         {perfil.projects.length > 0 && (
           <Section title={PREVIEW_SECTIONS.projetos}>
-            {perfil.projects.map((proj, i) => (
-              <article key={`${i}-${proj.name}`} className="break-inside-avoid">
-                <h4 className="text-sm font-semibold text-gray-900">{proj.name}</h4>
-                <p className="mt-1 text-sm text-gray-700">{t(proj.description)}</p>
-                {proj.technologies.length > 0 && (
-                  <p className="mt-1 text-xs text-gray-500">{proj.technologies.join(PREVIEW_CONTACT_SEPARATOR)}</p>
-                )}
-                <ImpactBullets impacts={proj.impacts} />
-              </article>
-            ))}
+            {(['profissional', 'pessoal'] as const).map((scope) => {
+              const group = perfil.projects.filter((proj) => proj.scope === scope)
+              if (group.length === 0) return null
+              return (
+                <div key={scope} className={scope === 'pessoal' ? 'mt-4' : ''}>
+                  <p className="text-xs font-semibold text-gray-500">{SCOPE_LABELS[scope]}</p>
+                  {group.map((proj, i) => (
+                    <article key={`${i}-${t(proj.name)}`} className="break-inside-avoid">
+                      <h4 className="text-sm font-semibold text-gray-900">{t(proj.name)}</h4>
+                      <p className="mt-1 text-sm text-gray-700">{t(proj.description)}</p>
+                      {proj.technologies.length > 0 && (
+                        <p className="mt-1 text-xs text-gray-500">{proj.technologies.join(PREVIEW_CONTACT_SEPARATOR)}</p>
+                      )}
+                      <ImpactBullets impacts={proj.impacts} />
+                    </article>
+                  ))}
+                </div>
+              )
+            })}
           </Section>
         )}
       </div>

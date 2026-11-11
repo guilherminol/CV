@@ -31,6 +31,7 @@ from app.llm.errors import LLMError
 from app.llm.logging import write_run_line, write_run_summary
 from app.llm.prompts import load_prompt
 from app.llm.schemas import (
+    CANDIDATURA_RESPOSTA_STRICT_SCHEMA,
     KEYWORD_STRICT_SCHEMA,
     LINKEDIN_EXPERIENCIAS_STRICT_SCHEMA,
     LINKEDIN_HEADLINE_STRICT_SCHEMA,
@@ -44,6 +45,7 @@ from app.llm.schemas import (
     LinkedinHeadline,
     LinkedinSkills,
     LinkedinSobre,
+    CandidaturaResposta,
     ResumeExperiencias,
     ResumeSkills,
     ResumeSummary,
@@ -70,6 +72,10 @@ _STAGE_SCHEMAS: dict[str, tuple[type, dict]] = {
     "linkedin-sobre": (LinkedinSobre, LINKEDIN_SOBRE_STRICT_SCHEMA),
     "linkedin-experiencias": (LinkedinExperiencias, LINKEDIN_EXPERIENCIAS_STRICT_SCHEMA),
     "linkedin-skills": (LinkedinSkills, LINKEDIN_SKILLS_STRICT_SCHEMA),
+    # Candidatura (vaga → perfil follow-on): free-text application-question
+    # answers. Registration-only edit — retry, wire enforcement, and the
+    # runs.jsonl audit are inherited like every other stage.
+    "candidatura-resposta": (CandidaturaResposta, CANDIDATURA_RESPOSTA_STRICT_SCHEMA),
 }
 
 

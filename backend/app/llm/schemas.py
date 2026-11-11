@@ -263,3 +263,22 @@ LINKEDIN_SKILLS_STRICT_SCHEMA: dict = {
     "required": ["habilidades"],
     "additionalProperties": False,
 }
+
+# --- Candidatura application-question stage (vaga → perfil follow-on): one
+# strict schema for the single free-text answer block.
+
+
+class CandidaturaResposta(_Strict):
+    """candidatura-resposta stage — one run-language answer paragraph set."""
+
+    resposta: str
+
+
+CANDIDATURA_RESPOSTA_STRICT_SCHEMA: dict = {
+    "type": "object",
+    "properties": {
+        "resposta": {"type": "string"},
+    },
+    "required": ["resposta"],
+    "additionalProperties": False,
+}

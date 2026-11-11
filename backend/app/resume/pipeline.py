@@ -34,7 +34,7 @@ from app.llm.schemas import Keyword
 from app.profile.loader import load_profile
 from app.resume.coverage import classify_coverage, summarize_coverage
 from app.resume.facts import compose_regen_stage_input, compose_stage_input, serialize_profile_facts
-from app.resume.lint import lint_jd_tied
+from app.resume.lint import lint_gaps, lint_jd_tied
 from app.routes.export import ExportarSecoes
 
 EXTRACTION_STAGE = "keyword-extraction"
@@ -57,9 +57,11 @@ def run_lint_only(
 ) -> dict:
     """Extraction + JD-tied lint for the pre-generate display (SC5).
 
-    Returns {"keywords": [keyword dicts], "avisos": [PT-BR strings]} —
-    non-blocking avisos per D-03; failures raise (ProfileError from the
-    loader, LLMError from the gateway) and belong to the route's envelope.
+    Returns {"keywords": [keyword dicts], "avisos": [PT-BR strings],
+    "gaps": [structured gap rows]} — non-blocking per D-03; failures raise
+    (ProfileError from the loader, LLMError from the gateway) and belong to
+    the route's envelope. `gaps` powers the vaga → perfil acceptance buttons
+    (canonical/pt/en/categoria + the verbatim aviso line, lint.py).
     """
     # IN-04: the profile loads BEFORE the paid extraction call — a broken
     # profile fails /lint without consuming an OpenRouter call (the same
@@ -73,6 +75,7 @@ def run_lint_only(
     return {
         "keywords": [keyword.model_dump() for keyword in keywords],
         "avisos": avisos,
+        "gaps": lint_gaps(profile, keywords),
     }
 
 

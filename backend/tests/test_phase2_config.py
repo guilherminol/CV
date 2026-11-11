@@ -1,5 +1,6 @@
 """Phase 2 wave-0 config: LLM constants, llm pytest marker, offline-by-default addopts."""
 
+import os
 import tomllib
 from pathlib import Path
 
@@ -10,7 +11,9 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 def test_phase2_constants_exist_with_expected_defaults():
     assert cfg.LLM_MAX_ATTEMPTS == 3
-    assert cfg.LLM_MODEL == "anthropic/claude-sonnet-4.5"
+    # D-01/D-02: the slug is env-overridable — a local .env pins the owner's
+    # model, so the assertion tracks the same env the app config reads.
+    assert cfg.LLM_MODEL == os.environ.get("LLM_MODEL", "anthropic/claude-sonnet-4.5")
     assert cfg.PROMPTS_DIR == cfg.REPO_ROOT / "prompts"
     assert cfg.LOGS_DIR == cfg.REPO_ROOT / "logs"
     assert cfg.RUNS_LOG == cfg.LOGS_DIR / "runs.jsonl"

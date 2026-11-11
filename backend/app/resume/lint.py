@@ -8,11 +8,12 @@ and is NON-BLOCKING (D-03): avisos never gate the generate CTA, and the lint
 never raises on data gaps.
 
 The (a) check matches ANY keyword rendering (canonical, aliases, pt, en)
-against the profile inventory — SkillGroup.items + Project.technologies (the
-two surfaces named by D-04a) — reusing the SAME lookaround/fold matcher
-primitives as app.resume.coverage (one matcher, two inputs). The profile's
-skills/technologies are single language-neutral strings, so the check is
-language-agnostic by construction.
+against the profile inventory — SkillGroup.items + Project.technologies +
+the languages section (name and level, BOTH renderings) — reusing the SAME
+lookaround/fold matcher primitives as app.resume.coverage (one matcher, two
+inputs). Skills/technologies are single language-neutral strings; languages
+carry both renderings, so a vaga citing "English" fold-matches the Inglês
+entry instead of false-flagging a language the profile speaks.
 
 Template strings are the UI-SPEC Copywriting Contract rows, owned here
 verbatim — the frontend renders them without re-mapping (D-13 discipline).
@@ -24,10 +25,18 @@ from app.resume.coverage import _fold, _term_pattern
 
 
 def _profile_inventory(profile: Profile) -> str:
-    """One string joining every skill item and project technology (D-04a)."""
+    """One string joining every skill item, project technology AND language
+    (name + level in both renderings) — D-04a: a vaga citing a language the
+    profile speaks is not a gap ("English" fold-matches Inglês/English)."""
     items = [item for group in profile.skills for item in group.items]
     items.extend(
         technology for project in profile.projects for technology in project.technologies
+    )
+    items.extend(
+        text
+        for entry in profile.languages
+        for text in (*entry.name.values(), *entry.level.values())
+        if text
     )
     return " ".join(items)
 
@@ -48,18 +57,45 @@ def _summary_is_empty(profile: Profile) -> bool:
     )
 
 
-def lint_jd_tied(profile: Profile, keywords: list[Keyword]) -> list[str]:
-    """D-04 checks in (a) → (b) → (c) order; non-blocking PT-BR avisos (D-03)."""
-    avisos: list[str] = []
+def _gap_aviso(canonical: str) -> str:
+    """The (a) template row — owned HERE verbatim (UI-SPEC Copywriting Contract)."""
+    return f'A vaga cita "{canonical}", ausente do seu perfil.'
 
-    # (a) JD keyword gaps — only competencias/ferramentas are inventory-bound
-    # (titles and certifications have no profile inventory to compare against).
+
+def lint_gaps(profile: Profile, keywords: list[Keyword]) -> list[dict]:
+    """The (a) check as STRUCTURED rows — the vaga → perfil acceptance supply.
+
+    Each row carries the keyword's acceptance payload (canonical/pt/en/
+    categoria — the POST /api/profile/adicionar body shape) PLUS the verbatim
+    aviso line, so the UI renders the backend-owned string next to its add
+    button without ever parsing avisos (D-13). Only competencias/ferramentas
+    are inventory-bound (titles and certifications have no profile inventory).
+    """
     inventory = _profile_inventory(profile)
+    gaps: list[dict] = []
     for keyword in keywords:
         if keyword.category not in ("competencias", "ferramentas"):
             continue
         if not _matches_inventory(keyword, inventory):
-            avisos.append(f'A vaga cita "{keyword.canonical}", ausente do seu perfil.')
+            gaps.append(
+                {
+                    "canonical": keyword.canonical,
+                    "pt": keyword.pt,
+                    "en": keyword.en,
+                    "categoria": keyword.category,
+                    "aviso": _gap_aviso(keyword.canonical),
+                }
+            )
+    return gaps
+
+
+def lint_jd_tied(profile: Profile, keywords: list[Keyword]) -> list[str]:
+    """D-04 checks in (a) → (b) → (c) order; non-blocking PT-BR avisos (D-03)."""
+    avisos: list[str] = []
+
+    # (a) JD keyword gaps — derived from the SAME structured rows the
+    # acceptance UI consumes (one matcher, one template, two consumers).
+    avisos.extend(gap["aviso"] for gap in lint_gaps(profile, keywords))
 
     # (b) experiences without impacts/metrics.
     for experience in profile.experiences:

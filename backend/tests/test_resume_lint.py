@@ -11,7 +11,7 @@ from conftest import full_profile, minimal_profile
 
 from app.llm.schemas import Keyword
 from app.profile.models import Profile
-from app.resume.lint import lint_jd_tied
+from app.resume.lint import lint_gaps, lint_jd_tied
 
 
 def _kw(
@@ -72,6 +72,19 @@ def test_project_technologies_are_an_inventory_surface() -> None:
     profile = Profile.model_validate(data)
     keywords = [_kw("FastAPI", "ferramentas")]
     assert lint_jd_tied(profile, keywords) == []
+
+
+def test_spoken_language_is_an_inventory_surface() -> None:
+    """A vaga citing "English" must NOT flag when the profile speaks Inglês —
+    the languages section (name + level, both renderings) is inventory."""
+    data = full_profile()
+    data["skills"] = [{"category": "linguagens", "items": ["Python", "TypeScript"]}]
+    profile = Profile.model_validate(data)
+    assert lint_jd_tied(profile, [_kw("English", "competencias")]) == []
+    assert lint_jd_tied(profile, [_kw("Inglês", "competencias")]) == []
+    # control: a language the profile does NOT speak stays a gap.
+    gaps = lint_jd_tied(profile, [_kw("Mandarim", "competencias")])
+    assert len(gaps) == 1
 
 
 def test_titles_and_certifications_categories_are_not_checked() -> None:
@@ -158,3 +171,42 @@ def test_returns_a_list_on_every_gap_combination() -> None:
     assert isinstance(lint_jd_tied(profile, []), list)
     assert isinstance(lint_jd_tied(profile, [_kw("Anything", "competencias")]), list)
     assert lint_jd_tied(profile, []) == []  # minimal profile: summary + impacts present
+
+
+# ---------------------------------------------------------------------------
+# structured gaps — the vaga → perfil acceptance supply (POST body shape)
+# ---------------------------------------------------------------------------
+
+
+def test_lint_gaps_carry_acceptance_payload_and_verbatim_aviso() -> None:
+    profile = Profile.model_validate(full_profile())
+    keywords = [
+        _kw("Snowflake", "ferramentas"),
+        _kw("Python", "competencias", pt="Python", en="Python"),  # in inventory
+    ]
+    gaps = lint_gaps(profile, keywords)
+    assert gaps == [
+        {
+            "canonical": "Snowflake",
+            "pt": None,
+            "en": None,
+            "categoria": "ferramentas",
+            "aviso": 'A vaga cita "Snowflake", ausente do seu perfil.',
+        }
+    ]
+
+
+def test_lint_gaps_empty_when_inventory_covers_all() -> None:
+    profile = Profile.model_validate(full_profile())
+    keywords = [_kw("Python", "competencias", pt="Python", en="Python")]
+    assert lint_gaps(profile, keywords) == []
+
+
+def test_gap_aviso_lines_are_exactly_the_jd_tied_avisos_prefix() -> None:
+    """One template, two consumers: the structured rows' aviso strings are
+    byte-identical to the (a) block of lint_jd_tied's output."""
+    profile = Profile.model_validate(full_profile())
+    keywords = [_kw("Snowflake", "ferramentas")]
+    gaps = lint_gaps(profile, keywords)
+    avisos = lint_jd_tied(profile, keywords)
+    assert avisos == [gap["aviso"] for gap in gaps]

@@ -148,7 +148,7 @@ def _full_expected_doc(
             ExpectedExperience(
                 company=entry.company,
                 title=entry.title,
-                dates=format_date_range(*datas[0]),  # WR-01: per-entry join output
+                dates=format_date_range(*datas[0], idioma),  # WR-01: per-entry join output
             ),
         ),
         accent_strings=tuple(iter_rendered_strings(profile, secoes, datas, idioma)),
@@ -247,6 +247,39 @@ def test_render_html_full_montage_in_preview_order() -> None:
     )
     assert HEADINGS["pt-BR"]["formacao"] not in minimal_doc  # empty passthrough hidden
     assert HEADINGS["pt-BR"]["projetos"] not in minimal_doc
+
+
+def test_render_projects_grouped_by_scope() -> None:
+    """Project.scope groups the section: profissional first, pessoal second,
+    with run-language group labels; localized names resolve (map OR brand str)
+    in both run languages."""
+    data = full_profile()
+    data["projects"] = [
+        {
+            "name": {"pt-BR": "GIA — Plataforma", "en": "GIA — Platform"},
+            "scope": "profissional",
+            "description": {"pt-BR": "d profissional.", "en": "professional d."},
+        },
+        {
+            "name": "Financeiro",
+            "scope": "pessoal",
+            "description": {"pt-BR": "d pessoal.", "en": "personal d."},
+        },
+    ]
+    profile = Profile.model_validate(data)
+    secoes = _Secoes(resumo="Resumo.", experiencias=[], habilidades=["Python"])
+
+    doc_en = build_resume_html(profile, secoes, [], "en")
+    assert "Professional projects" in doc_en
+    assert "Personal projects" in doc_en
+    assert "GIA — Platform" in doc_en  # localized map name resolves in EN
+    assert "Financeiro" in doc_en  # brand str passes through
+
+    doc_pt = build_resume_html(profile, secoes, [], "pt-BR")
+    assert "Projetos profissionais" in doc_pt
+    assert "Projetos pessoais" in doc_pt
+    assert doc_pt.index("Projetos profissionais") < doc_pt.index("Projetos pessoais")
+    assert "GIA — Plataforma" in doc_pt
 
 
 def test_rendered_section_keys_matches_template_hidden_sections() -> None:
@@ -516,7 +549,7 @@ def test_gate_passes_real_pdf_with_uppercase_accented_contact() -> None:
     mojibake; the byte-perfect accent check still holds every rendered word
     (casefold-only space, accents REQUIRED)."""
     profile, secoes = _persona("pt-BR")
-    profile.contact.location = "SÃO PAULO, SP"
+    profile.contact.location = {"pt-BR": "SÃO PAULO, SP", "en": "SAO PAULO, SP"}
     pdf_bytes = _render_persona("pt-BR", persona=(profile, secoes))
     result = parse_back_check(
         pdf_bytes, _full_expected_doc("pt-BR", persona=(profile, secoes))

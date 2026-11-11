@@ -386,6 +386,16 @@ skills:
   - Embeddings
   - Proficiência em Inglês
   - Metodologias Ágeis
+  - Engenharia de Software
+  - Geração Aumentada por Recuperação
+  - Gestão de Produto
+  - Senso de Dono
+  - Adaptabilidade
+  - Comunicação
+  - Visão de Produto
+  - DevOps
+  - Arquitetura de Sistemas
+  - Microsserviços
 - category: Ferramentas
   items:
   - Banco de dados vetorial
@@ -399,6 +409,10 @@ skills:
   - Codex
   - Azure AI Foundry
   - Vertex AI
+  - SQL
+  - NoSQL
+  - HuggingFace
+  - PydanticAI
 certifications:
 - name: Model Context Protocol (MCP) Professional Certification
   issuer:

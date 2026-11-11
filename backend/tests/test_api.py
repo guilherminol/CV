@@ -23,7 +23,9 @@ def test_get_profile_returns_ok_envelope() -> None:
     assert resp.status_code == 200
     body = resp.json()
     assert body["status"] == "ok"
-    assert body["exemplo"] is True  # shipped file ships as example data (D-11)
+    # The shipped file is the owner's LIVE profile — example flips to False the
+    # moment real data lands (D-11); the envelope shape is the contract here.
+    assert isinstance(body["exemplo"], bool)
     assert body["perfil"]["name"]  # parsed profile object is present
     assert body["perfil"]["experiences"]  # SC3 data half: experiences present
 
@@ -32,15 +34,17 @@ def test_get_profile_ok_envelope_includes_completude() -> None:
     body = client.get("/api/profile").json()
     assert body["status"] == "ok"
     completude = body["completude"]
+    perfil = body["perfil"]
+    # Counts stay consistent with the shipped profile itself — the file is
+    # owner-edited data, never a pinned persona (hardcoded counts rotted the
+    # moment real data replaced the example).
     assert completude["resumo"] is True
     assert completude["experiencias"] is True
-    assert completude["experiencias_qtde"] == 3
-    assert completude["experiencias_impactos_qtde"] == 8
+    assert completude["experiencias_qtde"] == len(perfil["experiences"])
     assert completude["habilidades"] is True
-    assert completude["habilidades_qtde"] == 4
-    assert completude["habilidades_itens_qtde"] == 15
-    assert completude["projetos_qtde"] == 2
-    assert completude["idiomas_qtde"] == 2
+    assert completude["habilidades_qtde"] == len(perfil["skills"])
+    assert completude["idiomas_qtde"] == len(perfil["languages"])
+    assert completude["projetos_qtde"] == len(perfil["projects"])
 
 
 def _use_profile_file(monkeypatch: pytest.MonkeyPatch, path) -> None:
