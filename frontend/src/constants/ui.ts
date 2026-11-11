@@ -669,3 +669,22 @@ export function formatarPrazoContagem(dias: number): string {
   if (dias > 1) return RASTREADOR_PRAZO_EM_PLURAL.replace('{X}', String(dias))
   return RASTREADOR_PRAZO_HA_PLURAL.replace('{X}', String(-dias))
 }
+
+// --- Rastreador estágios manager + export (plan 07-03 Task 3; D-05, D-03) ---
+export const RASTREADOR_ESTAGIOS_TITLE = 'Estágios'
+export const RASTREADOR_ESTAGIOS_OCULTAR = 'Ocultar estágios'
+export const RASTREADOR_ESTAGIO_ADD_PLACEHOLDER = 'Novo estágio'
+export const RASTREADOR_ESTAGIO_ADD_CTA = 'Adicionar'
+export const RASTREADOR_ESTAGIO_RENOMEAR_CTA = 'Renomear'
+export const RASTREADOR_ESTAGIO_REMOVER_CTA = 'Remover'
+export const RASTREADOR_ESTAGIO_MOVER_CIMA = 'Mover para cima'
+export const RASTREADOR_ESTAGIO_MOVER_BAIXO = 'Mover para baixo'
+
+export const RASTREADOR_EXPORTAR_TITLE = 'Exportar dados'
+export const RASTREADOR_EXPORTAR_JSON = 'Exportar JSON'
+export const RASTREADOR_EXPORTAR_CSV = 'Exportar CSV'
+export const RASTREADOR_EXPORTAR_INFLIGHT = 'Exportando…'
+// A-UI-5: fixed caption; downloads have no async gate (unlike the PDF's ATS
+// check) so no receipt line exists — the backend filename passes verbatim to
+// the download helper (S8).
+export const RASTREADOR_EXPORTAR_CAPTION = 'O download do arquivo começa automaticamente.'

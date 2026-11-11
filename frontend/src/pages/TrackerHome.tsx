@@ -4,10 +4,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   adiarFollowup,
   criarCandidatura,
+  criarEstagio,
+  editarCandidatura,
   executarFollowup,
+  exportarTracker,
   fetchTrackerResumo,
   moverCandidatura,
   registrarEvento,
+  renomearEstagio,
+  removerEstagio,
+  reordenarEstagios,
+  downloadConteudo,
   type CandidaturaDTO,
   type EventoRegistroPayload,
   type ResumeLanguage,
@@ -15,11 +22,25 @@ import {
 import { ErrorPanel } from '../components/ErrorPanel'
 import { CandidaturaForm, type CandidaturaFormPayload } from '../components/tracker/CandidaturaForm'
 import { ContadoresGrid } from '../components/tracker/ContadoresGrid'
+import { EstagioManager } from '../components/tracker/EstagioManager'
 import { EventosPanel } from '../components/tracker/EventosPanel'
 import { KanbanBoard } from '../components/tracker/KanbanBoard'
+import { FollowupBadge, PrazoChip } from '../components/tracker/CandidaturaCard'
 import {
+  COMPACT_SECONDARY_BUTTON_CLASSES,
+  QUIET_BUTTON_CLASSES,
   RASTREADOR_ARQUIVADA_SUFIXO,
+  RASTREADOR_ARQUIVAR_CTA,
   RASTREADOR_DETALHE_VAZIO,
+  RASTREADOR_EDITAR_CTA,
+  RASTREADOR_EDITAR_TITULO,
+  RASTREADOR_ESTAGIOS_OCULTAR,
+  RASTREADOR_ESTAGIOS_TITLE,
+  RASTREADOR_EXPORTAR_CAPTION,
+  RASTREADOR_EXPORTAR_CSV,
+  RASTREADOR_EXPORTAR_INFLIGHT,
+  RASTREADOR_EXPORTAR_JSON,
+  RASTREADOR_EXPORTAR_TITLE,
   RASTREADOR_FETCH_ERRO,
   RASTREADOR_FORM_TITLE,
   RASTREADOR_LABEL_CONTATO_RECRUTADOR,
@@ -36,6 +57,7 @@ import {
   RASTREADOR_OPERACAO_ERRO,
   RASTREADOR_PAGE_TITLE,
   RASTREADOR_PIPELINE_TITLE,
+  RASTREADOR_REABRIR_CTA,
   RASTREADOR_SEM_CANDIDATURAS,
   RASTREADOR_SEM_ESTAGIO,
   RASTREADOR_VISAO_GERAL_TITLE,
@@ -63,13 +85,14 @@ function valorOuVazio(valor: string | null): string | null {
 }
 
 /**
- * The Rastreador view (fifth nav view, the app's FIRST persistent state):
- * honest contadores, the server-sorted overview, the one-at-a-time detail
- * region (field grid + EventosPanel), and the full D-06 form — every
- * mutation flows through ONE shared ['tracker'] query key so the whole page
- * can never desynchronize (Pitfall 6). Plan 07-03 Tasks 2/3 complete the
- * assembly: the KanbanBoard mounts in the Pipeline slot, then the
- * EstagioManager + export sections.
+ * The complete Rastreador view (fifth nav view, the app's FIRST persistent
+ * state): honest contadores, the server-sorted overview with prazo/follow-up
+ * markers, the D-14 kanban, the one-at-a-time detail region (field grid +
+ * EventosPanel + Editar/Arquivar), the full D-06 form (create or edit), the
+ * stage vocabulary manager, and the JSON/CSV export. Every mutation flows
+ * through ONE shared ['tracker'] query key so the whole page can never
+ * desynchronize (Pitfall 6); every erro envelope renders verbatim through
+ * ErrorPanel; archive is the ONLY closure control (D-04).
  */
 export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHomeProps) {
   const queryClient = useQueryClient()
@@ -80,11 +103,26 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
   })
 
   const [abertaId, setAbertaId] = useState<number | null>(null)
+  const [editandoId, setEditandoId] = useState<number | null>(null)
   const [formKey, setFormKey] = useState(0)
+  const [estagiosAberto, setEstagiosAberto] = useState(false)
   const [criarErros, setCriarErros] = useState<string[] | null>(null)
+  const [editarErros, setEditarErros] = useState<string[] | null>(null)
+  const [arquivarErros, setArquivarErros] = useState<string[] | null>(null)
   const [eventosErros, setEventosErros] = useState<string[] | null>(null)
   const [moverErros, setMoverErros] = useState<string[] | null>(null)
+  const [estagiosErros, setEstagiosErros] = useState<string[] | null>(null)
+  const [exportarErros, setExportarErros] = useState<string[] | null>(null)
   const [registroReset, setRegistroReset] = useState(0)
+
+  // Render-time adjustment (React-documented pattern): changing the open
+  // candidatura closes any stale edit session for the previous one.
+  const [ultimoAbertaId, setUltimoAbertaId] = useState(abertaId)
+  if (abertaId !== ultimoAbertaId) {
+    setUltimoAbertaId(abertaId)
+    setEditandoId(null)
+    setEditarErros(null)
+  }
 
   // First persistent view in the app — ephemeral-state pages never needed
   // this (Pitfall 6): the shared ['tracker'] cache must refresh after EVERY
@@ -107,6 +145,38 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
       }
     },
     onError: () => setCriarErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
+  const editar = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: CandidaturaFormPayload }) =>
+      editarCandidatura(id, payload),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setEditarErros(null)
+        setEditandoId(null)
+        setFormKey((chave) => chave + 1)
+        invalidar()
+      } else {
+        setEditarErros(resultado.erros)
+      }
+    },
+    onError: () => setEditarErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
+  // Archive/Reopen — the ONLY closure control in the UI (D-04); reversible,
+  // so no ConfirmStrip anywhere (05-CONTEXT D-14 stays dormant).
+  const alternarArquivada = useMutation({
+    mutationFn: (candidatura: CandidaturaDTO) =>
+      editarCandidatura(candidatura.id, { arquivada: !candidatura.arquivada }),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setArquivarErros(null)
+        invalidar()
+      } else {
+        setArquivarErros(resultado.erros)
+      }
+    },
+    onError: () => setArquivarErros([RASTREADOR_OPERACAO_ERRO]),
   })
 
   const mover = useMutation({
@@ -165,6 +235,77 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
     onError: () => setEventosErros([RASTREADOR_OPERACAO_ERRO]),
   })
 
+  const criarEstagioM = useMutation({
+    mutationFn: (nome: string) => criarEstagio(nome),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setEstagiosErros(null)
+        invalidar()
+      } else {
+        setEstagiosErros(resultado.erros)
+      }
+    },
+    onError: () => setEstagiosErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
+  const renomearEstagioM = useMutation({
+    mutationFn: ({ id, nome }: { id: number; nome: string }) => renomearEstagio(id, nome),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setEstagiosErros(null)
+        invalidar()
+      } else {
+        setEstagiosErros(resultado.erros)
+      }
+    },
+    onError: () => setEstagiosErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
+  const reordenarEstagiosM = useMutation({
+    mutationFn: (ordens: number[]) => reordenarEstagios(ordens),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setEstagiosErros(null)
+        invalidar()
+      } else {
+        setEstagiosErros(resultado.erros)
+      }
+    },
+    onError: () => setEstagiosErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
+  const removerEstagioM = useMutation({
+    mutationFn: (id: number) => removerEstagio(id),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setEstagiosErros(null)
+        invalidar()
+      } else {
+        // Blocked removal: the backend's PT-BR refusal line renders verbatim.
+        setEstagiosErros(resultado.erros)
+      }
+    },
+    onError: () => setEstagiosErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
+  const exportar = useMutation({
+    mutationFn: (formato: 'json' | 'csv') => exportarTracker(formato),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setExportarErros(null)
+        // S8: the backend-generated filename passes VERBATIM to the download.
+        downloadConteudo(
+          resultado.conteudo_base64,
+          resultado.filename,
+          resultado.arquivo === 'json' ? 'application/json' : 'text/csv',
+        )
+      } else {
+        setExportarErros(resultado.erros)
+      }
+    },
+    onError: () => setExportarErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
   if (isPending) {
     return <p className="text-gray-500">{RASTREADOR_LOADING}</p>
   }
@@ -194,6 +335,13 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
       ? null
       : (data.candidaturas.find((candidatura) => candidatura.id === abertaId) ?? null)
 
+  const modoEdicaoAtivo = editandoId !== null && aberta !== null && editandoId === aberta.id
+  const estagiosPendentes =
+    criarEstagioM.isPending ||
+    renomearEstagioM.isPending ||
+    reordenarEstagiosM.isPending ||
+    removerEstagioM.isPending
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-900">{RASTREADOR_PAGE_TITLE}</h2>
@@ -204,7 +352,9 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
 
       {/* Visão geral — the payload order IS the server-sorted order (prazo
           proximity first, NULL-prazo last, D-09): render in order, never
-          re-sort client-side. */}
+          re-sort client-side. Each row carries the prazo chip (amber 0..3,
+          red negative — D-09 family) + the deterministic follow-up badge
+          (D-12), always with sr-only status text where color is involved. */}
       <section aria-labelledby="rastreador-visao-geral-title">
         <h3 id="rastreador-visao-geral-title" className="text-base font-semibold text-gray-900">
           {RASTREADOR_VISAO_GERAL_TITLE}
@@ -221,7 +371,7 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
                   aria-pressed={abertaId === candidatura.id}
                   className="w-full rounded-md border border-gray-200 bg-white p-4 text-left shadow-sm hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                 >
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="block text-sm font-semibold text-gray-900">
                     {candidatura.empresa} — {candidatura.cargo}
                   </span>
                   <span className="mt-1 block text-xs text-gray-500">
@@ -229,6 +379,10 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
                     {candidatura.arquivada && (
                       <span className="text-gray-400">{RASTREADOR_ARQUIVADA_SUFIXO}</span>
                     )}
+                  </span>
+                  <span className="mt-2 flex flex-wrap items-center gap-1">
+                    <PrazoChip dias={candidatura.dias_para_prazo} />
+                    <FollowupBadge sugerir={candidatura.sugerir_followup} />
                   </span>
                 </button>
               </li>
@@ -265,8 +419,9 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
 
       {/* Detail region — exactly ONE candidatura open at a time: the aligned
           field grid with loud nulls (A-UI-2), link_vaga as the ONLY anchor
-          (S10: rel="noreferrer", JSX-text-only posture), and the EventosPanel
-          with the follow-up lifecycle controls. */}
+          (S10: rel="noreferrer", JSX-text-only posture), the EventosPanel
+          with the follow-up lifecycle controls, and Editar/Arquivar — archive
+          is the only closure control (D-04, reversible, no confirmation). */}
       {aberta && (
         <section
           aria-labelledby="rastreador-detalhe-title"
@@ -278,6 +433,28 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
           <p className="mt-1 text-xs text-gray-500">
             {nomePorEstagio.get(aberta.estagio_id) ?? RASTREADOR_SEM_ESTAGIO}
           </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setEditandoId(aberta.id)}
+              className={COMPACT_SECONDARY_BUTTON_CLASSES}
+            >
+              {RASTREADOR_EDITAR_CTA}
+            </button>
+            <button
+              type="button"
+              onClick={() => alternarArquivada.mutate(aberta)}
+              disabled={alternarArquivada.isPending}
+              className={COMPACT_SECONDARY_BUTTON_CLASSES}
+            >
+              {aberta.arquivada ? RASTREADOR_REABRIR_CTA : RASTREADOR_ARQUIVAR_CTA}
+            </button>
+          </div>
+          {arquivarErros && (
+            <div className="mt-2">
+              <ErrorPanel erros={arquivarErros} />
+            </div>
+          )}
           <dl className="mt-3 space-y-1 text-sm">
             {(
               [
@@ -326,18 +503,112 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
         </section>
       )}
 
-      {/* Full D-06 form — the 07-01 minimal skeleton replaced; the edit path
-          (initial values + PATCH semantics) is wired by Task 3 alongside the
-          detail-region controls. formKey remounts for a fresh form after a
-          successful create. */}
-      <CandidaturaForm
-        key={formKey}
-        titulo={RASTREADOR_FORM_TITLE}
-        pendente={criar.isPending}
-        erros={criarErros}
-        valoresIniciais={{ jd_texto: prefill?.jd_texto ?? '' }}
-        onSubmit={(payload: CandidaturaFormPayload) => criar.mutate(payload)}
-      />
+      {/* Full D-06 form — create mode ("Nova candidatura") or edit mode with
+          "Salvar alterações" (initial values from the open candidatura, PATCH
+          semantics: omitted empty keys stay untouched server-side). formKey
+          remounts for a fresh form after a successful save. */}
+      {modoEdicaoAtivo && aberta ? (
+        <CandidaturaForm
+          key={`editar-${formKey}-${aberta.id}`}
+          titulo={RASTREADOR_EDITAR_TITULO}
+          pendente={editar.isPending}
+          erros={editarErros}
+          modoEdicao
+          valoresIniciais={aberta}
+          onCancelar={() => {
+            setEditandoId(null)
+            setEditarErros(null)
+          }}
+          onSubmit={(payload: CandidaturaFormPayload) => editar.mutate({ id: aberta.id, payload })}
+        />
+      ) : (
+        <CandidaturaForm
+          key={formKey}
+          titulo={RASTREADOR_FORM_TITLE}
+          pendente={criar.isPending}
+          erros={criarErros}
+          valoresIniciais={{ jd_texto: prefill?.jd_texto ?? '' }}
+          onSubmit={(payload: CandidaturaFormPayload) => criar.mutate(payload)}
+        />
+      )}
+
+      {/* Estágios — the personal vocabulary manager (D-05), collapsed by
+          default (UI-SPEC assembly order): the kanban column order follows
+          the ordem from the payload on the next refetch. */}
+      <section aria-labelledby="rastreador-estagios-title">
+        {estagiosAberto ? (
+          <>
+            <div className="flex items-center gap-3">
+              <h3 id="rastreador-estagios-title" className="text-base font-semibold text-gray-900">
+                {RASTREADOR_ESTAGIOS_TITLE}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEstagiosAberto(false)}
+                className={QUIET_BUTTON_CLASSES}
+              >
+                {RASTREADOR_ESTAGIOS_OCULTAR}
+              </button>
+            </div>
+            <div className="mt-2 rounded-md border border-gray-200 bg-white shadow-sm p-4">
+              <EstagioManager
+                estagios={data.estagios}
+                erros={estagiosErros}
+                pendente={estagiosPendentes}
+                onCriar={(nome) => criarEstagioM.mutate(nome)}
+                onRenomear={(id, nome) => renomearEstagioM.mutate({ id, nome })}
+                onReordenar={(ordens) => reordenarEstagiosM.mutate(ordens)}
+                onRemover={(id) => removerEstagioM.mutate(id)}
+              />
+            </div>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setEstagiosAberto(true)}
+            aria-expanded={false}
+            className={COMPACT_SECONDARY_BUTTON_CLASSES}
+          >
+            {RASTREADOR_ESTAGIOS_TITLE}
+          </button>
+        )}
+      </section>
+
+      {/* Export — D-03: JSON completo + CSV para planilha; each download uses
+          the backend-generated filename verbatim (S8). */}
+      <section aria-labelledby="rastreador-exportar-title">
+        <h3 id="rastreador-exportar-title" className="text-base font-semibold text-gray-900">
+          {RASTREADOR_EXPORTAR_TITLE}
+        </h3>
+        <div className="mt-2 flex gap-2">
+          <button
+            type="button"
+            onClick={() => exportar.mutate('json')}
+            disabled={exportar.isPending}
+            className={COMPACT_SECONDARY_BUTTON_CLASSES}
+          >
+            {exportar.isPending && exportar.variables === 'json'
+              ? RASTREADOR_EXPORTAR_INFLIGHT
+              : RASTREADOR_EXPORTAR_JSON}
+          </button>
+          <button
+            type="button"
+            onClick={() => exportar.mutate('csv')}
+            disabled={exportar.isPending}
+            className={COMPACT_SECONDARY_BUTTON_CLASSES}
+          >
+            {exportar.isPending && exportar.variables === 'csv'
+              ? RASTREADOR_EXPORTAR_INFLIGHT
+              : RASTREADOR_EXPORTAR_CSV}
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-gray-500">{RASTREADOR_EXPORTAR_CAPTION}</p>
+        {exportarErros && (
+          <div className="mt-2">
+            <ErrorPanel erros={exportarErros} />
+          </div>
+        )}
+      </section>
     </div>
   )
 }
