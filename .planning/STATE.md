@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 07
 current_phase_name: Application Tracker — Pipeline & Follow-up
 status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-11-11T00:09:23.190Z"
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-11-11T00:23:03.499Z"
 last_activity: 2026-11-10
 last_activity_desc: Phase 07 execution started
-state_head: 132415fe302b17c836a8f0d078cefceee63b4b53
+state_head: 0035d0613ebfd8333f412c3c835d358533380a15
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 31
-  completed_plans: 29
+  completed_plans: 30
   percent: 57
 ---
 
@@ -69,7 +69,7 @@ action in 06-06-SUMMARY.md, Deferred Human Verification table; WINDOWS.md entry 
 
 Phase: 07 (Application Tracker — Pipeline & Follow-up) — EXECUTING
 ( bloqueio: créditos OpenRouter esgotados — 402; geração ao vivo impossível até top-up)
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-11-10 — Phase 07 execution started
 
@@ -133,6 +133,7 @@ Progress: [██████░░░░] 57% (4 of 6 phases verified complete;
 | Phase 07-01 P07-01 | 16min | 3 tasks | 16 files |
 | Phase 07 P07-02 | 14min | 2 tasks | 5 files |
 | Phase 07 P07-03 | 24min | 3 tasks | 11 files |
+| Phase 07 P07-04 | 9min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -205,6 +206,8 @@ Recent decisions affecting current work:
 - [Phase 07]: 07-02: stage reorder covers EXACTLY all stages (contiguity by construction); removal blocked via explicit reference COUNT with PT-BR envelope — no cascade ever touches candidaturas (D-05/D-04) — FK pragma alone would only raise IntegrityError; the explicit COUNT is what produces the friendly erro envelope (Pitfall 2 posture)
 - [Phase 07]: 07-03: follow-up panel slots ({data}/{X}) are SERVER-computed fields (followup_pendente_data, followup_vencido_dias) — the payload lacked them and the client never sources 'hoje' (Pitfall 7); pytest-pinned, additive to the wire shape
 - [Phase 07]: 07-03: kanban renders the ACTIVE pipeline (archived filtered out; overview keeps full history); same-stage drops skip the mutation; adiar input has no min attribute (server refusal renders verbatim)
+- [Phase 07]: 07-04: prefill hand-off carries exactly {jd_texto, language}; only jd_texto lands in the form — the D-06 create contract (extra=forbid) has no idioma key and the form has no idioma field (idioma is EVENT metadata per D-08), so the language part is dropped at the consumption point (07-03 readiness fork resolved toward no-new-backend-surface) — Extending CandidaturaCriacaoRequest + the DB schema with idioma would be a Rule 4 schema change on the shipped 07-02 contract, contradicting 07-04's own no-new-backend-surface objective; the natural future landing is event-level (idioma on 'envio_curriculo'), not the candidatura row
+- [Phase 07]: 07-04: the Respostas association's idioma pins THE ANSWER'S generation language captured from the submitted payload in responder.onSuccess(variables) — immune to post-generation selector changes; the association UI resets on each new successful answer — The ephemeral page holds one live selector the user may change after generating; capturing at generation time is the honest 'the answer's generation language' per the plan
 
 ### Pending Todos
 
@@ -242,6 +245,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-11T00:09:10.979Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-11-11T00:23:02.157Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
