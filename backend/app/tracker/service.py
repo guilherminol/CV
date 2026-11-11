@@ -670,8 +670,8 @@ def derivar_campos(
     cand: dict, eventos: list[dict], *, hoje: date, limiar_followup: int
 ) -> dict:
     """PURE derived-field projection (RESEARCH Patterns 6 + 4b) — no conn,
-    no mutation: returns the five server-computed fields the UI never
-    recomputes (D-09/D-11/D-12; date-only arithmetic, Pitfall 7).
+    no mutation: returns the server-computed fields the UI never recomputes
+    (D-09/D-11/D-12; date-only arithmetic, Pitfall 7).
 
     - dias_para_prazo: (prazo - hoje).days, None without a prazo (negative =
       vencido).
@@ -681,6 +681,14 @@ def derivar_campos(
       past event exists (future events are PENDING followups, not activity).
     - followup_pendente: a followup dated AFTER hoje.
     - followup_vencido: a followup dated BEFORE hoje.
+    - followup_pendente_data: the next due followup's date (earliest strictly
+      after hoje) — the {data} slot of the panel's pendente line; the client
+      renders it verbatim and NEVER derives it (Pitfall 7: all date math
+      stays server-side).
+    - followup_vencido_dias: days since the most recent lapse (latest followup
+      strictly before hoje) — the {X} slot of the panel's vencido line;
+      server-computed like dias_para_prazo (07-03: the pinned string needs the
+      delta and the client has no honest way to source "hoje").
     """
     prazo = date.fromisoformat(cand["prazo_retorno"]) if cand["prazo_retorno"] else None
     dias_para_prazo = (prazo - hoje).days if prazo else None  # negativo = vencido
@@ -697,6 +705,19 @@ def derivar_campos(
         ancora_iso = cand["data_aplicacao"] or cand["criada_em"]
         ultimo_evento = date.fromisoformat(ancora_iso)
 
+    datas_followup_futuras = [
+        date.fromisoformat(evento["data_evento"])
+        for evento in eventos
+        if evento["tipo"] == "followup"
+        and date.fromisoformat(evento["data_evento"]) > hoje
+    ]
+    datas_followup_passadas = [
+        date.fromisoformat(evento["data_evento"])
+        for evento in eventos
+        if evento["tipo"] == "followup"
+        and date.fromisoformat(evento["data_evento"]) < hoje
+    ]
+
     return {
         "dias_para_prazo": dias_para_prazo,
         "atrasado_prazo": dias_para_prazo is not None and dias_para_prazo < 0,
@@ -710,6 +731,14 @@ def derivar_campos(
             evento["tipo"] == "followup"
             and date.fromisoformat(evento["data_evento"]) < hoje
             for evento in eventos
+        ),
+        "followup_pendente_data": (
+            min(datas_followup_futuras).isoformat() if datas_followup_futuras else None
+        ),
+        "followup_vencido_dias": (
+            (hoje - max(datas_followup_passadas)).days
+            if datas_followup_passadas
+            else None
         ),
     }
 

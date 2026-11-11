@@ -508,6 +508,11 @@ export const RASTREADOR_PAGE_TITLE = 'Rastreador de candidaturas'
 export const RASTREADOR_LOADING = 'Carregando candidaturas…'
 export const RASTREADOR_FETCH_ERRO =
   'Não foi possível carregar o rastreador — o detalhe técnico completo aparece no terminal onde o servidor está rodando.'
+// Fetch-level failure of a tracker MUTATION (server down) — the same house
+// sentence shape as the backend's own _FALHA_GENERICA, reused by every
+// mutation's onError path.
+export const RASTREADOR_OPERACAO_ERRO =
+  'Falha na operação do rastreador — o detalhe técnico completo aparece no terminal onde o servidor está rodando.'
 export const RASTREADOR_CONTADORES_LABELS = {
   enviados: 'Enviadas',
   entrevistas: 'Entrevistas',
@@ -523,3 +528,95 @@ export const RASTREADOR_LABEL_CARGO = 'Cargo'
 export const RASTREADOR_PLACEHOLDER_CARGO = 'Cargo ou título da vaga'
 export const RASTREADOR_CTA = 'Criar candidatura'
 export const RASTREADOR_CTA_INFLIGHT = 'Criando…'
+
+// --- Rastreador full assembly (plan 07-03): D-06 form, eventos panel, detail,
+// kanban, estágios, export. Strings/classes all centralized here (S6). ---
+
+// WR-01 client mirrors of the backend Field bounds (backend/app/tracker/
+// models.py). Change BOTH together — the inputs cap at the same bound so an
+// oversized entry is prevented, never retried into a dead-end 422.
+export const RASTREADOR_LIMITE_EMPRESA = 200
+export const RASTREADOR_LIMITE_CARGO = 200
+export const RASTREADOR_LIMITE_FONTE = 200
+export const RASTREADOR_LIMITE_LINK_VAGA = 2000
+export const RASTREADOR_LIMITE_FAIXA_SALARIAL = 100
+export const RASTREADOR_LIMITE_CONTATO_RECRUTADOR = 200
+export const RASTREADOR_LIMITE_NOTAS = 5000
+export const RASTREADOR_LIMITE_JD_TEXTO = 20000
+export const RASTREADOR_LIMITE_EVENTO_OBSERVACAO = 2000
+export const RASTREADOR_LIMITE_ESTAGIO_NOME = 80
+
+// D-06 modalidade labels (sr-only radio fieldset idiom).
+export const RASTREADOR_MODALIDADE_LABELS = {
+  remoto: 'Remoto',
+  hibrido: 'Híbrido',
+  presencial: 'Presencial',
+} as const
+
+// A-UI-4: event-type PT-BR labels — UI renderings of the five DTO literals.
+export const RASTREADOR_EVENTO_TIPO_LABELS = {
+  envio_curriculo: 'Envio de currículo',
+  entrevista: 'Entrevista',
+  retorno: 'Retorno',
+  followup: 'Follow-up',
+  resposta: 'Resposta',
+} as const
+
+// D-06 form labels/placeholders (empresa/cargo shipped 07-01 above).
+export const RASTREADOR_LABEL_FONTE = 'Fonte'
+export const RASTREADOR_PLACEHOLDER_FONTE = 'Ex.: LinkedIn, indicação, site da empresa'
+export const RASTREADOR_LABEL_LINK_VAGA = 'Link da vaga'
+export const RASTREADOR_LABEL_DATA_APLICACAO = 'Data de aplicação'
+export const RASTREADOR_LABEL_PRAZO_RETORNO = 'Prazo de retorno'
+export const RASTREADOR_LABEL_FAIXA_SALARIAL = 'Faixa salarial'
+export const RASTREADOR_LABEL_CONTATO_RECRUTADOR = 'Contato do recrutador'
+export const RASTREADOR_LABEL_MODALIDADE = 'Modalidade'
+export const RASTREADOR_LABEL_NOTAS = 'Notas'
+export const RASTREADOR_PLACEHOLDER_NOTAS = 'Contexto, contatos, próximos passos…'
+export const RASTREADOR_LABEL_JD_TEXTO = 'Texto da JD'
+export const RASTREADOR_PLACEHOLDER_JD_TEXTO = 'Cole aqui a descrição completa da vaga (opcional)…'
+export const RASTREADOR_EDITAR_TITULO = 'Editar candidatura'
+export const RASTREADOR_EDITAR_CTA = 'Editar'
+export const RASTREADOR_ARQUIVAR_CTA = 'Arquivar'
+export const RASTREADOR_REABRIR_CTA = 'Reabrir'
+export const RASTREADOR_ARQUIVADA_SUFIXO = ' (arquivada)'
+
+// Section titles + loud empty lines (UI-SPEC TrackerHome assembly).
+export const RASTREADOR_VISAO_GERAL_TITLE = 'Visão geral'
+export const RASTREADOR_EVENTOS_TITLE = 'Eventos'
+export const RASTREADOR_SEM_EVENTOS = 'Nenhum evento registrado.'
+// A-UI-2: nullable detail fields render a muted loud-null marker.
+export const RASTREADOR_DETALHE_VAZIO = '—'
+
+// Event registration (UI-SPEC copy table); idioma options reuse
+// CURRICULO_IDIOMA_OPTIONS labels with the '—' none-option.
+export const RASTREADOR_EVENTO_LABEL_TIPO = 'Tipo de evento'
+export const RASTREADOR_EVENTO_LABEL_DATA = 'Data do evento'
+export const RASTREADOR_EVENTO_LABEL_IDIOMA = 'Idioma (opcional)'
+export const RASTREADOR_EVENTO_LABEL_OBSERVACAO = 'Observação (opcional)'
+export const RASTREADOR_EVENTO_CTA = 'Registrar evento'
+export const RASTREADOR_EVENTO_IDIOMA_NENHUM = '—'
+
+// Follow-up (D-10/D-11/D-12; UI-SPEC copy table). The pendente/vencido lines
+// render ONLY from the payload's server-computed state — the panel never
+// decides overdue-ness itself.
+export const RASTREADOR_FOLLOWUP_BADGE = 'Considerar follow-up'
+export const RASTREADOR_FOLLOWUP_PENDENTE = 'Follow-up pendente para {data}.'
+export const RASTREADOR_FOLLOWUP_VENCIDO_SINGULAR = 'Follow-up venceu há 1 dia.'
+export const RASTREADOR_FOLLOWUP_VENCIDO_PLURAL = 'Follow-up venceu há {X} dias.'
+export const RASTREADOR_FOLLOWUP_SR_VENCIDO = ' (vencido)'
+export const RASTREADOR_FOLLOWUP_EXECUTAR = 'Executar'
+export const RASTREADOR_FOLLOWUP_ADIAR = 'Adiar'
+export const RASTREADOR_FOLLOWUP_ADIAR_PARA = 'Adiar para'
+
+/** {data} slot of the pendente line — plain template replace (house pattern). */
+export function formatarFollowupPendente(data: string): string {
+  return RASTREADOR_FOLLOWUP_PENDENTE.replace('{data}', data)
+}
+
+/** {X} slot of the vencido line — pure singular/plural formatter. */
+export function formatarFollowupVencido(dias: number): string {
+  return dias === 1
+    ? RASTREADOR_FOLLOWUP_VENCIDO_SINGULAR
+    : RASTREADOR_FOLLOWUP_VENCIDO_PLURAL.replace('{X}', String(dias))
+}

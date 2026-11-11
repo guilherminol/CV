@@ -284,6 +284,44 @@ def test_followup_vencido_apos_data_passada(conn):
     assert cand["followup_pendente"] is False
 
 
+def test_followup_pendente_data_e_vencido_dias_derivados(conn):
+    """The EventosPanel strings' {data}/{X} slots come from SERVER-computed
+    fields — the client renders them verbatim and never derives dates
+    (Pitfall 7; 07-03: the pinned UI copy needs both slots in the payload)."""
+    candidatura_id = _criar(conn)
+    _criar_evento(
+        conn,
+        candidatura_id,
+        "followup",
+        (HOJE - timedelta(days=3)).isoformat(),
+    )
+    _criar_evento(
+        conn,
+        candidatura_id,
+        "followup",
+        (HOJE - timedelta(days=1)).isoformat(),
+    )
+    _criar_evento(
+        conn,
+        candidatura_id,
+        "followup",
+        (HOJE + timedelta(days=2)).isoformat(),
+    )
+    cand = _resumo(conn)["candidaturas"][0]
+    assert cand["followup_pendente"] is True
+    assert cand["followup_pendente_data"] == (HOJE + timedelta(days=2)).isoformat()
+    assert cand["followup_vencido"] is True
+    # The displayed lapse is the most recent one: 1 day since it went overdue.
+    assert cand["followup_vencido_dias"] == 1
+
+
+def test_followup_derivados_nulos_sem_followups(conn):
+    candidatura_id = _criar(conn)
+    cand = _resumo(conn)["candidaturas"][0]
+    assert cand["followup_pendente_data"] is None
+    assert cand["followup_vencido_dias"] is None
+
+
 def test_executar_followup_sem_pendente_levanta_erro(conn):
     candidatura_id = _criar(conn)
     with pytest.raises(TrackerErro) as exc:

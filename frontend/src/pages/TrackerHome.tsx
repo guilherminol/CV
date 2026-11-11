@@ -2,40 +2,41 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
+  adiarFollowup,
   criarCandidatura,
+  executarFollowup,
   fetchTrackerResumo,
+  registrarEvento,
+  type CandidaturaDTO,
+  type EventoRegistroPayload,
   type ResumeLanguage,
 } from '../api/client'
 import { ErrorPanel } from '../components/ErrorPanel'
+import { CandidaturaForm, type CandidaturaFormPayload } from '../components/tracker/CandidaturaForm'
+import { ContadoresGrid } from '../components/tracker/ContadoresGrid'
+import { EventosPanel } from '../components/tracker/EventosPanel'
 import {
-  HINT_INPUT_CLASSES,
-  PRIMARY_BUTTON_CLASSES,
-  RASTREADOR_CANDIDATURAS_TITLE,
-  RASTREADOR_CTA,
-  RASTREADOR_CTA_INFLIGHT,
-  RASTREADOR_CONTADORES_LABELS,
+  RASTREADOR_ARQUIVADA_SUFIXO,
+  RASTREADOR_DETALHE_VAZIO,
   RASTREADOR_FETCH_ERRO,
   RASTREADOR_FORM_TITLE,
-  RASTREADOR_LABEL_CARGO,
-  RASTREADOR_LABEL_EMPRESA,
+  RASTREADOR_LABEL_CONTATO_RECRUTADOR,
+  RASTREADOR_LABEL_DATA_APLICACAO,
+  RASTREADOR_LABEL_FAIXA_SALARIAL,
+  RASTREADOR_LABEL_FONTE,
+  RASTREADOR_LABEL_JD_TEXTO,
+  RASTREADOR_LABEL_LINK_VAGA,
+  RASTREADOR_LABEL_MODALIDADE,
+  RASTREADOR_LABEL_NOTAS,
+  RASTREADOR_LABEL_PRAZO_RETORNO,
   RASTREADOR_LOADING,
+  RASTREADOR_MODALIDADE_LABELS,
+  RASTREADOR_OPERACAO_ERRO,
   RASTREADOR_PAGE_TITLE,
-  RASTREADOR_PLACEHOLDER_CARGO,
-  RASTREADOR_PLACEHOLDER_EMPRESA,
   RASTREADOR_SEM_CANDIDATURAS,
   RASTREADOR_SEM_ESTAGIO,
+  RASTREADOR_VISAO_GERAL_TITLE,
 } from '../constants/ui'
-
-// Client mirrors of the backend request bounds (tracker/models.py
-// Field(max_length) — 422 is "a client bug, not a UI state"): the inputs cap
-// at the same bound so an oversized entry is prevented, never retried into a
-// dead-end 422 (WR-01 pattern).
-const EMPRESA_MAX_CHARS = 200
-const CARGO_MAX_CHARS = 200
-
-// Contadores render order — Enviadas / Entrevistas / Ativas (labels from
-// constants; the numbers come from the payload, derived server-side, D-07).
-const CONTADORES_ORDEM = ['enviados', 'entrevistas', 'ativas'] as const
 
 // D-13 seam (declared in 07-01; the "Registrar candidatura" button lands in
 // 07-04): the Currículo result view hands the JD text + generation language
@@ -52,12 +53,20 @@ interface TrackerHomeProps {
   onPrefillConsumida: () => void
 }
 
+/** Loud-null for the detail grid (A-UI-2): null/blank payload fields render
+ * the muted marker, never a silent blank cell. */
+function valorOuVazio(valor: string | null): string | null {
+  return valor && valor.trim() ? valor : null
+}
+
 /**
- * Rastreador skeleton view (plan 07-01) — the fifth nav view and the app's
- * FIRST persistent state: query ['tracker'] with the house isPending/erro/ok
- * branches, contadores row, candidaturas list, and the minimal creation
- * form. Plan 07-03 replaces the form with the full CandidaturaForm without
- * architectural change (same mutation, same query key).
+ * The Rastreador view (fifth nav view, the app's FIRST persistent state):
+ * honest contadores, the server-sorted overview, the one-at-a-time detail
+ * region (field grid + EventosPanel), and the full D-06 form — every
+ * mutation flows through ONE shared ['tracker'] query key so the whole page
+ * can never desynchronize (Pitfall 6). Plan 07-03 Tasks 2/3 complete the
+ * assembly: the KanbanBoard mounts in the Pipeline slot, then the
+ * EstagioManager + export sections.
  */
 export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHomeProps) {
   const queryClient = useQueryClient()
@@ -67,35 +76,75 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
     queryFn: fetchTrackerResumo,
   })
 
-  const [empresa, setEmpresa] = useState('')
-  const [cargo, setCargo] = useState('')
-  const [erros, setErros] = useState<string[] | null>(null)
+  const [abertaId, setAbertaId] = useState<number | null>(null)
+  const [formKey, setFormKey] = useState(0)
+  const [criarErros, setCriarErros] = useState<string[] | null>(null)
+  const [eventosErros, setEventosErros] = useState<string[] | null>(null)
+  const [registroReset, setRegistroReset] = useState(0)
 
-  const podeEnviar = empresa.trim().length > 0 && cargo.trim().length > 0
+  // First persistent view in the app — ephemeral-state pages never needed
+  // this (Pitfall 6): the shared ['tracker'] cache must refresh after EVERY
+  // successful mutation or kanban/overview/contadores desynchronize.
+  const invalidar = () => queryClient.invalidateQueries({ queryKey: ['tracker'] })
 
   const criar = useMutation({
     mutationFn: criarCandidatura,
     onSuccess: (resultado) => {
       if (resultado.status === 'ok') {
-        setErros(null)
-        setEmpresa('')
-        setCargo('')
-        // First persistent view in the app — ephemeral-state pages never
-        // needed this (Pitfall 6): the shared ['tracker'] cache must refresh
-        // or the new row would only appear after a manual reload.
+        setCriarErros(null)
+        setFormKey((chave) => chave + 1) // fresh form for the next entry
         if (prefill) {
           onPrefillConsumida() // D-13: the JD went into the created candidatura
         }
-        queryClient.invalidateQueries({ queryKey: ['tracker'] })
+        invalidar()
       } else {
         // Backend PT-BR lines verbatim; the form stays mounted.
-        setErros(resultado.erros)
+        setCriarErros(resultado.erros)
       }
     },
-    onError: () => {
-      // Fetch-level failure (server down) — generic PT-BR hint path.
-      setErros([RASTREADOR_FETCH_ERRO])
+    onError: () => setCriarErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
+  const registrar = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: EventoRegistroPayload }) =>
+      registrarEvento(id, payload),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setEventosErros(null)
+        setRegistroReset((chave) => chave + 1)
+        invalidar()
+      } else {
+        setEventosErros(resultado.erros)
+      }
     },
+    onError: () => setEventosErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
+  const executar = useMutation({
+    mutationFn: (id: number) => executarFollowup(id),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setEventosErros(null)
+        invalidar()
+      } else {
+        setEventosErros(resultado.erros)
+      }
+    },
+    onError: () => setEventosErros([RASTREADOR_OPERACAO_ERRO]),
+  })
+
+  const adiar = useMutation({
+    mutationFn: ({ id, novaData }: { id: number; novaData: string }) =>
+      adiarFollowup(id, novaData),
+    onSuccess: (resultado) => {
+      if (resultado.status === 'ok') {
+        setEventosErros(null)
+        invalidar()
+      } else {
+        setEventosErros(resultado.erros)
+      }
+    },
+    onError: () => setEventosErros([RASTREADOR_OPERACAO_ERRO]),
   })
 
   if (isPending) {
@@ -121,103 +170,133 @@ export default function TrackerHome({ prefill, onPrefillConsumida }: TrackerHome
     data.estagios.map((estagio) => [estagio.id, estagio.nome] as const),
   )
 
+  // The ONE open detail (house one-editor-at-a-time convention, A-UI-2).
+  const aberta: CandidaturaDTO | null =
+    abertaId === null
+      ? null
+      : (data.candidaturas.find((candidatura) => candidatura.id === abertaId) ?? null)
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-900">{RASTREADOR_PAGE_TITLE}</h2>
 
       {/* Contadores — honest, derived server-side from persisted events only
           (D-07): the UI renders the numbers, never recomputes. */}
-      <dl className="grid grid-cols-3 gap-2">
-        {CONTADORES_ORDEM.map((chave) => (
-          <div key={chave} className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-            <dt className="text-sm font-medium text-gray-800">
-              {RASTREADOR_CONTADORES_LABELS[chave]}
-            </dt>
-            <dd className="mt-0.5 text-lg font-semibold text-gray-900">
-              {data.contadores[chave]}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <ContadoresGrid contadores={data.contadores} />
 
-      <section aria-labelledby="rastreador-candidaturas-title">
-        <h3 id="rastreador-candidaturas-title" className="text-base font-semibold text-gray-900">
-          {RASTREADOR_CANDIDATURAS_TITLE}
+      {/* Visão geral — the payload order IS the server-sorted order (prazo
+          proximity first, NULL-prazo last, D-09): render in order, never
+          re-sort client-side. */}
+      <section aria-labelledby="rastreador-visao-geral-title">
+        <h3 id="rastreador-visao-geral-title" className="text-base font-semibold text-gray-900">
+          {RASTREADOR_VISAO_GERAL_TITLE}
         </h3>
         {data.candidaturas.length === 0 ? (
           <p className="mt-2 text-sm text-gray-500">{RASTREADOR_SEM_CANDIDATURAS}</p>
         ) : (
           <ul className="mt-2 space-y-2">
             {data.candidaturas.map((candidatura) => (
-              <li
-                key={candidatura.id}
-                className="rounded-md border border-gray-200 bg-white shadow-sm p-4"
-              >
-                <p className="text-sm font-semibold text-gray-900">
-                  {candidatura.empresa} — {candidatura.cargo}
-                </p>
-                <p className="mt-1 text-xs text-gray-500">
-                  {nomePorEstagio.get(candidatura.estagio_id) ?? RASTREADOR_SEM_ESTAGIO}
-                </p>
+              <li key={candidatura.id}>
+                <button
+                  type="button"
+                  onClick={() => setAbertaId(candidatura.id)}
+                  aria-pressed={abertaId === candidatura.id}
+                  className="w-full rounded-md border border-gray-200 bg-white p-4 text-left shadow-sm hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                >
+                  <span className="text-sm font-semibold text-gray-900">
+                    {candidatura.empresa} — {candidatura.cargo}
+                  </span>
+                  <span className="mt-1 block text-xs text-gray-500">
+                    {nomePorEstagio.get(candidatura.estagio_id) ?? RASTREADOR_SEM_ESTAGIO}
+                    {candidatura.arquivada && (
+                      <span className="text-gray-400">{RASTREADOR_ARQUIVADA_SUFIXO}</span>
+                    )}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      {/* Minimal creation form — the plan-07-03 CandidaturaForm replaces this
-          block without architectural change (same mutation, same query key). */}
-      <form
-        className="rounded-md border border-gray-200 bg-white shadow-sm p-4"
-        onSubmit={(event) => {
-          event.preventDefault()
-          if (!podeEnviar || criar.isPending) return
-          setErros(null)
-          criar.mutate({
-            empresa: empresa.trim(),
-            cargo: cargo.trim(),
-            ...(prefill ? { jd_texto: prefill.jd_texto } : {}),
-          })
-        }}
-      >
-        <h3 className="text-base font-semibold text-gray-900">{RASTREADOR_FORM_TITLE}</h3>
-        <div className="mt-3 space-y-3">
-          <label className="block">
-            <span className="text-sm font-medium text-gray-800">{RASTREADOR_LABEL_EMPRESA}</span>
-            <input
-              type="text"
-              value={empresa}
-              maxLength={EMPRESA_MAX_CHARS}
-              placeholder={RASTREADOR_PLACEHOLDER_EMPRESA}
-              onChange={(event) => setEmpresa(event.target.value)}
-              className={`mt-1 ${HINT_INPUT_CLASSES}`}
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-gray-800">{RASTREADOR_LABEL_CARGO}</span>
-            <input
-              type="text"
-              value={cargo}
-              maxLength={CARGO_MAX_CHARS}
-              placeholder={RASTREADOR_PLACEHOLDER_CARGO}
-              onChange={(event) => setCargo(event.target.value)}
-              className={`mt-1 ${HINT_INPUT_CLASSES}`}
-            />
-          </label>
-        </div>
-        {erros && (
-          <div className="mt-3">
-            <ErrorPanel erros={erros} />
-          </div>
-        )}
-        <button
-          type="submit"
-          disabled={!podeEnviar || criar.isPending}
-          className={`mt-3 ${PRIMARY_BUTTON_CLASSES}`}
+      {/* Pipeline — plan 07-03 Task 2 mounts the KanbanBoard here (one
+          DndContext, one SortableContext per column, D-14). */}
+
+      {/* Detail region — exactly ONE candidatura open at a time: the aligned
+          field grid with loud nulls (A-UI-2), link_vaga as the ONLY anchor
+          (S10: rel="noreferrer", JSX-text-only posture), and the EventosPanel
+          with the follow-up lifecycle controls. */}
+      {aberta && (
+        <section
+          aria-labelledby="rastreador-detalhe-title"
+          className="rounded-md border border-gray-200 bg-white shadow-sm p-4"
         >
-          {criar.isPending ? RASTREADOR_CTA_INFLIGHT : RASTREADOR_CTA}
-        </button>
-      </form>
+          <h3 id="rastreador-detalhe-title" className="text-base font-semibold text-gray-900">
+            {aberta.empresa} — {aberta.cargo}
+          </h3>
+          <p className="mt-1 text-xs text-gray-500">
+            {nomePorEstagio.get(aberta.estagio_id) ?? RASTREADOR_SEM_ESTAGIO}
+          </p>
+          <dl className="mt-3 space-y-1 text-sm">
+            {(
+              [
+                [RASTREADOR_LABEL_FONTE, valorOuVazio(aberta.fonte)],
+                [RASTREADOR_LABEL_LINK_VAGA, valorOuVazio(aberta.link_vaga)],
+                [RASTREADOR_LABEL_DATA_APLICACAO, valorOuVazio(aberta.data_aplicacao)],
+                [RASTREADOR_LABEL_PRAZO_RETORNO, valorOuVazio(aberta.prazo_retorno)],
+                [RASTREADOR_LABEL_FAIXA_SALARIAL, valorOuVazio(aberta.faixa_salarial)],
+                [RASTREADOR_LABEL_CONTATO_RECRUTADOR, valorOuVazio(aberta.contato_recrutador)],
+                [
+                  RASTREADOR_LABEL_MODALIDADE,
+                  aberta.modalidade ? RASTREADOR_MODALIDADE_LABELS[aberta.modalidade] : null,
+                ],
+                [RASTREADOR_LABEL_NOTAS, valorOuVazio(aberta.notas)],
+                [RASTREADOR_LABEL_JD_TEXTO, valorOuVazio(aberta.jd_texto)],
+              ] as [string, string | null][]
+            ).map(([rotulo, valor]) => (
+              <div key={rotulo} className="flex gap-2">
+                <dt className="w-44 shrink-0 text-gray-500">{rotulo}</dt>
+                {rotulo === RASTREADOR_LABEL_LINK_VAGA && valor ? (
+                  <dd className="min-w-0 break-all text-blue-600">
+                    <a href={valor} target="_blank" rel="noreferrer" className="hover:underline">
+                      {valor}
+                    </a>
+                  </dd>
+                ) : (
+                  <dd className={valor ? 'min-w-0 whitespace-pre-wrap' : 'text-gray-400'}>
+                    {valor ?? RASTREADOR_DETALHE_VAZIO}
+                  </dd>
+                )}
+              </div>
+            ))}
+          </dl>
+          <div className="mt-3">
+            <EventosPanel
+              candidatura={aberta}
+              erros={eventosErros}
+              registroPendente={registrar.isPending}
+              followupPendente={executar.isPending || adiar.isPending}
+              registroReset={registroReset}
+              onRegistrarEvento={(payload) => registrar.mutate({ id: aberta.id, payload })}
+              onExecutarFollowup={() => executar.mutate(aberta.id)}
+              onAdiarFollowup={(novaData) => adiar.mutate({ id: aberta.id, novaData })}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Full D-06 form — the 07-01 minimal skeleton replaced; the edit path
+          (initial values + PATCH semantics) is wired by Task 3 alongside the
+          detail-region controls. formKey remounts for a fresh form after a
+          successful create. */}
+      <CandidaturaForm
+        key={formKey}
+        titulo={RASTREADOR_FORM_TITLE}
+        pendente={criar.isPending}
+        erros={criarErros}
+        valoresIniciais={{ jd_texto: prefill?.jd_texto ?? '' }}
+        onSubmit={(payload: CandidaturaFormPayload) => criar.mutate(payload)}
+      />
     </div>
   )
 }

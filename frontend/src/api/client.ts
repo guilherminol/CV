@@ -227,6 +227,11 @@ export interface CandidaturaDTO {
   atrasado_prazo: boolean
   followup_pendente: boolean
   followup_vencido: boolean
+  // The follow-up panel's string slots (07-03): the next due followup's date
+  // and the days since the most recent lapse — BOTH server-computed (Pitfall
+  // 7: the client never sources "hoje" to derive them).
+  followup_pendente_data: string | null
+  followup_vencido_dias: number | null
 }
 
 export type TrackerResumoResponse =
@@ -273,6 +278,209 @@ export async function criarCandidatura(payload: {
     throw new Error(`POST /api/tracker/candidaturas falhou: ${resp.status}`)
   }
   return (await resp.json()) as TrackerCriacaoResponse
+}
+
+// --- tracker mutation surface (plan 07-03) — mirrors routes/tracker.py's
+// lifecycle/stage/export handlers. Change BOTH together; tsc -b is the drift
+// gate. Every failure answers HTTP 200 {"status": "erro", "erros": [PT-BR]};
+// non-2xx is a fetch-level failure the caller renders as the generic hint.
+
+/** Shared ok envelope of every candidatura-carrying mutation (editar, mover,
+ * executar followup, adiar followup) — one wire shape for all four. */
+export type TrackerMutacaoCandidaturaResponse =
+  | { status: 'ok'; candidatura: CandidaturaDTO }
+  | { status: 'erro'; erros: string[] }
+
+export type TrackerEventoResponse =
+  | { status: 'ok'; evento: EventoDTO }
+  | { status: 'erro'; erros: string[] }
+
+export type TrackerEstagioResponse =
+  | { status: 'ok'; estagio: EstagioDTO }
+  | { status: 'erro'; erros: string[] }
+
+export type TrackerEstagiosResponse =
+  | { status: 'ok'; estagios: EstagioDTO[] }
+  | { status: 'erro'; erros: string[] }
+
+export type TrackerRemocaoEstagioResponse =
+  | { status: 'ok'; removido: number; estagios: EstagioDTO[] }
+  | { status: 'erro'; erros: string[] }
+
+export type TrackerExportResponse =
+  | { status: 'ok'; arquivo: 'json' | 'csv'; filename: string; conteudo_base64: string }
+  | { status: 'erro'; erros: string[] }
+
+/** One envelope runner for the tracker mutation surface (S5): JSON body in,
+ * typed envelope out; non-2xx throws naming the route (the caller renders the
+ * generic PT-BR hint — raw status is terminal-only). */
+async function trackerMutacao<T>(
+  url: string,
+  method: string,
+  payload: unknown,
+  rota: string,
+): Promise<T> {
+  const resp = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!resp.ok) {
+    throw new Error(`${method} ${rota} falhou: ${resp.status}`)
+  }
+  return (await resp.json()) as T
+}
+
+/** Kanban drop (D-14): move one candidatura to another stage. No optimistic
+ * update (A8) — the ['tracker'] refetch is the truth. */
+export function moverCandidatura(
+  candidaturaId: number,
+  estagioId: number,
+): Promise<TrackerMutacaoCandidaturaResponse> {
+  return trackerMutacao(
+    `/api/tracker/candidaturas/${candidaturaId}/mover`,
+    'POST',
+    { estagio_id: estagioId },
+    '/api/tracker/candidaturas/{id}/mover',
+  )
+}
+
+/** Edit/archive body — every key optional (CandidaturaEdicaoRequest: None =
+ * untouched server-side; arquivada toggles the A2 archive flag). */
+export interface CandidaturaEdicaoPayload {
+  empresa?: string
+  cargo?: string
+  fonte?: string | null
+  link_vaga?: string | null
+  faixa_salarial?: string | null
+  contato_recrutador?: string | null
+  data_aplicacao?: string | null
+  prazo_retorno?: string | null
+  notas?: string | null
+  jd_texto?: string | null
+  modalidade?: TrackerModalidade | null
+  arquivada?: boolean | null
+}
+
+export function editarCandidatura(
+  candidaturaId: number,
+  payload: CandidaturaEdicaoPayload,
+): Promise<TrackerMutacaoCandidaturaResponse> {
+  return trackerMutacao(
+    `/api/tracker/candidaturas/${candidaturaId}`,
+    'PUT',
+    payload,
+    '/api/tracker/candidaturas/{id}',
+  )
+}
+
+export interface EventoRegistroPayload {
+  tipo: TrackerTipoEvento
+  data_evento: string
+  idioma?: ResumeLanguage | null
+  observacao?: string | null
+}
+
+export function registrarEvento(
+  candidaturaId: number,
+  payload: EventoRegistroPayload,
+): Promise<TrackerEventoResponse> {
+  return trackerMutacao(
+    `/api/tracker/candidaturas/${candidaturaId}/eventos`,
+    'POST',
+    payload,
+    '/api/tracker/candidaturas/{id}/eventos',
+  )
+}
+
+/** Execute the pending follow-up (D-10): the server re-dates the earliest
+ * non-past followup to today. The observacao key is OMITTED when absent —
+ * extra=forbid makes an empty string a useless key (regenerarSecao precedent). */
+export function executarFollowup(
+  candidaturaId: number,
+  payload: { observacao?: string } = {},
+): Promise<TrackerMutacaoCandidaturaResponse> {
+  const body = payload.observacao && payload.observacao.trim() ? payload : {}
+  return trackerMutacao(
+    `/api/tracker/candidaturas/${candidaturaId}/followups/executar`,
+    'POST',
+    body,
+    '/api/tracker/candidaturas/{id}/followups/executar',
+  )
+}
+
+/** Postpone the pending follow-up to a strictly future date (D-11); a past
+ * target comes back as the PT-BR erro envelope and the UI renders it. */
+export function adiarFollowup(
+  candidaturaId: number,
+  novaData: string,
+): Promise<TrackerMutacaoCandidaturaResponse> {
+  return trackerMutacao(
+    `/api/tracker/candidaturas/${candidaturaId}/followups/adiar`,
+    'POST',
+    { nova_data: novaData },
+    '/api/tracker/candidaturas/{id}/followups/adiar',
+  )
+}
+
+export function criarEstagio(nome: string): Promise<TrackerEstagioResponse> {
+  return trackerMutacao('/api/tracker/estagios', 'POST', { nome }, '/api/tracker/estagios')
+}
+
+export function renomearEstagio(
+  estagioId: number,
+  nome: string,
+): Promise<TrackerEstagioResponse> {
+  return trackerMutacao(
+    `/api/tracker/estagios/${estagioId}`,
+    'PUT',
+    { nome },
+    '/api/tracker/estagios/{id}',
+  )
+}
+
+/** Reorder the whole board — ordens is the COMPLETE stage id list in the new
+ * order (partial lists are rejected loudly server-side, D-05). */
+export function reordenarEstagios(ordens: number[]): Promise<TrackerEstagiosResponse> {
+  return trackerMutacao(
+    '/api/tracker/estagios/reordenar',
+    'PUT',
+    { ordens },
+    '/api/tracker/estagios/reordenar',
+  )
+}
+
+export function removerEstagio(estagioId: number): Promise<TrackerRemocaoEstagioResponse> {
+  return trackerMutacao(
+    `/api/tracker/estagios/${estagioId}`,
+    'DELETE',
+    undefined,
+    '/api/tracker/estagios/{id}',
+  )
+}
+
+/** D-03 export — the S8 house transport: backend-generated filename + base64
+ * bytes inside the ok envelope; the filename passes to the download helper
+ * VERBATIM (never recomposed client-side). */
+export function exportarTracker(formato: 'json' | 'csv'): Promise<TrackerExportResponse> {
+  return trackerMutacao('/api/tracker/exportar', 'POST', { formato }, '/api/tracker/exportar')
+}
+
+/** D-11 download twin of downloadPdf for the tracker exports: base64 →
+ * Uint8Array → Blob(mime) → detached anchor click, URL revoked on a
+ * subsequent task (IN-03), the backend filename used verbatim (S8). */
+export function downloadConteudo(
+  conteudoBase64: string,
+  filename: string,
+  mime: 'application/json' | 'text/csv',
+): void {
+  const bytes = Uint8Array.from(atob(conteudoBase64), (c) => c.charCodeAt(0))
+  const url = URL.createObjectURL(new Blob([bytes], { type: mime }))
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 // --- resume endpoints (plan 03-04) — mirrors the NORMATIVE response contract
