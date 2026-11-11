@@ -5,7 +5,9 @@ auto-migrates to schema v1 with exactly three tables (estagios, candidaturas,
 eventos) and the five seeded stage rows in ordem 1..5; aplicar_migracoes is
 idempotent (user_version unchanged, row counts unchanged); the
 PRAGMA application_id header is stamped; every conectar() connection
-enforces foreign keys; config exposes TRACKER_DB + TRACKER_FOLLOWUP_SUGGEST_DAYS
+enforces foreign keys AND carries check_same_thread=False (CR-01 — one
+connection per REQUEST, usable across the threadpool workers a single
+request spans); config exposes TRACKER_DB + TRACKER_FOLLOWUP_SUGGEST_DAYS
 (default 7, D-12) and the TRACKER_DB env override is honored with the parent
 dir auto-created.
 
@@ -15,6 +17,8 @@ constant TRACKER_DB at tmp_path — NEVER the real data/ directory.
 """
 
 import importlib
+import sqlite3
+import threading
 
 import pytest
 
@@ -105,6 +109,51 @@ def test_conectar_liga_foreign_keys(db_tmp):
     conn = conectar()
     try:
         assert conn.execute("PRAGMA foreign_keys").fetchone()[0] == 1
+    finally:
+        conn.close()
+
+
+def test_conectar_relaxa_mesma_thread_por_request(db_tmp, monkeypatch):
+    """CR-01 pin: FastAPI runs the yield dependency's setup/teardown
+    (contextmanager_in_threadpool) and the sync handler on DIFFERENT
+    threadpool workers — anyio gives no same-thread guarantee — so conectar()
+    must open with check_same_thread=False. Confinement is per REQUEST
+    (never shared across requests), not per thread."""
+    capturado: dict = {}
+    original_connect = sqlite3.connect
+
+    def espiar(*args, **kwargs):
+        capturado.update(kwargs)
+        return original_connect(*args, **kwargs)
+
+    monkeypatch.setattr(tracker_db.sqlite3, "connect", espiar)
+    conn = conectar()
+    try:
+        assert capturado.get("check_same_thread") is False
+    finally:
+        conn.close()
+
+
+def test_conexao_aceita_uso_de_outra_thread(db_tmp):
+    """CR-01 behavioral pin: the exact failure mode reproduced against a real
+    uvicorn server — using the connection from a thread OTHER than the one
+    that opened it (teardown commit/close lands on another worker than the
+    setup) — must NOT raise sqlite3.ProgrammingError."""
+    conn = conectar()
+    try:
+        aplicar_migracoes(conn)
+        erros: list[Exception] = []
+
+        def usar_de_outra_thread() -> None:
+            try:
+                conn.execute("SELECT COUNT(*) FROM estagios").fetchone()
+            except Exception as exc:  # noqa: BLE001 — the pin IS the absence of this
+                erros.append(exc)
+
+        thread = threading.Thread(target=usar_de_outra_thread)
+        thread.start()
+        thread.join()
+        assert erros == []
     finally:
         conn.close()
 

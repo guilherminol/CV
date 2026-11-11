@@ -4,11 +4,17 @@ The project's FIRST SQLite module (D-01 — the deliberate point reversal of
 the file-based constraint for the tracker ONLY; the master profile stays
 Markdown/YAML in git — recorded in PROJECT.md Key Decisions).
 
-Threading contract (RESEARCH Pattern 1): tracker routes are plain sync `def`
-(house rule — Starlette threadpool dispatch), so connections are ALWAYS
-per-request — opened by the route's yield dependency on the thread that
-serves the request, never module-global, never shared across threads.
-SQLite's same-thread restriction is never relaxed anywhere in this module.
+Threading contract (RESEARCH Pattern 1, corrected by CR-01): tracker routes
+are plain sync `def` (house rule — Starlette threadpool dispatch), so
+connections are ALWAYS per-request — opened by the route's yield dependency,
+never module-global, never shared ACROSS requests. One REQUEST may span
+several threadpool workers: FastAPI runs the yield dependency's setup and
+teardown via contextmanager_in_threadpool and the sync handler in another
+worker — anyio gives no same-thread guarantee. conectar() therefore passes
+check_same_thread=False, the FastAPI-documented relaxation for exactly this
+yield-dependency pattern: the connection stays confined to its single
+request's lifecycle, and SQLite's own locking plus that confinement keep
+the sequential setup → handler → teardown use safe.
 
 Schema history (RESEARCH Pattern 2): `PRAGMA user_version` lives in the file
 header; each entry in MIGRATIONS is one transactional step, applied
@@ -87,11 +93,15 @@ def conectar() -> sqlite3.Connection:
     """Open a fresh per-request connection with the house PRAGMAs.
 
     Callers own the lifecycle (yield dependency: commit + close in finally).
+    check_same_thread=False (CR-01): the single request this connection
+    serves spans several threadpool workers (dependency setup, sync handler,
+    teardown each land where anyio puts them), so confinement is per REQUEST,
+    not per thread — the connection is never shared across requests.
     foreign_keys is OFF by default in SQLite — set per connection (Pitfall 2);
     busy_timeout tolerates the single-writer contention window; WAL keeps
     concurrent reads cheap (A5).
     """
-    conn = sqlite3.connect(TRACKER_DB)
+    conn = sqlite3.connect(TRACKER_DB, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA busy_timeout = 5000")

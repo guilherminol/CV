@@ -2,8 +2,9 @@
 
 House posture (routes/linkedin.py precedent): every handler a plain
 synchronous `def` (Starlette threadpool dispatch — the sqlite3 connection is
-opened on the serving thread by the yield dependency below, RESEARCH
-Pattern 1, never module-global and never shared across threads); every
+one PER REQUEST, confined to that request's lifecycle, which may span
+threadpool workers, RESEARCH Pattern 1 + CR-01 — never module-global and
+never shared across requests); every
 failure answers HTTP 200 {"status": "erro", "erros": [PT-BR lines]} with the
 raw detail logged via logger.error ONLY (terminal); validation failures stay
 FastAPI 422s (extra=forbid DTOs); unknown ids flow through the erro envelope,
@@ -71,8 +72,11 @@ _FALHA_GENERICA = (
 
 def get_tracker_db():
     """Connection per request (RESEARCH Pattern 1 — the FastAPI-docs yield
-    dependency): opened on THIS request's thread, committed after the handler
-    succeeds, closed in finally. A fresh TRACKER_DB auto-migrates here."""
+    dependency): confined to THIS request's lifecycle — the dependency setup,
+    the sync handler and this teardown may each run on a different threadpool
+    worker, hence check_same_thread=False in conectar() (CR-01); committed
+    after the handler succeeds, closed in finally. A fresh TRACKER_DB
+    auto-migrates here."""
     conn = conectar()
     try:
         aplicar_migracoes(conn)
