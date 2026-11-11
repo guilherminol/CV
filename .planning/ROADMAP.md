@@ -13,12 +13,13 @@ Career Tailor goes from an empty repo to a localhost app the user actually sends
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation — Scaffold + Master Profile** - App runs locally with a PT-BR interface; git-versioned master profile schema with example data, validated loudly on load
+- [x] **Phase 1: Foundation — Scaffold + Master Profile** - App runs locally with a PT-BR interface; git-versioned master profile schema with example data, validated loudly on load (completed 2026-09-26)
 - [x] **Phase 2: LLM Generation Core** - One logged, schema-validated, bilingual OpenRouter gateway with meta-prompts as editable git files and an input-agnostic {en, pt} keyword engine (completed 2026-09-26)
 - [x] **Phase 3: Resume Vertical Slice** - Paste JD → grounded, keyword-targeted resume sections with visible keyword extraction, coverage checklist, and completeness lint (completed 2026-09-26)
 - [x] **Phase 4: PDF Export + ATS Self-Check** - Sendable single-column Google-format PDF whose text layer is proven by an automated parse-back gate, in both languages (completed 2026-09-27)
 - [x] **Phase 5: Review Flow + Fact Safety** - Per-section regenerate, inline editing, and source-vs-generated fact diff before export (completed 2026-09-29)
-- [ ] **Phase 6: LinkedIn Module + Bilingual Hardening** - Career objective → headline/About/experience/skills, length-enforced and copy-paste ready in PT-BR or EN
+- [x] **Phase 6: LinkedIn Module + Bilingual Hardening** - Career objective → headline/About/experience/skills, length-enforced and copy-paste ready in PT-BR or EN (completed 2026-09-30)
+- [x] **Phase 7: Application Tracker — Pipeline & Follow-up** - Candidaturas em SQLite com kanban de estágios customizáveis, eventos metadata-only com contadores derivados, prazos âmbar/vermelho, follow-ups com badge N=7, export JSON/CSV e três portas de entrada (completed 2026-11-11)
 
 ## Phase Details
 
@@ -235,12 +236,12 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation — Scaffold + Master Profile | 3/3 | In Progress|  |
+| 1. Foundation — Scaffold + Master Profile | 3/3 | Complete    | 2026-09-26 |
 | 2. LLM Generation Core | 5/5 | Complete    | 2026-09-26 |
 | 3. Resume Vertical Slice | 5/5 | Complete    | 2026-09-26 |
 | 4. PDF Export + ATS Self-Check | 3/3 | Complete    | 2026-09-27 |
 | 5. Review Flow + Fact Safety | 4/4 | Complete    | 2026-09-29 |
-| 6. LinkedIn Module + Bilingual Hardening | 6/6 | In Progress|  |
+| 6. LinkedIn Module + Bilingual Hardening | 6/6 | Complete    | 2026-09-30 |
 | 7. Application Tracker — Pipeline & Follow-up | 5/5 | Complete    | 2026-11-11 |
 
 ### Phase 7: Application Tracker — Pipeline & Follow-up
