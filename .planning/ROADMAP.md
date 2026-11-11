@@ -257,7 +257,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
   5. The user exports everything as JSON + spreadsheet-friendly CSV (utf-8-sig BOM, semicolon delimiter) from the UI, and the .db lives in a gitignored, env-overridable path ready for the homelab bind mount (D-01/D-02/D-03).
   6. Three doors feed the tracker: the manual form, "Registrar candidatura" on the Currículo result (prefills JD text + language; company/role stay user-typed), and the Respostas association (metadata-only event) — behind a fifth "Rastreador" nav item, with no LLM anywhere in the module (D-13/D-15/D-16).
 
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 **Wave 1**
@@ -270,7 +270,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 07-03-PLAN.md — Frontend expansion: kanban (@dnd-kit sortable preset), full candidatura form, events panel with follow-up actions, stage manager, prazo overview with amber/red chips, export buttons (TRK-02..TRK-06)
+- [x] 07-03-PLAN.md — Frontend expansion: kanban (@dnd-kit sortable preset), full candidatura form, events panel with follow-up actions, stage manager, prazo overview with amber/red chips, export buttons (TRK-02..TRK-06)
 
 **Wave 4** *(blocked on Wave 3)*
 

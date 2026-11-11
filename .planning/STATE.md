@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 07
 current_phase_name: Application Tracker — Pipeline & Follow-up
 status: executing
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-11-10T23:39:37.972Z"
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-11-11T00:09:23.190Z"
 last_activity: 2026-11-10
 last_activity_desc: Phase 07 execution started
-state_head: f3f20e185cd023039f9df6b1b71c375a8b29383f
+state_head: 132415fe302b17c836a8f0d078cefceee63b4b53
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 31
-  completed_plans: 28
+  completed_plans: 29
   percent: 57
 ---
 
@@ -69,7 +69,7 @@ action in 06-06-SUMMARY.md, Deferred Human Verification table; WINDOWS.md entry 
 
 Phase: 07 (Application Tracker — Pipeline & Follow-up) — EXECUTING
 ( bloqueio: créditos OpenRouter esgotados — 402; geração ao vivo impossível até top-up)
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-11-10 — Phase 07 execution started
 
@@ -132,6 +132,7 @@ Progress: [██████░░░░] 57% (4 of 6 phases verified complete;
 | Phase 6 P06-06 | 6 min | 1 tasks | 1 files |
 | Phase 07-01 P07-01 | 16min | 3 tasks | 16 files |
 | Phase 07 P07-02 | 14min | 2 tasks | 5 files |
+| Phase 07 P07-03 | 24min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -202,6 +203,8 @@ Recent decisions affecting current work:
 - [Phase 07]: 07-01: TRACKER_FOLLOWUP_SUGGEST_DAYS pinned at 7 (D-12); TRACKER_DB env-overridable for homelab bind mount (D-02); @dnd-kit trio installed as the single D-14 exception — tsc -b green settles A1 (React 19 typings via skipLibCheck) — Discretion areas closed at planning per 07-RESEARCH open-question resolutions; kanban lib user-locked to a ready component
 - [Phase 07]: 07-02: follow-up executar/adiar selector pinned at data_evento >= hoje (a today-dated followup stays executable/postponable; UI flags stay strict future/past-only) — required by the plan's own pendente→executar→adiar vector — Strict > would make adiar-after-executar raise Nenhum follow-up pendente; data-inference (Pattern 4b) keeps truthfulness while the selector covers the due day
 - [Phase 07]: 07-02: stage reorder covers EXACTLY all stages (contiguity by construction); removal blocked via explicit reference COUNT with PT-BR envelope — no cascade ever touches candidaturas (D-05/D-04) — FK pragma alone would only raise IntegrityError; the explicit COUNT is what produces the friendly erro envelope (Pitfall 2 posture)
+- [Phase 07]: 07-03: follow-up panel slots ({data}/{X}) are SERVER-computed fields (followup_pendente_data, followup_vencido_dias) — the payload lacked them and the client never sources 'hoje' (Pitfall 7); pytest-pinned, additive to the wire shape
+- [Phase 07]: 07-03: kanban renders the ACTIVE pipeline (archived filtered out; overview keeps full history); same-stage drops skip the mutation; adiar input has no min attribute (server refusal renders verbatim)
 
 ### Pending Todos
 
@@ -239,6 +242,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-10T23:39:36.755Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-11-11T00:09:10.979Z
+Stopped at: Completed 07-03-PLAN.md
 Resume file: None
