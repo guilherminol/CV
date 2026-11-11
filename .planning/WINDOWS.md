@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 9
+open_count: 11
 waived_count: 0
 fixed_count: 2
-total_count: 11
-last_updated: 2026-09-29T23:06:47.634Z
+total_count: 13
+last_updated: 2026-11-11T00:35:30.955Z
 ---
 
 # Broken Windows Ledger
@@ -26,6 +26,8 @@ last_updated: 2026-09-29T23:06:47.634Z
 | 9 | 06 | stub | frontend/src/pages/LinkedInHome.tsx |  | Tracer scope: result card renders only the Headline block (in-flight hint names four blocks) — 06-02 delivers the full quartet | open |  | 2026-09-29T21:20:27.871Z |  |
 | 10 | 06 | unrun-verify | backend/tests/test_llm_harness.py |  | Full-file DoD run (uv run pytest tests/test_llm_harness.py -m llm -q) incomplete: OpenRouter 402 credit exhaustion mid-run; the dedicated linkedin run (-k linkedin) passed both labels green before exhaustion. Re-run the full command after topping up credits at openrouter.ai/settings/credits. | open |  | 2026-09-29T22:57:35.831Z |  |
 | 11 | 06 | unrun-verify | .planning/phases/06-linkedin-module-bilingual-hardening/06-06-SUMMARY.md |  | Phase 6 end-of-phase human UAT deferred (run convention): copy-paste UX, counters/over-limit path, QA panel framing, max-volume backstop NOT browser-run — automation green stands (403 offline tests + build + 06-05 dedicated bilingual DoD run); /gsd-verify-work 6 re-surfaces as human_needed per the 06-06-SUMMARY Deferred table | open |  | 2026-09-29T23:06:47.634Z |  |
+| 12 | quick-261006-oy9 | deviation | content/profile.md |  | Task 1 ADDITIVE-OK sub-check measured git diff against HEAD, which mixes in pre-existing other-session deletions; plan edits verified insertions-only by direct diff inspection (shared dirty-file q9v convention) | open |  | 2026-10-06T21:48:39.367Z |  |
+| 13 | 07 | unrun-verify | .planning/phases/07-application-tracker-pipeline-follow-up/07-05-SUMMARY.md |  | Phase 7 end-of-phase human UAT deferred (run convention): kanban drag persistence + empty-column drop, keyboard DnD + click survival, amber/red prazo chips + sr-only + no auto-archival, follow-up pendente→executado→badge lifecycle NOT browser-run — automation green stands (516 offline tests + build + D-04/D-08/D-15 audits empty); /gsd:verify-work 7 re-surfaces as human_needed per the 07-05-SUMMARY Deferred table | open |  | 2026-11-11T00:35:30.955Z |  |
 
 ````json
 [
@@ -169,6 +171,32 @@ last_updated: 2026-09-29T23:06:47.634Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-29T23:06:47.634Z",
+    "resolved_at": null,
+    "milestone": null
+  },
+  {
+    "id": 12,
+    "kind": "deviation",
+    "phase": "quick-261006-oy9",
+    "file": "content/profile.md",
+    "line": null,
+    "description": "Task 1 ADDITIVE-OK sub-check measured git diff against HEAD, which mixes in pre-existing other-session deletions; plan edits verified insertions-only by direct diff inspection (shared dirty-file q9v convention)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-06T21:48:39.367Z",
+    "resolved_at": null,
+    "milestone": null
+  },
+  {
+    "id": 13,
+    "kind": "unrun-verify",
+    "phase": "07",
+    "file": ".planning/phases/07-application-tracker-pipeline-follow-up/07-05-SUMMARY.md",
+    "line": null,
+    "description": "Phase 7 end-of-phase human UAT deferred (run convention): kanban drag persistence + empty-column drop, keyboard DnD + click survival, amber/red prazo chips + sr-only + no auto-archival, follow-up pendente→executado→badge lifecycle NOT browser-run — automation green stands (516 offline tests + build + D-04/D-08/D-15 audits empty); /gsd:verify-work 7 re-surfaces as human_needed per the 07-05-SUMMARY Deferred table",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-11-11T00:35:30.955Z",
     "resolved_at": null,
     "milestone": null
   }
